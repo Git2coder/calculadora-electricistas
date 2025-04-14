@@ -24,11 +24,11 @@ export default function App() {
         <nav className="bg-blue-800 text-white p-4 shadow-md">
           <ul className="flex flex-wrap gap-4 text-sm sm:text-base font-medium">
             <li><Link to="/">Inicio</Link></li>
-            <li><Link to="/calculadora">Calculadora</Link></li>
-            <li><Link to="/noticias">Noticias</Link></li>
-            <li><Link to="/reglamentacion">Reglamentación</Link></li>
-            <li><Link to="/acerca">Acerca de</Link></li>
-            <li><Link to="/comentarios">Comentarios</Link></li>
+            <li><Link to="/Calculadora">Calculadora</Link></li>
+            <li><Link to="/Noticias">Noticias</Link></li>
+            <li><Link to="/Reglamentacion">Reglamentación</Link></li>
+            <li><Link to="/Acerca">Acerca de</Link></li>
+            <li><Link to="/Comentarios">Comentarios</Link></li>
           </ul>
         </nav>
 
