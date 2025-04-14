@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { Home } from "./pages/home";
+import { Home } from "./pages/Home";
 import { Calculadora } from "./pages/Calculadora";
 import { Acerca } from "./pages/Acerca";
 import { Noticias } from "./pages/Noticias";
 import { Articulos } from "./pages/Articulos";
 import { Reglamentacion } from "./pages/Reglamentacion";
 import { Consejos } from "./pages/Consejos";
-import { Comentarios } from "./components/comentarios";
+import { Comentarios } from "./components/Comentarios";
 
 export function ComentariosPage() {
   return (
