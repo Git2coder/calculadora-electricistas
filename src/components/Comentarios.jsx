@@ -1,7 +1,7 @@
 // Comentarios.jsx – formulario básico con FormSubmit
 export function Comentarios() {
     return (
-      <div className="max-w-xl mx-auto py-12 px-4">
+      <div className="max-w-xl mx-auto py-10 px-4">
         <h2 className="text-2xl font-bold mb-4 text-blue-800">💬 Dejanos tu comentario</h2>
         <p className="text-gray-600 mb-6">
           Si te fue útil la calculadora o querés dejar alguna sugerencia, conocer tu opinión nos ayuda a crecer.

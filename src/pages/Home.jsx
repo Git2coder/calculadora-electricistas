@@ -1,10 +1,12 @@
 // Home.jsx adaptado para electricistas con animación progresiva y fondo en Hero
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { FaCalculator, FaBook, FaNewspaper } from "react-icons/fa";
+
 
 export function Home() {
   return (
-    <div className="space-y-20">
+    <div className="space-y-0">
 
       {/* Hero con fondo para profesionales */}
       <section
@@ -41,49 +43,40 @@ export function Home() {
       </section>
 
       {/* Secciones progresivas con scroll */}
-      <section className="max-w-5xl mx-auto px-4 space-y-16">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="bg-white p-6 rounded-xl shadow"
-        >
-          <h2 className="text-2xl font-bold text-blue-800 mb-2">📰 Noticias del Sector</h2>
-          <p className="text-gray-700 mb-3">
-            Enterate de cambios normativos, nuevas tecnologías y otros eventos que afectan nuestro rubro.
-          </p>
-          <Link to="/noticias" className="text-blue-600 font-medium hover:underline">Ver</Link>
-        </motion.div>
+      <section className="max-w-6xl mx-auto px-4 py-16">
+  <h2 className="text-3xl font-bold text-center text-blue-800 mb-12">
+    Herramientas destacadas
+  </h2>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white p-6 rounded-xl shadow"
-        >
-          <h2 className="text-2xl font-bold text-blue-800 mb-2">🧮 Calculadora de Presupuestos</h2>
-          <p className="text-gray-700 mb-3">
-            Herramienta creada para ayudarte a cotizar tareas eléctricas según el valor de tu tiempo. Alli podrás obtener un valor estimado y ajustarlo.
-          </p>
-          <Link to="/calculadora" className="text-blue-600 font-medium hover:underline">Cotizar</Link>
-        </motion.div>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {/* Tarjeta Noticias */}
+    <Link to="/noticias" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
+      <FaNewspaper className="text-4xl text-blue-600 mb-4" />
+      <h3 className="text-xl font-semibold mb-2">Noticias</h3>
+      <p className="text-gray-600">
+        Actualizate con las novedades del rubro eléctrico y tendencias del sector.
+      </p>
+    </Link>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-white p-6 rounded-xl shadow"
-        >
-          <h2 className="text-2xl font-bold text-blue-800 mb-2">📚 Índice de Reglamentaciones</h2>
-          <p className="text-gray-700 mb-3">
-            Encuentra fácilmente la reglamentacion AEA que buscas. Solo debes escribir el tema dentro del buscador integrado y podrás ubicarla.
-          </p>
-          <Link to="/reglamentacion" className="text-blue-600 font-medium hover:underline">Buscar</Link>
-        </motion.div>
-      </section>
+    {/* Tarjeta Calculadora */}
+    <Link to="/calculadora" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
+      <FaCalculator className="text-4xl text-green-600 mb-4" />
+      <h3 className="text-xl font-semibold mb-2">Calculadora</h3>
+      <p className="text-gray-600">
+        Cotizá tus trabajos con criterio técnico, claridad y control total.
+      </p>
+    </Link>
+
+    {/* Tarjeta Reglamentación */}
+    <Link to="/reglamentacion" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
+      <FaBook className="text-4xl text-yellow-600 mb-4" />
+      <h3 className="text-xl font-semibold mb-2">Reglamentación</h3>
+      <p className="text-gray-600">
+        Accedé a documentos técnicos y normas vigentes para trabajar respaldado.
+      </p>
+    </Link>
+  </div>
+</section>
     </div>
   );
 }

@@ -21,15 +21,63 @@ export default function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
-        <nav className="bg-blue-800 text-white p-4 shadow-md">
-          <ul className="flex flex-wrap gap-4 text-sm sm:text-base font-medium">
-            <li><Link to="/">Inicio</Link></li>
-            <li><Link to="/Calculadora">Calculadora</Link></li>
-            <li><Link to="/Noticias">Noticias</Link></li>
-            <li><Link to="/Reglamentacion">Reglamentación</Link></li>
-            <li><Link to="/Acerca">Acerca de</Link></li>
-            <li><Link to="/Comentarios">Comentarios</Link></li>
-          </ul>
+        <nav className="bg-blue-800 text-white shadow-md px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+
+            {/* LOGO como botón de inicio */}
+            <Link to="/" className="w-40 flex items-center gap-2 hover:opacity-80 transition">
+              <span className="text-2xl">⚡</span>
+              <span className="font-bold text-l hidden sm:inline">El electricista</span>
+            </Link>
+
+            {/* MENÚ centrado sin 'Inicio' */}
+            <ul className="flex justify-center items-center space-x-0.1">
+              <li>
+                <Link
+                  to="/calculadora"
+                  className="block w-36 text-center py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Calculadora
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/noticias"
+                  className="block w-36 text-center py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Noticias
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/reglamentacion"
+                  className="block w-36 text-center py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Reglamentacion
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/acerca"
+                  className="block w-36 text-center py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Acerca de
+                </Link>
+              </li><li>
+                <Link
+                  to="/comentarios"
+                  className="block w-36 text-center py-2 rounded hover:bg-blue-700 transition"
+                >
+                  Comentarios
+                </Link>
+              </li>
+            </ul>
+
+            {/* ESPACIO futuro para Login */}
+            <div className="w-40 text-right">
+              {/* <Link to="/login" className="text-sm hover:underline">Ingresar</Link> */}
+            </div>
+          </div>
         </nav>
 
         <main className="flex-grow p-4 bg-gray-50">
@@ -46,7 +94,7 @@ export default function App() {
         </main>
 
         <footer className="bg-blue-800 text-white text-center py-4">
-          <p>&copy; {new Date().getFullYear()} Electricista</p>
+          <p>&copy; {new Date().getFullYear()} El electricista ⚡</p>
         </footer>
       </div>
 
