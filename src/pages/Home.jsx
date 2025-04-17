@@ -101,7 +101,7 @@ export function Home() {
             className="bg-blue-50 p-6 rounded-xl shadow text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.7 }}
+            transition={{ duration: 1, delay: 0.5 }}
             viewport={{ once: true }}
           >
             <FaUserCircle className="text-4xl text-orange-400 mx-auto mb-2" />
@@ -117,7 +117,7 @@ export function Home() {
             className="bg-blue-50 p-6 rounded-xl shadow text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5 }}
+            transition={{ duration: 1, delay: 0.7 }}
             viewport={{ once: true }}
 >
             <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
