@@ -12,7 +12,7 @@ export function Home() {
       {/* Hero con fondo para profesionales */}
       <section
         className="bg-cover bg-center text-white py-28 px-6 relative"
-        style={{ backgroundImage: "url('/fondo-electricistas.jpg')" }}
+        style={{ backgroundImage: "url('/fondo-electricistas.webp')" }}
       >
         <div className="relative max-w-4xl mx-auto text-center z-10">
           {/* Fondo oscuro solo en el contenido */}
@@ -101,22 +101,6 @@ export function Home() {
             className="bg-blue-50 p-6 rounded-xl shadow text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            viewport={{ once: true }}
->
-            <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
-            <p className="text-gray-700 italic text-sm">
-              "Me gusta la idea de ahorrar tiempo."
-            </p>
-            <p className="mt-2 text-sm font-medium text-gray-600">Sebastian</p>
-            <p className="text-xs text-gray-500"></p>
-            </motion.div>
-
-          {/* Testimonio 3 */}
-          <motion.div
-            className="bg-blue-50 p-6 rounded-xl shadow text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.7 }}
             viewport={{ once: true }}
           >
@@ -126,9 +110,25 @@ export function Home() {
             </p>
             <p className="mt-2 text-sm font-medium text-gray-600">Jorge</p>
             <p className="text-xs text-gray-500"></p>
+          </motion.div>
+
+          {/* Testimonio 3 */}
+          <motion.div
+            className="bg-blue-50 p-6 rounded-xl shadow text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+            viewport={{ once: true }}
+>
+            <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
+            <p className="text-gray-700 italic text-sm">
+              "Me parecio una pagina interesante."
+            </p>
+            <p className="mt-2 text-sm font-medium text-gray-600">Sebastian</p>
+            <p className="text-xs text-gray-500"></p>
             </motion.div>
 
-          
+                    
         </div>
       </section>
 

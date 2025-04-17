@@ -20,7 +20,7 @@
         { id: 2, nombre: "Instalar interruptor diferencial", tiempo: 15 },
         { id: 3, nombre: "Instalacion de artefacto LED", tiempo: 15, multiplicador: 2.3 },
         { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.85 },
-        { id: 5, nombre: "Reemplazo de termomagnetica", tiempo: 15 },
+        { id: 5, nombre: "Reemplazo de termomagnetica", tiempo: 15, multiplicador: 2.5  },
         { id: 6, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6  },
         { id: 7, nombre: "Instalacion de punto de luz", tiempo: 45 },
         { id: 8, nombre: "Reemplazo de interruptor simples", tiempo: 15 },
@@ -38,14 +38,14 @@
         { id: 20, nombre: "", tiempo: 15 },
 
         /* Tareas avanzadas */
-        { id: 32, nombre: "Instalación de reflectores", tiempo: 40 },
-        { id: 33, nombre: "Instalacion de sensores de movimiento", tiempo: 40 },
+        { id: 32, nombre: "Instalación de reflectores", tiempo: 30, multiplicador: 1.85 },
+        { id: 33, nombre: "Instalacion de sensores de movimiento", tiempo: 30, multiplicador: 1.85 },
         { id: 34, nombre: "Cambio de fusibles", tiempo: 15, multiplicador: 3.5 },
         { id: 35, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
         { id: 36, nombre: "", tiempo: 18 },
-        { id: 37, nombre: "Revisión de puesta a tierra", tiempo: 25 },
+        { id: 37, nombre: "", tiempo: 20, multiplicador: 5 },
         { id: 38, nombre: "Instalación de sistema de alarma", tiempo: 60 },
-        { id: 39, nombre: "Instalacion de fotocélulas", tiempo: 40 },
+        { id: 39, nombre: "Instalacion de fotocélulas", tiempo: 30, multiplicador: 1.85 },
         { id: 40, nombre: "", tiempo: 45 },
         { id: 41, nombre: "Reparación en toma primaria", tiempo: 120, multiplicador: 3 },
         { id: 42, nombre: "", tiempo: 45 },
@@ -53,7 +53,7 @@
         { id: 44, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
         { id: 45, nombre: "Instalacion de tablero embutido", tiempo: 45, multiplicador: 2},
         { id: 46, nombre: "Cambio de contactores", tiempo: 15, multiplicador: 3.5 },
-        { id: 47, nombre: "Instalacion de Jabalina", tiempo: 85 },
+        { id: 47, nombre: "Instalacion de Jabalina", tiempo: 80, multiplicador: 3.2 },
         { id: 48, nombre: "", tiempo: 45 },
         { id: 49, nombre: "", tiempo: 30 },
         { id: 50, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
@@ -64,7 +64,7 @@
         
        
         /* Tareas administrativas */
-        { id: 73, nombre: "Esquema unifilar del tablero", tipo: "administrativa", valor: 240000 },
+        { id: 73, nombre: "Esquema unifilar del tablero", tipo: "administrativa", valor: 140000 },
         { id: 74, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
         { id: 75, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
         { id: 76, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
@@ -132,9 +132,11 @@
     
       const tarifaSegura = isNaN(tarifaHoraria) || tarifaHoraria <= 0 ? 0 : tarifaHoraria;
       const visitaSegura = isNaN(costoConsulta) || costoConsulta < 0 ? 0 : costoConsulta;
-
       const costoBase = tareasSeleccionadas.reduce((acc, tarea) => {
-        const factor = tarea.multiplicador ?? 1; // si no tiene multiplicador, usa 1
+        if (tarea.tipo === "administrativa") {
+          return acc + tarea.valor * tarea.cantidad;
+        }
+        const factor = tarea.multiplicador ?? 1;
         const costoTarea = (tarea.tiempo / 60) * tarifaHoraria * tarea.cantidad * factor;
         return acc + costoTarea;
       }, 0);
