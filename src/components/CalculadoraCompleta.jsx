@@ -15,64 +15,71 @@
 
     
       const tareasPredefinidas = [
-        { id: 1, nombre: "Reemplazo de toma corriente", tiempo: 25 },
+        /* Tareas sencillas */
+        { id: 1, nombre: "Reemplazo de toma corriente", tiempo: 15, multiplicador: 2 },
         { id: 2, nombre: "Instalar interruptor diferencial", tiempo: 15 },
-        { id: 3, nombre: "Colocación de luminaria", tiempo: 30 },
-        { id: 4, nombre: "Revisión y reparación de cortocircuito", tiempo: 90 },
+        { id: 3, nombre: "Instalacion de artefacto LED", tiempo: 15, multiplicador: 2.3 },
+        { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.85 },
         { id: 5, nombre: "Reemplazo de termomagnetica", tiempo: 15 },
-        { id: 6, nombre: "Instalacion de ventilador de techo", tiempo: 80 },
+        { id: 6, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6  },
         { id: 7, nombre: "Instalacion de punto de luz", tiempo: 45 },
-        { id: 8, nombre: "Instalacion de artefacto LED empotrado", tiempo: 25 },
+        { id: 8, nombre: "Reemplazo de interruptor simples", tiempo: 15 },
         { id: 9, nombre: "Cableado de circuito adicional", tiempo: 120 },
-        { id: 10, nombre: "Ampliacion de tablero seccional", tiempo: 80 },
-        { id: 11, nombre: "Cambio de fusibles", tiempo: 15 },
-        { id: 12, nombre: "Instalacion de portero eléctrico", tiempo: 60 },
-        { id: 13, nombre: "Instalacion de toma corriente", tiempo: 40 },
-        { id: 14, nombre: "Automatización de persianas eléctricas", tiempo: 60 },
-        { id: 15, nombre: "Cableado para TV/internet", tiempo: 40 },
+        { id: 10, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
+        { id: 11, nombre: "Reemplazo de interruptor doble", tiempo: 18 },
+        { id: 12, nombre: "Instalacion de portero eléctrico", tiempo: 120 },
+        { id: 13, nombre: "Instalacion de toma corriente adicional", tiempo: 40 },
+        { id: 14, nombre: "Reemplazo de luminarias defectuosa", tiempo: 10, multiplicador: 1.5 },
+        { id: 15, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
         { id: 16, nombre: "Instalacion de protector de tensión", tiempo: 15 },
-        { id: 17, nombre: "Conexionado de térmicas en tablero", tiempo: 15 },
-        { id: 18, nombre: "Revision de líneas de emergencia", tiempo: 60 },
-        { id: 19, nombre: "Montaje de luminarias LED comerciales", tiempo: 20 },
-        { id: 20, nombre: "Mantenimiento de bandejas portacables", tiempo: 60 },
-        { id: 21, nombre: "Conexion de UPS", tiempo: 60 },
-        { id: 22, nombre: "Instalación de reflectores", tiempo: 40 },
-        { id: 23, nombre: "Instalacion de sensores de movimiento", tiempo: 40 },
-        { id: 24, nombre: "Reemplazo de interruptor simples", tiempo: 10 },
-        { id: 25, nombre: "Montaje de tablero secundario", tiempo: 45 },
-        { id: 26, nombre: "Reemplazo de interruptor doble", tiempo: 18 },
-        { id: 27, nombre: "Revisión de puesta a tierra", tiempo: 25 },
-        { id: 28, nombre: "Instalación de sistema de alarma", tiempo: 60 },
-        { id: 29, nombre: "Instalacion de fotocélulas", tiempo: 40 },
-        { id: 30, nombre: "Cableado de luminarias colgantes", tiempo: 45 },
-        { id: 31, nombre: "Reparación de conexión trifásica", tiempo: 45 },
-        { id: 32, nombre: "Instalacion de motor monofásico", tiempo: 45 },
-        { id: 33, nombre: "Automatizacion de tablero", tiempo: 80 },
-        { id: 34, nombre: "Conexionado de sensores industriales", tiempo: 90 },
-        { id: 35, nombre: "Armado de tablero general", tiempo: 85 },
-        { id: 36, nombre: "Cambio de contactores", tiempo: 20 },
-        { id: 37, nombre: "Instalacion de Jabalina", tiempo: 85 },
-        { id: 38, nombre: "Mantenimiento de motores eléctricos", tiempo: 80 },
-        { id: 39, nombre: "Instalacion de variador de frecuencia", tiempo: 80 },
-        { id: 40, nombre: "Revisión de protecciones térmicas", tiempo: 45 },
-        { id: 41, nombre: "Logistica compra de materiales", tiempo: 60 },
-        { id: 42, nombre: "Instalación de aire acondicionado split", tiempo: 200 },
-        { id: 43, nombre: "Esquema unifilar del tablero", tipo: "administrativa", valor: 240000 },
-        { id: 44, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
-        { id: 45, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
-        { id: 46, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
-        { id: 47, nombre: "Elaborar documentacion - Cat. 1", tipo: "administrativa", valor: 140000 },
-        { id: 48, nombre: "Elaborar documentacion - Cat. 2", tipo: "administrativa", valor: 336000 },
-        { id: 49, nombre: "Elaborar documentacion - Cat. 3", tipo: "administrativa", valor: 840000 },
-        { id: 50, nombre: "Medicion de Puesta a Tierra (Jabalina)", tipo: "administrativa", valor: 160000 },
-        { id: 51, nombre: "Plano o Croquis esquematico", tipo: "administrativa", valor: 160000 },
-        { id: 52, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
-        { id: 53, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
-        { id: 54, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },
+        { id: 17, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
+        { id: 18, nombre: "Logistica compra de materiales", tiempo: 30, multiplicador: 1.5 },
+        { id: 19, nombre: "", tiempo: 60 },
+        { id: 20, nombre: "", tiempo: 15 },
+
+        /* Tareas avanzadas */
+        { id: 32, nombre: "Instalación de reflectores", tiempo: 40 },
+        { id: 33, nombre: "Instalacion de sensores de movimiento", tiempo: 40 },
+        { id: 34, nombre: "Cambio de fusibles", tiempo: 15, multiplicador: 3.5 },
+        { id: 35, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
+        { id: 36, nombre: "", tiempo: 18 },
+        { id: 37, nombre: "Revisión de puesta a tierra", tiempo: 25 },
+        { id: 38, nombre: "Instalación de sistema de alarma", tiempo: 60 },
+        { id: 39, nombre: "Instalacion de fotocélulas", tiempo: 40 },
+        { id: 40, nombre: "", tiempo: 45 },
+        { id: 41, nombre: "Reparación en toma primaria", tiempo: 120, multiplicador: 3 },
+        { id: 42, nombre: "", tiempo: 45 },
+        { id: 43, nombre: "Generar automatizacion", tiempo: 120, multiplicador: 2 },
+        { id: 44, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
+        { id: 45, nombre: "Instalacion de tablero embutido", tiempo: 45, multiplicador: 2},
+        { id: 46, nombre: "Cambio de contactores", tiempo: 15, multiplicador: 3.5 },
+        { id: 47, nombre: "Instalacion de Jabalina", tiempo: 85 },
+        { id: 48, nombre: "", tiempo: 45 },
+        { id: 49, nombre: "", tiempo: 30 },
+        { id: 50, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
+        { id: 51, nombre: "", tiempo: 80 },
+        { id: 52, nombre: "Mecanizado de tablero", tiempo: 120, multiplicador: 4  },
+        { id: 53, nombre: "", tiempo: 80 },
+        { id: 54, nombre: "", tiempo: 80 },
+        
+       
+        /* Tareas administrativas */
+        { id: 73, nombre: "Esquema unifilar del tablero", tipo: "administrativa", valor: 240000 },
+        { id: 74, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
+        { id: 75, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
+        { id: 76, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
+        { id: 77, nombre: "Elaborar documentacion - Cat. 1", tipo: "administrativa", valor: 140000 },
+        { id: 78, nombre: "Elaborar documentacion - Cat. 2", tipo: "administrativa", valor: 336000 },
+        { id: 79, nombre: "Elaborar documentacion - Cat. 3", tipo: "administrativa", valor: 840000 },
+        { id: 80, nombre: "Medicion de Puesta a Tierra (Jabalina)", tipo: "administrativa", valor: 160000 },
+        { id: 81, nombre: "Plano o Croquis esquematico", tipo: "administrativa", valor: 160000 },
+        { id: 82, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
+        { id: 83, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
+        { id: 84, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },
 
       ];
     
-      const tareasPopulares = tareasPredefinidas.slice(0, 7);
+      const tareasPopulares = tareasPredefinidas.slice(0, 6);
     
       const tareasFiltradas = tareasPredefinidas.filter((tarea) =>
         tarea.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -127,12 +134,11 @@
       const visitaSegura = isNaN(costoConsulta) || costoConsulta < 0 ? 0 : costoConsulta;
 
       const costoBase = tareasSeleccionadas.reduce((acc, tarea) => {
-        if (tarea.tipo === "administrativa") {
-          return acc + (tarea.valor || 0) * (tarea.cantidad || 1);
-        } else {
-          return acc + ((tarea.tiempo || 0) / 60) * tarifaSegura * (tarea.cantidad || 1);
-        }
+        const factor = tarea.multiplicador ?? 1; // si no tiene multiplicador, usa 1
+        const costoTarea = (tarea.tiempo / 60) * tarifaHoraria * tarea.cantidad * factor;
+        return acc + costoTarea;
       }, 0);
+      
 
       const costoFinal = isNaN(costoBase)
         ? 0
@@ -189,7 +195,7 @@
               
             {/* BUSCADOR Y TAREAS POPULARES */}
             <div className="bg-white p-6 rounded-xl shadow space-y-4">
-              <h2 className="text-xl font-semibold">📋 Buscar o Agregar Tarea</h2>
+              <h2 className="text-xl font-semibold">📋 Buscar y Agregar Tarea</h2>
               <input
                 type="text"
                 className="w-full p-2 border rounded"
