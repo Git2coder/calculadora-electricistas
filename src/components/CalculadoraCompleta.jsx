@@ -17,7 +17,7 @@
       const tareasPredefinidas = [
         /* Tareas sencillas */
         { id: 1, nombre: "Reemplazo de toma corriente", tiempo: 15, multiplicador: 2 },
-        { id: 2, nombre: "Instalar interruptor diferencial", tiempo: 15 },
+        { id: 2, nombre: "Instalar interruptor diferencial", tiempo: 15, multiplicador: 2.5 },
         { id: 3, nombre: "Instalacion de artefacto LED", tiempo: 15, multiplicador: 2.3 },
         { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.85 },
         { id: 5, nombre: "Reemplazo de termomagnetica", tiempo: 15, multiplicador: 2.5  },
@@ -27,7 +27,7 @@
         { id: 9, nombre: "Cableado de circuito adicional", tiempo: 120 },
         { id: 10, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
         { id: 11, nombre: "Reemplazo de interruptor doble", tiempo: 18 },
-        { id: 12, nombre: "Instalacion de portero eléctrico", tiempo: 120 },
+        { id: 12, nombre: "Instalacion de portero eléctrico", tiempo: 150, multiplicador: 1.85 },
         { id: 13, nombre: "Instalacion de toma corriente adicional", tiempo: 40 },
         { id: 14, nombre: "Reemplazo de luminarias defectuosa", tiempo: 10, multiplicador: 1.5 },
         { id: 15, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
@@ -58,13 +58,13 @@
         { id: 49, nombre: "", tiempo: 30 },
         { id: 50, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
         { id: 51, nombre: "", tiempo: 80 },
-        { id: 52, nombre: "Mecanizado de tablero", tiempo: 120, multiplicador: 4  },
+        { id: 52, nombre: "", tiempo: 120 },
         { id: 53, nombre: "", tiempo: 80 },
         { id: 54, nombre: "", tiempo: 80 },
         
        
         /* Tareas administrativas */
-        { id: 73, nombre: "Esquema unifilar del tablero", tipo: "administrativa", valor: 140000 },
+        { id: 73, nombre: "", tipo: "administrativa", valor: 140000 },
         { id: 74, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
         { id: 75, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
         { id: 76, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
@@ -76,6 +76,18 @@
         { id: 82, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
         { id: 83, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
         { id: 84, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },
+
+        // Tareas por circuito
+        { id: 1001, nombre: "Cableado", tiempo: 200, multiplicador: 1.5, unidad: "circuitos" },
+        { id: 1002, nombre: "Instalación de cañería ", tiempo: 50, multiplicador: 1.3, unidad: "circuitos" },
+        { id: 1003, nombre: "Colocación de térmicas/disyuntores", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
+        { id: 1004, nombre: "", tiempo: 20, multiplicador: 1.8, unidad: "circuitos" },
+        { id: 1005, nombre: "", tiempo: 20, multiplicador: 1.5, unidad: "circuitos" },
+        { id: 1006, nombre: "Medición y diagnóstico de circuito", tiempo: 25, multiplicador: 2, unidad: "circuitos" },
+        { id: 1007, nombre: "Elaboración de planos unifilares", tiempo: 20, multiplicador: 1.4, unidad: "circuitos" },
+
+        // Tareas por polos
+        { id: 1017, nombre: "Armado de tablero", tiempo: 10, multiplicador: 3.5, unidad: "polos" },
 
       ];
     
@@ -290,7 +302,9 @@
                       <span className="flex-1">{tarea.nombre}</span>
 
                       <div className="flex items-center gap-1">
-                        <label className="text-gray-500">Cant.:</label>
+                        <label className="text-gray-500">
+                          {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
+                        </label>
                         <input
                           type="number"
                           min="1"
