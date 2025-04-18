@@ -16,15 +16,15 @@
     
       const tareasPredefinidas = [
         /* Tareas sencillas */
-        { id: 1, nombre: "Reemplazo de toma corriente", tiempo: 15, multiplicador: 2 },
-        { id: 2, nombre: "Instalar interruptor diferencial", tiempo: 15, multiplicador: 2.5 },
+        { id: 1, nombre: "Reemplazo de tomacorriente", tiempo: 15, multiplicador: 2 },
+        { id: 2, nombre: "Colocar termica/diferencial", tiempo: 15, multiplicador: 2.5 },
         { id: 3, nombre: "Instalacion de artefacto LED", tiempo: 15, multiplicador: 2.3 },
         { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.85 },
-        { id: 5, nombre: "Reemplazo de termomagnetica", tiempo: 15, multiplicador: 2.5  },
-        { id: 6, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6  },
-        { id: 7, nombre: "Instalacion de punto de luz", tiempo: 45 },
-        { id: 8, nombre: "Reemplazo de interruptor simples", tiempo: 15 },
-        { id: 9, nombre: "Cableado de circuito adicional", tiempo: 120 },
+        { id: 5, nombre: "Punto de luz adicional", tiempo: 45, multiplicador: 1.55 },
+        { id: 6, nombre: "Reemplazo de interruptor simple", tiempo: 15 },
+        { id: 7, nombre: "Colocacion de cajas", tiempo: 10, multiplicador: 2},
+        { id: 8, nombre: "Busqueda de fuga a tierra", tiempo: 90, multiplicador: 1.85, unidad: "circuitos"},
+        { id: 9, nombre: "termica/diferencial (>2polos)", tiempo: 120 },
         { id: 10, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
         { id: 11, nombre: "Reemplazo de interruptor doble", tiempo: 18 },
         { id: 12, nombre: "Instalacion de portero eléctrico", tiempo: 150, multiplicador: 1.85 },
@@ -34,8 +34,8 @@
         { id: 16, nombre: "Instalacion de protector de tensión", tiempo: 15 },
         { id: 17, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
         { id: 18, nombre: "Logistica compra de materiales", tiempo: 30, multiplicador: 1.5 },
-        { id: 19, nombre: "", tiempo: 60 },
-        { id: 20, nombre: "", tiempo: 15 },
+        { id: 19, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6},
+        { id: 20, nombre: "Replanteo", tiempo: 25, multiplicador: 3.5, unidad: "circuitos" },
 
         /* Tareas avanzadas */
         { id: 32, nombre: "Instalación de reflectores", tiempo: 30, multiplicador: 1.85 },
@@ -44,7 +44,7 @@
         { id: 35, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
         { id: 36, nombre: "", tiempo: 18 },
         { id: 37, nombre: "", tiempo: 20, multiplicador: 5 },
-        { id: 38, nombre: "Instalación de sistema de alarma", tiempo: 60 },
+        { id: 38, nombre: "Instalación de sistema de alarma", tiempo: 60, multiplicador: 1.85 },
         { id: 39, nombre: "Instalacion de fotocélulas", tiempo: 30, multiplicador: 1.85 },
         { id: 40, nombre: "", tiempo: 45 },
         { id: 41, nombre: "Reparación en toma primaria", tiempo: 120, multiplicador: 3 },
@@ -72,19 +72,19 @@
         { id: 78, nombre: "Elaborar documentacion - Cat. 2", tipo: "administrativa", valor: 336000 },
         { id: 79, nombre: "Elaborar documentacion - Cat. 3", tipo: "administrativa", valor: 840000 },
         { id: 80, nombre: "Medicion de Puesta a Tierra (Jabalina)", tipo: "administrativa", valor: 160000 },
-        { id: 81, nombre: "Plano o Croquis esquematico", tipo: "administrativa", valor: 160000 },
+        { id: 81, nombre: "Croquis esquematico", tipo: "administrativa", valor: 160000 },
         { id: 82, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
         { id: 83, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
         { id: 84, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },
 
         // Tareas por circuito
-        { id: 1001, nombre: "Cableado", tiempo: 200, multiplicador: 1.5, unidad: "circuitos" },
-        { id: 1002, nombre: "Instalación de cañería ", tiempo: 50, multiplicador: 1.3, unidad: "circuitos" },
-        { id: 1003, nombre: "Colocación de térmicas/disyuntores", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
+        { id: 1001, nombre: "Pasado de conductores (F,N,PE)", tiempo: 30, multiplicador: 1.5, unidad: "circuitos" },
+        { id: 1002, nombre: "Instalación de cañería", tiempo: 90, multiplicador: 1.5, unidad: "circuitos" },
+        { id: 1003, nombre: "", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
         { id: 1004, nombre: "", tiempo: 20, multiplicador: 1.8, unidad: "circuitos" },
         { id: 1005, nombre: "", tiempo: 20, multiplicador: 1.5, unidad: "circuitos" },
-        { id: 1006, nombre: "Medición y diagnóstico de circuito", tiempo: 25, multiplicador: 2, unidad: "circuitos" },
-        { id: 1007, nombre: "Elaboración de planos unifilares", tiempo: 20, multiplicador: 1.4, unidad: "circuitos" },
+        { id: 1006, nombre: "Medición y diagnóstico", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
+        { id: 1007, nombre: "Elaboración de planos unifilares", tiempo: 15, multiplicador: 1.4, unidad: "circuitos" },
 
         // Tareas por polos
         { id: 1017, nombre: "Armado de tablero", tiempo: 10, multiplicador: 3.5, unidad: "polos" },
