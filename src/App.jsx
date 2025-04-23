@@ -59,7 +59,7 @@ export default function App() {
               onClick={() => setMenuAbierto(false)}
             >
               <span className="text-2xl">⚡</span>
-              <span className="font-bold text-l hidden sm:inline">El electricista +</span>
+              <span className="font-bold text-l hidden sm:inline">Electricista +</span>
             </Link>
 
             {/* Menú horizontal para pantallas grandes */}
@@ -130,7 +130,7 @@ export default function App() {
         </main>
 
         <footer className="bg-blue-800 text-white text-center py-4">
-          <p>&copy; {new Date().getFullYear()} - ⚡El electricista +</p>
+          <p>Todos los derecho reservados. &copy; {new Date().getFullYear()} - ⚡Electricista+ </p>
         </footer>
       </div>
     

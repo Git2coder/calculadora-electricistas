@@ -74,8 +74,84 @@ export function Home() {
         </div>        
       </section>
       
+      <section className="bg-white py-16 space-y-24">
+
+        {/* Bloque 1 */}
+        <motion.div
+  className="relative grid md:grid-cols-2 items-center max-w-6xl mx-auto"
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8 }}
+  viewport={{ once: true }}
+>
+  <div className="hidden md:block">
+    <div
+      className="bg-cover bg-center clip-diagonal-left"
+      style={{ backgroundImage: "url('/beneficio-tiempo.webp')" }}
+    />
+  </div>
+  <div className="p-8 md:pl-16">
+    <h3 className="text-3xl font-bold text-green-700 mb-4">⏱️ Ganá tiempo</h3>
+    <p className="text-gray-700 text-lg">
+      Presupuestar ya no es una carga. Con esta herramienta, en minutos tenés todo resuelto. Más tiempo para trabajar y menos para calcular.
+    </p>
+  </div>
+</motion.div>
+
+
+        {/* Bloque 2 (invertido) */}
+        <motion.div
+  className="relative grid md:grid-cols-2 items-center max-w-6xl mx-auto"
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, delay: 0.2 }}
+  viewport={{ once: true }}
+>
+  <div className="p-8 md:pr-16 order-2 md:order-1">
+    <h3 className="text-3xl font-bold text-blue-700 mb-4">💸 Aumentá tus ingresos</h3>
+    <p className="text-gray-700 text-lg">
+      Cotizar con criterio es ganar dinero con cada proyecto. No más precios al azar, ahora sabés lo que vale tu tiempo.
+    </p>
+  </div>
+  <div className="hidden md:block order-1 md:order-2">
+    <div
+      className="bg-cover bg-center clip-diagonal-right"
+      style={{ backgroundImage: "url('/beneficio-ganancia.webp')" }}
+    />
+  </div>
+</motion.div>
+
+        {/* Bloque 3 */}
+        <motion.div
+  className="relative grid md:grid-cols-2 items-center max-w-6xl mx-auto"
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, delay: 0.3 }}
+  viewport={{ once: true }}
+>
+  <div className="hidden md:block">
+    <div
+      className="bg-cover clip-diagonal-left"
+      style={{
+        backgroundImage: "url('/beneficio-clientes.webp')",
+        backgroundPosition: "top"
+      }}
+    />
+  </div>
+  <div className="p-8 md:pl-16">
+    <h3 className="text-3xl font-bold text-yellow-500 mb-4">📈 Más oportunidades</h3>
+    <p className="text-gray-700 text-lg">
+      Respondiendo más rápido a nuevos pedidos, podés cotizar más y cerrar más trabajos. Eso se traduce en crecimiento real.
+    </p>
+  </div>
+</motion.div>
+
+      </section>
+
+
+
             {/* TESTIMONIOS HORIZONTALES */}
-      <section className="bg-white py-16 px-3">
+      <section className="bg-gray py-16 px-3">
         <h2 className="text-2xl font-bold text-center text-blue-800 mb-12">
           Lo que dicen otros profesionales
         </h2>
@@ -122,7 +198,7 @@ export function Home() {
 >
             <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
             <p className="text-gray-700 italic text-sm">
-              "Me parecio una pagina interesante."
+              "Armar los presupuestos con esto es lo más."
             </p>
             <p className="mt-2 text-sm font-medium text-gray-600">Sebastian</p>
             <p className="text-xs text-gray-500"></p>

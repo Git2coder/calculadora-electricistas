@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.clip-diagonal-left {
+    clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+    height: 200px;
+    border-radius: 1rem;
+  }
+  
+  .clip-diagonal-right {
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+    height: 200px;
+    border-radius: 1rem;
+  }
+  
