@@ -1,3 +1,6 @@
+import { ModalAcceso } from "./components/ModalAcceso";
+import { signOut } from "firebase/auth";
+import { auth } from "./firebaseConfig";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { Calculadora } from "./pages/Calculadora";
@@ -7,6 +10,11 @@ import { Reglamentacion } from "./pages/Reglamentacion";
 import { Comentarios } from "./components/Comentarios";
 import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
+import { AdminUsuarios } from "./pages/AdminUsuarios";
+import { AdminRoute } from "./components/AdminRoute";
+import { useEffect } from "react"; 
 
 export function ComentariosPage() {
   return (
@@ -19,7 +27,16 @@ export function ComentariosPage() {
 
 export default function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [mostrarModalAcceso, setMostrarModalAcceso] = useState(false);
+  const { user, logout } = useAuth();
+  const { usuario } = useAuth(); // si ya lo estás usando, no hace falta repetir
 
+  useEffect(() => {
+    const handler = () => setMostrarModalAcceso(true);
+    window.addEventListener("abrirModalAcceso", handler);
+    return () => window.removeEventListener("abrirModalAcceso", handler);
+  }, []);
+  
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
@@ -54,9 +71,24 @@ export default function App() {
               <li><Link to="/comentarios" className="block w-32 text-center py-2 rounded hover:bg-blue-700 transition">Comentarios</Link></li>
             </ul>
 
-            {/* Espacio futuro login */}
-            <div className="w-40 text-right hidden sm:block">
-              {/* <Link to="/login" className="text-sm hover:underline">Ingresar</Link> */}
+            {/* Espacio login */}
+            <div className="flex gap-2 items-center">
+            {usuario ? (
+  <button
+    onClick={() => signOut(auth)}
+    className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
+  >
+    Cerrar sesión
+  </button>
+) : (
+  <button
+    onClick={() => setMostrarModalAcceso(true)}
+    className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
+  >
+    Acceder
+  </button>
+)}
+
             </div>
           </div>
 
@@ -76,11 +108,24 @@ export default function App() {
         <main className="flex-grow p-4 bg-gray-50">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/calculadora" element={<Calculadora />} />
+            <Route
+              path="/calculadora"
+              element={
+                <ProtectedRoute>
+                  <Calculadora />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/acerca" element={<Acerca />} />
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/reglamentacion" element={<Reglamentacion />} />
             <Route path="/comentarios" element={<ComentariosPage />} />
+            <Route path="/admin" element={
+                <AdminRoute>
+                  <AdminUsuarios />
+                </AdminRoute>
+              } />
+
           </Routes>
         </main>
 
@@ -99,7 +144,10 @@ export default function App() {
         <span className="text-xl">💬</span>
         <span className="hidden sm:inline">Contactar por WhatsApp</span>
       </a> */}
-      
+      {mostrarModalAcceso && (
+  <ModalAcceso onClose={() => setMostrarModalAcceso(false)} />
+)}
+
     </Router>
   );
 }

@@ -19,7 +19,7 @@
         { id: 1, nombre: "Reemplazo de tomacorriente", tiempo: 15, multiplicador: 2 },
         { id: 2, nombre: "Colocar termica/diferencial", tiempo: 15, multiplicador: 2.5 },
         { id: 3, nombre: "Instalacion de artefacto LED", tiempo: 15, multiplicador: 2.3 },
-        { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.85 },
+        { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.65 },
         { id: 5, nombre: "Punto de luz adicional", tiempo: 45, multiplicador: 1.55 },
         { id: 6, nombre: "Reemplazo de interruptor simple", tiempo: 15 },
         { id: 7, nombre: "Colocacion de cajas", tiempo: 10, multiplicador: 2},
@@ -88,6 +88,21 @@
 
         // Tareas por polos
         { id: 1017, nombre: "Armado de tablero", tiempo: 10, multiplicador: 3.5, unidad: "polos" },
+        // Métodos de cálculo de cableado
+        { id: 3001, nombre: "Cableado por ambiente", tiempo: 60, multiplicador: 1.8, unidad: "ambientes" },
+        { id: 3002, nombre: "Cableado por superficie", tiempo: 7, multiplicador: 1.6, unidad: "m²" },
+        { id: 3003, nombre: "Cableado por metro lineal", tiempo: 3, multiplicador: 1.8, unidad: "metros lineales" },
+        {
+          id: 9001,
+          nombre: "Tomacorriente",
+          opciones: {
+            instalacion: { tiempo: 25, multiplicador: 2.2 },
+            reemplazo: { tiempo: 15, multiplicador: 1.4 }
+          },
+          variante: "instalacion"
+        },
+        
+        
 
       ];
     
@@ -98,27 +113,45 @@
       );
     
       const agregarTarea = (tarea) => {
-        if (!tareasSeleccionadas.some((t) => t.id === tarea.id)) {
-          setTareasSeleccionadas([
-            ...tareasSeleccionadas,
-            {
-              ...tarea,
-              cantidad: 1,
-              tiempo: tarea.tiempo || 0,
-              valor: tarea.valor || 0,
-            },
-          ]);
-        }
+        const base = tarea.opciones?.[tarea.variante] || tarea;
+      
+        const nuevaTarea = {
+          ...tarea,
+          id: Date.now() + Math.floor(Math.random() * 1000), // 👈 siempre único
+          cantidad: 1,
+          tiempo: base.tiempo,
+          multiplicador: base.multiplicador ?? tarea.multiplicador ?? 1,
+          valor: tarea.valor || 0,
+          variante: tarea.variante || null,
+        };
+      
+        setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
       };
+      
+      
+      
       
     
       const modificarTarea = (id, campo, valor) => {
-        setTareasSeleccionadas(
-          tareasSeleccionadas.map((tarea) =>
-            tarea.id === id ? { ...tarea, [campo]: parseInt(valor) || 0 } : tarea
+        setTareasSeleccionadas((tareas) =>
+          tareas.map((tarea) =>
+            tarea.id === id
+              ? {
+                  ...tarea,
+                  [campo]:
+                    campo === "variante"
+                      ? valor
+                      : isNaN(parseFloat(valor))
+                      ? 0
+                      : parseFloat(valor),
+                }
+              : tarea
           )
         );
       };
+      
+
+      
     
       const eliminarTarea = (id) => {
         setTareasSeleccionadas(tareasSeleccionadas.filter((t) => t.id !== id));
@@ -295,28 +328,51 @@
               ) : (
                 <div className="space-y-2">
                   {tareasSeleccionadas.map((tarea) => (
-                    <div
-                      key={tarea.id}
-                      className="flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm"
-                    >
-                      <span className="flex-1">{tarea.nombre}</span>
-
-                      <div className="flex items-center gap-1">
-                        <label className="text-gray-500">
-                          {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          className="w-16 p-1 border rounded"
-                          value={tarea.cantidad}
-                          onChange={(e) =>
-                            modificarTarea(tarea.id, "cantidad", e.target.value)
-                          }
-                        />
+                    <div key={tarea.id} className="flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm">
+                    <span className="flex-1">{tarea.nombre}</span>
+                  
+                    {/* Selector si la tarea tiene opciones */}
+                    {tarea.opciones && (
+                      <div className="flex gap-2">
+                        {["instalacion", "reemplazo"].map((modo) => (
+                          <button
+                            key={modo}
+                            className={`px-2 py-1 text-xs rounded ${
+                              tarea.variante === modo
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-200 text-gray-700"
+                            }`}
+                            onClick={() => {
+                              const nuevaConfig = tarea.opciones[modo];
+                              modificarTarea(tarea.id, "variante", modo);
+                              modificarTarea(tarea.id, "tiempo", nuevaConfig.tiempo);
+                              modificarTarea(tarea.id, "multiplicador", nuevaConfig.multiplicador ?? 1);
+                            }}
+                          >
+                            {modo === "instalacion" ? "Instalación" : "Reemplazo"}
+                          </button>
+                        ))}
                       </div>
-
-                      {tarea.tipo === "administrativa" ? (
+                    )}
+                  
+                    {/* Cantidad */}
+                    <div className="flex items-center gap-1">
+                      <label className="text-gray-500">
+                        {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="w-16 p-1 border rounded"
+                        value={tarea.cantidad}
+                        onChange={(e) =>
+                          modificarTarea(tarea.id, "cantidad", e.target.value)
+                        }
+                      />
+                    </div>
+                  
+                    {/* Tiempo o Valor */}
+                    {tarea.tipo === "administrativa" ? (
                       <div className="flex items-center gap-1">
                         <label className="text-gray-500">Valor:</label>
                         <input
@@ -342,15 +398,17 @@
                         />
                       </div>
                     )}
-
-                      <button
-                        className="text-red-600"
-                        onClick={() => eliminarTarea(tarea.id)}
-                        title="Eliminar tarea"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+                  
+                    {/* Eliminar */}
+                    <button
+                      className="text-red-600"
+                      onClick={() => eliminarTarea(tarea.id)}
+                      title="Eliminar tarea"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                  
                   ))}
                 </div>
               )}
