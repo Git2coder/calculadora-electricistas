@@ -98,7 +98,23 @@
         // 🚧 Intervenciones complejas
         { id: 90, nombre: "Colocar Fusibles", tiempo: 20, multiplicador: 3.5 },
         { id: 91, nombre: "Reparacion en toma primaria", tiempo: 120, multiplicador: 3 },
-        { id: 92, nombre: "Pilar monofasico", tiempo: 240, multiplicador: 3.5 },
+        { id: 92,
+          nombre: "Pilar monofasico",
+          opciones: {
+            "sin-albañileria": { tiempo: 210, multiplicador: 3.0 },
+            "con-albañileria": { tiempo: 270, multiplicador: 3.5 },
+          },
+          variante: "monofasico-sin-albañileria"
+        },
+        { id: 93,
+          nombre: "Pilar trifasico",
+          opciones: {
+            "sin-albañileria": { tiempo: 270, multiplicador: 3.8 },
+            "con-albañileria": { tiempo: 330, multiplicador: 4.2 },
+          },
+          variante: "monofasico-sin-albañileria"
+        },
+        
 
         // 📋 Tareas administrativas - AEA
         { id: 100, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
@@ -126,7 +142,7 @@
       
         const nuevaTarea = {
           ...tarea,
-          id: Date.now() + Math.floor(Math.random() * 1000), // 👈 siempre único
+          id: Date.now() + Math.floor(Math.random() * 1000), // Asegura ID único para permitir variantes duplicadas
           cantidad: 1,
           tiempo: base.tiempo,
           multiplicador: base.multiplicador ?? tarea.multiplicador ?? 1,
@@ -136,6 +152,8 @@
       
         setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
       };
+      
+      
       
       
       
@@ -342,27 +360,27 @@
                   
                     {/* Selector si la tarea tiene opciones */}
                     {tarea.opciones && (
-                      <div className="flex gap-2">
-                        {["instalacion", "reemplazo"].map((modo) => (
-                          <button
-                            key={modo}
-                            className={`px-2 py-1 text-xs rounded ${
-                              tarea.variante === modo
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-200 text-gray-700"
-                            }`}
-                            onClick={() => {
-                              const nuevaConfig = tarea.opciones[modo];
-                              modificarTarea(tarea.id, "variante", modo);
-                              modificarTarea(tarea.id, "tiempo", nuevaConfig.tiempo);
-                              modificarTarea(tarea.id, "multiplicador", nuevaConfig.multiplicador ?? 1);
-                            }}
-                          >
-                            {modo === "instalacion" ? "Instalación" : "Reemplazo"}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+  <div className="flex gap-2 flex-wrap">
+    {Object.entries(tarea.opciones).map(([clave, config]) => (
+      <button
+        key={clave}
+        className={`px-2 py-1 text-xs rounded ${
+          tarea.variante === clave
+            ? "bg-blue-600 text-white"
+            : "bg-gray-200 text-gray-700"
+        }`}
+        onClick={() => {
+          modificarTarea(tarea.id, "variante", clave);
+          modificarTarea(tarea.id, "tiempo", config.tiempo);
+          modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
+        }}
+      >
+        {clave.replaceAll("-", " ").replace("monofasico", "Monofásico").replace("trifasico", "Trifásico")}
+      </button>
+    ))}
+  </div>
+)}
+
                   
                     {/* Cantidad */}
                     <div className="flex items-center gap-1">
