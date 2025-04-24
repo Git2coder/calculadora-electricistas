@@ -15,98 +15,105 @@
 
     
       const tareasPredefinidas = [
-        /* Tareas sencillas */
-        { id: 1, nombre: "Reemplazo de tomacorriente", tiempo: 15, multiplicador: 2 },
-        { id: 2, nombre: "Colocar termica/diferencial", tiempo: 15, multiplicador: 2.5 },
-        { id: 3, nombre: "Instalacion de artefacto LED", tiempo: 15, multiplicador: 2.3 },
-        { id: 4, nombre: "Reparación de cortocircuito", tiempo: 90, multiplicador: 1.65 },
-        { id: 5, nombre: "Punto de luz adicional", tiempo: 45, multiplicador: 1.55 },
-        { id: 6, nombre: "Reemplazo de interruptor simple", tiempo: 15 },
-        { id: 7, nombre: "Colocacion de cajas", tiempo: 10, multiplicador: 2},
-        { id: 8, nombre: "Busqueda de fuga a tierra", tiempo: 90, multiplicador: 1.85, unidad: "circuitos"},
-        { id: 9, nombre: "termica/diferencial (>2polos)", tiempo: 120 },
+        // 🔌 Tareas básicas
+        { id: 1, nombre: "Tomacorriente", opciones: {
+          instalacion: { tiempo: 25, multiplicador: 2.2 },
+          reemplazo: { tiempo: 15, multiplicador: 1.4 }
+        }, variante: "instalacion" },
+        { id: 2, nombre: "Interruptor simple", opciones: {
+          instalacion: { tiempo: 20, multiplicador: 1.8 },
+          reemplazo: { tiempo: 15, multiplicador: 1.3 }
+        }, variante: "instalacion" },
+        { id: 3, nombre: "Interruptor doble", opciones: {
+          instalacion: { tiempo: 25, multiplicador: 2 },
+          reemplazo: { tiempo: 18, multiplicador: 1.4 }
+        }, variante: "instalacion" },
+        { id: 4, nombre: "Busqueda cortocircuito", tiempo: 10, multiplicador: 1.85, unidad: "Cajas" },
+      
+
+        // ⚡ Protecciones y dispositivos 
+        { id: 5, nombre: "Protector de tensión", tiempo: 15 },
+        { id: 6, nombre: "Termica / Diferencial (2 polos)", tiempo: 15, multiplicador: 2.5 },
+        { id: 7, nombre: "Termica / Diferencial (>2polos)", tiempo: 120 },
+        { id: 8, nombre: "Remplazar contactor", tiempo: 15, multiplicador: 3.5 },
+        { id: 9, nombre: "Instalacion de Jabalina", tiempo: 80, multiplicador: 3.2 },
+
+        // 💧 Elementos hidráulicos
         { id: 10, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
-        { id: 11, nombre: "Reemplazo de interruptor doble", tiempo: 18 },
-        { id: 12, nombre: "Instalacion de portero eléctrico", tiempo: 150, multiplicador: 1.85 },
-        { id: 13, nombre: "Instalacion de toma corriente adicional", tiempo: 40 },
-        { id: 14, nombre: "Reemplazo de luminarias defectuosa", tiempo: 10, multiplicador: 1.5 },
-        { id: 15, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
-        { id: 16, nombre: "Instalacion de protector de tensión", tiempo: 15 },
-        { id: 17, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
-        { id: 18, nombre: "Logistica compra de materiales", tiempo: 30, multiplicador: 1.5 },
-        { id: 19, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6},
-        { id: 20, nombre: "Replanteo", tiempo: 25, multiplicador: 3.5, unidad: "circuitos" },
-
-        /* Tareas avanzadas */
-        { id: 32, nombre: "Instalación de reflectores", tiempo: 30, multiplicador: 1.85 },
-        { id: 33, nombre: "Instalacion de sensores de movimiento", tiempo: 30, multiplicador: 1.85 },
-        { id: 34, nombre: "Cambio de fusibles", tiempo: 15, multiplicador: 3.5 },
-        { id: 35, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
-        { id: 36, nombre: "", tiempo: 18 },
-        { id: 37, nombre: "", tiempo: 20, multiplicador: 5 },
-        { id: 38, nombre: "Instalación de sistema de alarma", tiempo: 60, multiplicador: 1.85 },
-        { id: 39, nombre: "Instalacion de fotocélulas", tiempo: 30, multiplicador: 1.85 },
-        { id: 40, nombre: "", tiempo: 45 },
-        { id: 41, nombre: "Reparación en toma primaria", tiempo: 120, multiplicador: 3 },
-        { id: 42, nombre: "", tiempo: 45 },
-        { id: 43, nombre: "Generar automatizacion", tiempo: 120, multiplicador: 2 },
-        { id: 44, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
-        { id: 45, nombre: "Instalacion de tablero embutido", tiempo: 45, multiplicador: 2},
-        { id: 46, nombre: "Cambio de contactores", tiempo: 15, multiplicador: 3.5 },
-        { id: 47, nombre: "Instalacion de Jabalina", tiempo: 80, multiplicador: 3.2 },
-        { id: 48, nombre: "", tiempo: 45 },
-        { id: 49, nombre: "", tiempo: 30 },
-        { id: 50, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
-        { id: 51, nombre: "", tiempo: 80 },
-        { id: 52, nombre: "", tiempo: 120 },
-        { id: 53, nombre: "", tiempo: 80 },
-        { id: 54, nombre: "", tiempo: 80 },
         
-       
-        /* Tareas administrativas */
-        { id: 73, nombre: "", tipo: "administrativa", valor: 140000 },
-        { id: 74, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
-        { id: 75, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
-        { id: 76, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
-        { id: 77, nombre: "Elaborar documentacion - Cat. 1", tipo: "administrativa", valor: 140000 },
-        { id: 78, nombre: "Elaborar documentacion - Cat. 2", tipo: "administrativa", valor: 336000 },
-        { id: 79, nombre: "Elaborar documentacion - Cat. 3", tipo: "administrativa", valor: 840000 },
-        { id: 80, nombre: "Medicion de Puesta a Tierra (Jabalina)", tipo: "administrativa", valor: 160000 },
-        { id: 81, nombre: "Croquis esquematico", tipo: "administrativa", valor: 160000 },
-        { id: 82, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
-        { id: 83, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
-        { id: 84, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },
+        // 💡 Iluminación técnica y comercial
+        { id: 30, nombre: "Artefacto LED", opciones: {
+          instalacion: { tiempo: 20, multiplicador: 2.3 },
+          reemplazo: { tiempo: 15, multiplicador: 1.5 }
+        }, variante: "instalacion" },
+        { id: 31, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
+        { id: 31, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
+        { id: 32, nombre: "Reflector", opciones: {
+          instalacion: { tiempo: 25, multiplicador: 2 },
+          reemplazo: { tiempo: 18, multiplicador: 1.4 }
+        }, variante: "instalacion" }, 
 
-        // Tareas por circuito
-        { id: 1001, nombre: "Pasado de conductores (F,N,PE)", tiempo: 30, multiplicador: 1.5, unidad: "circuitos" },
-        { id: 1002, nombre: "Instalación de cañería", tiempo: 90, multiplicador: 1.5, unidad: "circuitos" },
-        { id: 1003, nombre: "", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
-        { id: 1004, nombre: "", tiempo: 20, multiplicador: 1.8, unidad: "circuitos" },
-        { id: 1005, nombre: "", tiempo: 20, multiplicador: 1.5, unidad: "circuitos" },
-        { id: 1006, nombre: "Medición y diagnóstico", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
-        { id: 1007, nombre: "Elaboración de planos unifilares", tiempo: 15, multiplicador: 1.4, unidad: "circuitos" },
+        // 🌀 Climatización y ventilación
+        { id: 40, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6 },
+        { id: 41, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
 
-        // Tareas por polos
-        { id: 1017, nombre: "Armado de tablero", tiempo: 10, multiplicador: 3.5, unidad: "polos" },
-        // Métodos de cálculo de cableado
-        { id: 3001, nombre: "Cableado por ambiente", tiempo: 60, multiplicador: 1.8, unidad: "ambientes" },
-        { id: 3002, nombre: "Cableado por superficie", tiempo: 7, multiplicador: 1.6, unidad: "m²" },
-        { id: 3003, nombre: "Cableado por metro lineal", tiempo: 3, multiplicador: 1.8, unidad: "metros lineales" },
-        {
-          id: 9001,
-          nombre: "Tomacorriente",
-          opciones: {
-            instalacion: { tiempo: 25, multiplicador: 2.2 },
-            reemplazo: { tiempo: 15, multiplicador: 1.4 }
-          },
-          variante: "instalacion"
-        },
+        // 📦 Canalización y cableado
+        { id: 50, nombre: "Instalación de cañería", tiempo: 90, multiplicador: 1.5, unidad: "circuitos" },
+        { id: 51, nombre: "Colocacion de cajas", tiempo: 10, multiplicador: 2 },
+        { id: 52, nombre: "Cableado por ambiente", tiempo: 60, multiplicador: 1.8, unidad: "ambientes" },
+        { id: 53, nombre: "Cableado por superficie", tiempo: 7, multiplicador: 1.6, unidad: "m²" },
+        { id: 54, nombre: "Cableado por metro lineal", tiempo: 3, multiplicador: 1.8, unidad: "metros lineales" },
+
+        // 🧠 Diagnóstico y planificación
+        { id: 60, nombre: "Logistica compra de materiales", tiempo: 35, multiplicador: 1.5, unidad: "circuitos" },
+        { id: 60, nombre: "Replanteo", tiempo: 25, multiplicador: 3.5, unidad: "circuitos" },
+        { id: 61, nombre: "Medición y diagnóstico", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
+        { id: 62, nombre: "Elaboración de planos unifilares", tiempo: 15, multiplicador: 1.4, unidad: "circuitos" },
+        { id: 63, nombre: "Busqueda de fuga a tierra", tiempo: 90, multiplicador: 1.85, unidad: "circuitos" },
+
+        // ⚙️ Tableros
+        { id: 70, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
+        { id: 71, nombre: "Instalacion de tablero embutido", tiempo: 45, multiplicador: 2 },
+        { id: 72, nombre: "Armado de tablero", tiempo: 10, multiplicador: 3.5, unidad: "polos" },
         
+
+        // 🧠 Automatización y control
+        { id: 80, nombre: "Sensor de movimiento", opciones: {
+          instalacion: { tiempo: 30, multiplicador: 1.85 },
+          reemplazo: { tiempo: 20, multiplicador: 1.3 }
+        }, variante: "instalacion" },
+        { id: 81, nombre: "Fotocélula", opciones: {
+          instalacion: { tiempo: 30, multiplicador: 1.85 },
+          reemplazo: { tiempo: 15, multiplicador: 1.2 }
+        }, variante: "instalacion" },
+        { id: 82, nombre: "Portero eléctrico", opciones: {
+          instalacion: { tiempo: 150, multiplicador: 1.85 },
+          reemplazo: { tiempo: 90, multiplicador: 1.3 }
+        }, variante: "instalacion" },
+        { id: 83, nombre: "Instalación de sistema de alarma", tiempo: 60, multiplicador: 1.85 },
+        { id: 84, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
+        { id: 85, nombre: "Generar automatismo", tiempo: 120, multiplicador: 2 },
+
+        // 🚧 Intervenciones complejas
+        { id: 90, nombre: "Colocar Fusibles", tiempo: 20, multiplicador: 3.5 },
+        { id: 91, nombre: "Reparacion en toma primaria", tiempo: 120, multiplicador: 3 },
         
+        // 📋 Tareas administrativas - AEA
+        { id: 100, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
+        { id: 101, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
+        { id: 102, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
+        { id: 103, nombre: "Elaborar documentacion - Cat. 1", tipo: "administrativa", valor: 140000 },
+        { id: 104, nombre: "Elaborar documentacion - Cat. 2", tipo: "administrativa", valor: 336000 },
+        { id: 105, nombre: "Elaborar documentacion - Cat. 3", tipo: "administrativa", valor: 840000 },
+        { id: 106, nombre: "Medicion de Puesta a Tierra (Jabalina)", tipo: "administrativa", valor: 160000 },
+        { id: 107, nombre: "Croquis esquematico", tipo: "administrativa", valor: 160000 },
+        { id: 108, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
+        { id: 109, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
+        { id: 110, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },      
 
       ];
     
-      const tareasPopulares = tareasPredefinidas.slice(0, 6);
+      const tareasPopulares = tareasPredefinidas.slice(0, 8);
     
       const tareasFiltradas = tareasPredefinidas.filter((tarea) =>
         tarea.nombre.toLowerCase().includes(busqueda.toLowerCase())

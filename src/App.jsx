@@ -130,7 +130,7 @@ export default function App() {
         </main>
 
         <footer className="bg-blue-800 text-white text-center py-4">
-          <p>Todos los derecho reservados. &copy; {new Date().getFullYear()} - ⚡Electricista+ </p>
+          <p>&copy; {new Date().getFullYear()} Todos los derecho reservados. ⚡Electricista+ </p>
         </footer>
       </div>
     
