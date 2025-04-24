@@ -46,9 +46,10 @@
           instalacion: { tiempo: 20, multiplicador: 2.3 },
           reemplazo: { tiempo: 15, multiplicador: 1.5 }
         }, variante: "instalacion" },
-        { id: 31, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
-        { id: 31, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
-        { id: 32, nombre: "Reflector", opciones: {
+        { id: 31, nombre: "Tiras LED", tiempo: 10, multiplicador: 1.5, unidad: "metro" },
+        { id: 32, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
+        { id: 33, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
+        { id: 34, nombre: "Reflector", opciones: {
           instalacion: { tiempo: 25, multiplicador: 2 },
           reemplazo: { tiempo: 18, multiplicador: 1.4 }
         }, variante: "instalacion" }, 
@@ -97,7 +98,8 @@
         // 🚧 Intervenciones complejas
         { id: 90, nombre: "Colocar Fusibles", tiempo: 20, multiplicador: 3.5 },
         { id: 91, nombre: "Reparacion en toma primaria", tiempo: 120, multiplicador: 3 },
-        
+        { id: 92, nombre: "Pilar monofasico", tiempo: 240, multiplicador: 3.5 },
+
         // 📋 Tareas administrativas - AEA
         { id: 100, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
         { id: 101, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },

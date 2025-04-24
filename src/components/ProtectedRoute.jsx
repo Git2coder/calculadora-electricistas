@@ -40,7 +40,7 @@ export function ProtectedRoute({ children }) {
   }
   
 
-  if (!usuario || !datosUsuario) {
+  if (!usuario || cargando || !datosUsuario) {
     return (
       <div className="max-w-xl mx-auto mt-20 p-8 bg-white rounded-xl shadow text-center border border-blue-200">
         <h2 className="text-2xl font-bold text-blue-800 mb-4">🔒 Acceso exclusivo para usuarios registrados</h2>
@@ -48,9 +48,19 @@ export function ProtectedRoute({ children }) {
           Para acceder a esta herramienta necesitás crear una cuenta o iniciar sesión.<br />
           El registro es gratuito y te permite probarla durante 7 días.
         </p>
+  
+        {/* Botón de acceso */}
+        <a
+          href="#"
+          onClick={() => window.dispatchEvent(new CustomEvent("abrirModalAcceso"))}
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-full transition"
+        >
+          🔑 Crear cuenta o Iniciar sesión
+        </a>
       </div>
     );
   }
+  
 
   const ahora = new Date();
   const fechaCreacion = datosUsuario.creadoEn?.toDate?.() || datosUsuario.creadoEn;
