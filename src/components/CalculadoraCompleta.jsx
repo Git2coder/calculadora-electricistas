@@ -14,6 +14,7 @@ export default function CalculadoraCompleta() {
   const [mostrarModalTarifa, setMostrarModalTarifa] = useState(false);
   const [indiceSeleccionado, setIndiceSeleccionado] = useState(-1);
   const [mostrarModalSugerencia, setMostrarModalSugerencia] = useState(false);
+  const [incluirVisita, setIncluirVisita] = useState(true);
 
 
   const tareasPredefinidas = [
@@ -245,6 +246,10 @@ export default function CalculadoraCompleta() {
   );
   const horas = Math.floor(tiempoTotal / 60);
   const minutos = tiempoTotal % 60;
+  const tiempoConMargen = tiempoTotal + 20;
+  const horasMargen = Math.floor(tiempoConMargen / 60);
+  const minutosMargen = tiempoConMargen % 60;
+
 
   const tarifaSegura = isNaN(tarifaHoraria) || tarifaHoraria <= 0 ? 0 : tarifaHoraria;
   const visitaSegura = isNaN(costoConsulta) || costoConsulta < 0 ? 0 : costoConsulta;
@@ -275,8 +280,9 @@ export default function CalculadoraCompleta() {
   
 
   const costoFinal = isNaN(costoBase)
-    ? 0
-    : costoBase + visitaSegura + (costoBase * ajustePorcentaje) / 100;
+  ? 0
+  : (costoBase + (incluirVisita ? visitaSegura : 0)) + (costoBase * ajustePorcentaje) / 100;
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
@@ -401,7 +407,7 @@ export default function CalculadoraCompleta() {
               className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
               <FaPlus className="inline mr-2" />
-              ¿No encontrás tu tarea?
+              ¿Tenés una tarea que no encontras?
             </button>
           </div>
 
@@ -409,8 +415,8 @@ export default function CalculadoraCompleta() {
 
         {/* Leyenda informativa sobre tiempos */}
         <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
-          ℹ️ <strong>Los tiempos las tarea son estimados</strong>.  
-          Aquellos con mayor experiencia podrán resolver las tareas más rápido o por el contrario a otros tomar mas tiempo. Es por ello, que pueden editarlo según su criterio.
+          ℹ️ <strong>Los tiempos sobre las tarea son estimados</strong>.  
+          Aquellos con mayor experiencia podrán resolver las tareas más rápido o por el contrario a otros tomar mas tiempo.
         </div>
 
         {/* TAREAS SELECCIONADAS */}
@@ -422,116 +428,124 @@ export default function CalculadoraCompleta() {
             <div className="space-y-2">
               {tareasSeleccionadas.map((tarea) => (
                 <div key={tarea.id} className="flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm">
-                <span className="flex-1">{tarea.nombre}</span>
-              
-                {/* Selector si la tarea tiene opciones */}
-                {tarea.opciones && (
-<div className="flex gap-2 flex-wrap">
-{Object.entries(tarea.opciones).map(([clave, config]) => (
-  <button
-    key={clave}
-    className={`px-2 py-1 text-xs rounded ${
-      tarea.variante === clave
-        ? "bg-blue-600 text-white"
-        : "bg-gray-200 text-gray-700"
-    }`}
-    onClick={() => {
-      modificarTarea(tarea.id, "variante", clave);
-      modificarTarea(tarea.id, "tiempo", config.tiempo);
-      modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
-    }}
-  >
-    {clave.replaceAll("-", " ").replace("monofasico", "Monofásico").replace("trifasico", "Trifásico")}
-  </button>
-))}
-</div>
-)}
+                  <span className="flex-1">{tarea.nombre}</span>
+                
+                  {/* Selector si la tarea tiene opciones */}
+                  {tarea.opciones && (
+                    <div className="flex gap-2 flex-wrap">
+                    {Object.entries(tarea.opciones).map(([clave, config]) => (
+                      <button
+                        key={clave}
+                        className={`px-2 py-1 text-xs rounded ${
+                          tarea.variante === clave
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-700"
+                        }`}
+                        onClick={() => {
+                          modificarTarea(tarea.id, "variante", clave);
+                          modificarTarea(tarea.id, "tiempo", config.tiempo);
+                          modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
+                        }}
+                      >
+                        {clave.replaceAll("-", " ").replace("monofasico", "Monofásico").replace("trifasico", "Trifásico")}
+                      </button>
+                    ))}
+                    </div>
+                    )}
 
-              
-                {/* Cantidad */}
-                <div className="flex items-center gap-1">
-                  <label className="text-gray-500">
-                    {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    className="w-16 p-1 border rounded"
-                    value={tarea.cantidad}
-                    onChange={(e) =>
-                      modificarTarea(tarea.id, "cantidad", e.target.value)
-                    }
-                  />
-                </div>
-              
-                {/* Tiempo o Valor */}
-                {tarea.tipo === "administrativa" ? (
+                
+                  {/* Cantidad */}
                   <div className="flex items-center gap-1">
-                    <label className="text-gray-500">Valor:</label>
-                    <input
-                      type="number"
-                      className="w-24 p-1 border rounded"
-                      value={tarea.valor}
-                      onChange={(e) =>
-                        modificarTarea(tarea.id, "valor", e.target.value)
-                      }
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <label className="text-gray-500">Min.:</label>
+                    <label className="text-gray-500">
+                      {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
+                    </label>
                     <input
                       type="number"
                       min="1"
                       className="w-16 p-1 border rounded"
-                      value={tarea.tiempo}
+                      value={tarea.cantidad}
                       onChange={(e) =>
-                        modificarTarea(tarea.id, "tiempo", e.target.value)
+                        modificarTarea(tarea.id, "cantidad", e.target.value)
                       }
                     />
                   </div>
-                )}
-              
-                {/* Eliminar */}
-                <button
-                  className="text-red-600"
-                  onClick={() => eliminarTarea(tarea.id)}
-                  title="Eliminar tarea"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-              
+                
+                  {/* Tiempo o Valor */}
+                  {tarea.tipo === "administrativa" && (
+                    <div className="flex items-center gap-1">
+                      <label className="text-gray-500">Valor:</label>
+                      <input
+                        type="number"
+                        className="w-24 p-1 border rounded"
+                        value={tarea.valor}
+                        onChange={(e) =>
+                          modificarTarea(tarea.id, "valor", e.target.value)
+                        }
+                      />
+                    </div>
+                  )}
+                
+                  {/* Eliminar */}
+                  <button
+                    className="text-red-600"
+                    onClick={() => eliminarTarea(tarea.id)}
+                    title="Eliminar tarea"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>            
               ))}
             </div>
           )}
         </div>
+        
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow text-sm mb-6">
           ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong> Si querés sugerir una mejora, podés dejarnos tu mensaje en la <Link to="/comentarios" className="underline text-blue-700 hover:text-blue-900">sección de comentarios</Link>.
         </div>
 
         {/* RESULTADO FINAL */}
-        <div className="bg-blue-50 p-6 rounded-xl shadow space-y-4">
-          <h2 className="text-xl font-semibold text-blue-800">💰 Resumen del Presupuesto</h2>
-          <p className="text-lg">⏱️ Tiempo Total: {tiempoTotal} min ({horas}h {minutos}min) <u><i>no cuenta el tiempo de las tareas admin.</i></u></p>
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <label className="flex-1">
-              Ajuste de Precio <br />(<i>% sobre el valor de las tareas s/visita</i>):
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={ajustePorcentaje}
-                onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
-                className="w-full"
-              />
-              <span className="block text-center mt-1">{ajustePorcentaje}%</span>
-            </label>
-            <ContadorAnimado valor={costoFinal} />
+        <div className="bg-blue-50 p-6 rounded-xl shadow space-y-4 relative">
+  <h2 className="text-xl font-semibold text-blue-800">💰 Resumen del Presupuesto</h2>
+  {tareasSeleccionadas.length >= 3 && tiempoTotal > 120 && (
+    <p className="text-lg">
+      ⏱️ Tiempo Estimado: {/*tiempoConMargen*/}  {horasMargen}h {minutosMargen}min <i className="text-xs text-gray-500">(no incluye tiempo de tareas administrativas.)</i>
+    </p>
+  )}
 
-          </div>
+
+  <div className="flex flex-col md:flex-row md:items-center gap-4">
+    <label className="flex-1">
+      Ajuste de Precio <br />(<i>% sobre el valor de las tareas s/visita</i>):
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={ajustePorcentaje}
+        onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
+        className="w-full"
+      />
+      <span className="block text-center mt-1">{ajustePorcentaje}%</span>
+    </label>
+
+    <ContadorAnimado valor={costoFinal} />
+  </div>
+
+  
+        {/* BOTÓN DENTRO DEL FLUJO, ALINEADO A LA DERECHA */}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => setIncluirVisita(!incluirVisita)}
+            className={`absolute bottom-36 px-4 py-2 rounded-full text-sm font-semibold shadow transition ${
+              incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"
+            }`}
+          >
+            {incluirVisita ? "Cobrando visita" : "Visita bonificada"}
+          </button>
         </div>
+
+        </div>
+
       </div>
     </div>
   );

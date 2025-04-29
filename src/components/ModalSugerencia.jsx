@@ -96,10 +96,11 @@ export default function ModalSugerencia({ onClose }) {
                 <FaRuler className="text-gray-400 mr-2" />
                 <input
                   type="text"
-                  placeholder="Unidad (opcional)"
+                  placeholder="Unidad (m, tramos, cajas, etc.)"
                   className="flex-1 outline-none"
                   value={unidad}
                   onChange={(e) => setUnidad(e.target.value)}
+                  required 
                 />
               </div>
 
@@ -112,6 +113,7 @@ export default function ModalSugerencia({ onClose }) {
                   className="flex-1 outline-none"
                   value={tiempoEstimado}
                   onChange={(e) => setTiempoEstimado(e.target.value)}
+                  required
                 />
               </div>
 
@@ -119,7 +121,7 @@ export default function ModalSugerencia({ onClose }) {
               <div className="flex items-start border rounded p-2">
                 <FaInfoCircle className="text-gray-400 mr-2 mt-2" />
                 <textarea
-                  placeholder="Descripción breve o situación de uso"
+                  placeholder="Descripción breve, cuanto crees puede valer o que consideras util para tasarla."
                   className="flex-1 outline-none resize-none"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
