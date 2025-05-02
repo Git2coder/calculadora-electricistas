@@ -25,7 +25,7 @@ export default async function handler(req, res) {
               title: "Suscripción Electricista+",
               quantity: 1,
               currency_id: "ARS",
-              unit_price: 7990,
+              unit_price: 10,
             },
           ],
           back_urls: {
