@@ -15,6 +15,8 @@ import { useAuth } from "./context/AuthContext";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { AdminRoute } from "./components/AdminRoute";
 import { useEffect } from "react"; 
+import { Mantenimiento } from "./pages/Mantenimiento";
+
 
 export function ComentariosPage() {
   return (
@@ -106,28 +108,11 @@ export default function App() {
 
         {/* RESTO DEL CÓDIGO SIGUE IGUAL */}
         <main className="flex-grow p-4 bg-gray-50">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route
-              path="/calculadora"
-              element={
-                <ProtectedRoute>
-                  <Calculadora />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/acerca" element={<Acerca />} />
-            <Route path="/noticias" element={<Noticias />} />
-            <Route path="/reglamentacion" element={<Reglamentacion />} />
-            <Route path="/comentarios" element={<ComentariosPage />} />
-            <Route path="/admin" element={
-                <AdminRoute>
-                  <AdminUsuarios />
-                </AdminRoute>
-              } />
+  <Routes>
+    <Route path="*" element={<Mantenimiento />} />
+  </Routes>
+</main>
 
-          </Routes>
-        </main>
 
         <footer className="bg-blue-800 text-white text-center py-4">
           <p>&copy; {new Date().getFullYear()} Todos los derecho reservados. ⚡Electricista+ </p>
