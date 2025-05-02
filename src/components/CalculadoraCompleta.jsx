@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import ModalTarifa from "./ModalTarifa";
 import ModalSugerencia from "./ModalSugerencia";
-import { FaPlus, FaTrash, FaWrench } from "react-icons/fa";
+import { FaPlus, FaTrash, FaWrench, FaBroom } from "react-icons/fa";
 import { ContadorAnimado } from "./ContadorAnimado";
 
 export default function CalculadoraCompleta() {
@@ -19,30 +19,46 @@ export default function CalculadoraCompleta() {
 
   const tareasPredefinidas = [
     // 🔌 Tareas básicas
-    { id: 1, nombre: "Tomacorriente", opciones: {
-      instalacion: { tiempo: 25, multiplicador: 2.2 },
-      reemplazo: { tiempo: 15, multiplicador: 1.4 }
-    }, variante: "instalacion" },
-    { id: 2, nombre: "Interruptor simple", opciones: {
-      instalacion: { tiempo: 20, multiplicador: 1.8 },
-      reemplazo: { tiempo: 15, multiplicador: 1.3 }
-    }, variante: "instalacion" },
-    { id: 3, nombre: "Interruptor doble", opciones: {
+    { id: 1, nombre: "Tomacorrientes",
+      opciones: {
+        instalacion: { tiempo: 20, multiplicador: 1.8,
+          incluye: [ {id: 50}, { id: 51 }, { id: 61 }, { id: 52 } ]
+        },
+        reemplazo: { tiempo: 20, multiplicador: 1.8 }
+      },
+      variante: "reemplazo" },
+    
+    { id: 2, nombre: "Interruptor simple",
+        opciones: {
+          instalacion: { tiempo: 10, multiplicador: 1.8,
+            incluye: [ {id: 50}, { id: 51 }, { id: 61 }, { id: 52 } ]
+          },
+          reemplazo: { tiempo: 15, multiplicador: 1.8 }
+        },
+        variante: "reemplazo" },
+
+    { id: 3, nombre: "Interruptor de combinacion",
+        opciones: {
+          instalacion: { tiempo: 10, multiplicador: 2.1,
+            incluye: [ {id: 50}, { id: 51 }, { id: 61 }, { id: 52 } ]
+          },
+          reemplazo: { tiempo: 15, multiplicador: 2.1 }
+        },
+        variante: "reemplazo" },
+
+    /*{ id: 4, nombre: "Interruptor doble", opciones: {
       instalacion: { tiempo: 25, multiplicador: 2 },
       reemplazo: { tiempo: 18, multiplicador: 1.4 }
-    }, variante: "instalacion" },
-    { id: 4, nombre: "Busqueda cortocircuito", tiempo: 10, multiplicador: 1.85, unidad: "Cajas" },
+    }, variante: "instalacion" }, Caso 2 botones*/ 
+    
   
-
     // ⚡ Protecciones y dispositivos 
-    { id: 5, nombre: "Protector de tensión", tiempo: 10, multiplicador: 3.5 },
-    { id: 6, nombre: "Termica / Diferencial (2 polos)", tiempo: 10, multiplicador: 2.5 },
-    { id: 7, nombre: "Termica / Diferencial (>2polos)", tiempo: 10, multiplicador: 3.5 },
-    { id: 8, nombre: "Contactor", tiempo: 15, multiplicador: 3.5 },
+    { id: 5, nombre: "Termica / Diferencial (2 polos)", tiempo: 10, multiplicador: 2.5 },
+    { id: 6, nombre: "Termica / Diferencial (+2polos)", tiempo: 12, multiplicador: 3.5 },
+    { id: 7, nombre: "Protector de tensión", tiempo: 15, multiplicador: 3.5 },
+    { id: 8, nombre: "Contactor", tiempo: 15, multiplicador: 3.7 },
     { id: 9, nombre: "Instalacion de Jabalina", tiempo: 80, multiplicador: 3.2 },
 
-    // 💧 Elementos hidráulicos
-    { id: 10, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
     
     // 💡 Iluminación técnica y comercial
     { id: 30, nombre: "Artefacto LED", opciones: {
@@ -62,19 +78,24 @@ export default function CalculadoraCompleta() {
     { id: 41, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
 
     // 📦 Canalización y cableado
-    { id: 50, nombre: "Instalación de cañería", tiempo: 90, multiplicador: 1.5, unidad: "circuitos" },
+    { id: 50, nombre: "Instalación de cañería", tiempo: 10, multiplicador: 1.5, unidad: "metros" },
     { id: 51, nombre: "Colocacion de cajas", tiempo: 10, multiplicador: 2 },
-    { id: 52, nombre: "Cableado por ambiente", tiempo: 60, multiplicador: 1.8, unidad: "ambientes" },
-    { id: 53, nombre: "Cableado por superficie", tiempo: 7, multiplicador: 1.6, unidad: "m²" },
-    { id: 54, nombre: "Cableado por metro lineal", tiempo: 3, multiplicador: 1.8, unidad: "metros lineales" },
+    { id: 52, nombre: "Cablear",
+      opciones: {
+        "metros": { tiempo: 3, multiplicador: 1.8 },
+        "m²": { tiempo: 4, multiplicador: 1.5 },
+        "ambientes": { tiempo: 60, multiplicador: 2 },
+      },
+      variante: "metros" },
 
     // 🧠 Diagnóstico y planificación
     { id: 60, nombre: "Logistica compra de materiales", tiempo: 35, multiplicador: 1.5, unidad: "circuitos" },
-    { id: 61, nombre: "Replanteo", tiempo: 25, multiplicador: 3.5, unidad: "circuitos" },
+    { id: 61, nombre: "Replanteo", tiempo: 25, multiplicador: 3.5, unidad: "ambientes" },
     { id: 62, nombre: "Medición y diagnóstico", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
     { id: 63, nombre: "Elaboración de planos unifilares", tiempo: 15, multiplicador: 1.4, unidad: "circuitos" },
     { id: 64, nombre: "Busqueda de fuga a tierra", tiempo: 90, multiplicador: 1.85, unidad: "circuitos" },
-
+    { id: 65, nombre: "Busqueda cortocircuito", tiempo: 10, multiplicador: 1.85, unidad: "Cajas" },
+    
     // ⚙️ Tableros
     { id: 70, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
     { id: 71, nombre: "Instalacion de tablero embutido", tiempo: 45, multiplicador: 2 },
@@ -115,13 +136,14 @@ export default function CalculadoraCompleta() {
       instalacion: { tiempo: 30, multiplicador: 1.85 },
       reemplazo: { tiempo: 15, multiplicador: 1.2 }
     }, variante: "instalacion" },
-    { id: 82, nombre: "Portero eléctrico", opciones: {
+    { id: 82, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
+    { id: 83, nombre: "Portero eléctrico", opciones: {
       instalacion: { tiempo: 150, multiplicador: 1.85 },
       reemplazo: { tiempo: 90, multiplicador: 1.3 }
     }, variante: "instalacion" },
-    { id: 83, nombre: "Instalación de sistema de alarma", tiempo: 60, multiplicador: 1.85 },
-    { id: 84, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
-    { id: 85, nombre: "Generar automatismo", tiempo: 120, multiplicador: 2 },
+    { id: 84, nombre: "Instalación de sistema de alarma", tiempo: 60, multiplicador: 1.85 },
+    { id: 85, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
+    { id: 86, nombre: "Generar automatismo", tiempo: 120, multiplicador: 2 },
 
     // 🚧 Intervenciones complejas
     { id: 90, nombre: "Colocar Fusibles", tiempo: 20, multiplicador: 3.5 },
@@ -205,22 +227,54 @@ export default function CalculadoraCompleta() {
   
 
   const modificarTarea = (id, campo, valor) => {
-    setTareasSeleccionadas((tareas) =>
-      tareas.map((tarea) =>
-        tarea.id === id
+    setTareasSeleccionadas((tareas) => {
+      // Si es cambio de variante, y es "instalacion" o "reemplazo"
+      const tareaOriginal = tareas.find((t) => t.id === id);
+      if (!tareaOriginal) return tareas;
+  
+      if (campo === "variante") {
+        const base = tareasPredefinidas.find((t) => t.nombre === tareaOriginal.nombre);
+        const nuevaConfig = base?.opciones?.[valor];
+  
+        const nuevasInternas = (nuevaConfig?.incluye || []).map((sub) => {
+          const subBase = tareasPredefinidas.find((t) => t.id === sub.id);
+          const subConfig = subBase.opciones?.[subBase.variante] || subBase;
+  
+          return {
+            ...subBase,
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            origen: id, // Identifica a qué tarea principal pertenece
+            cantidad: sub.cantidad || 1,
+            tiempo: subConfig.tiempo,
+            multiplicador: subConfig.multiplicador ?? 1,
+          };
+        });
+  
+        return tareas
+          .filter((t) => t.id !== id && t.origen !== id) // eliminamos tarea original y sus internas
+          .concat([
+            {
+              ...tareaOriginal,
+              variante: valor,
+              tiempo: nuevaConfig?.tiempo ?? tareaOriginal.tiempo,
+              multiplicador: nuevaConfig?.multiplicador ?? tareaOriginal.multiplicador,
+            },
+            ...nuevasInternas,
+          ]);
+      }
+  
+      // Otros campos como cantidad
+      return tareas.map((t) =>
+        t.id === id
           ? {
-              ...tarea,
-              [campo]:
-                campo === "variante"
-                  ? valor
-                  : isNaN(parseFloat(valor))
-                  ? 0
-                  : parseFloat(valor),
+              ...t,
+              [campo]: isNaN(parseFloat(valor)) ? 0 : parseFloat(valor),
             }
-          : tarea
-      )
-    );
+          : t
+      );
+    });
   };
+  
   
 
   
@@ -240,6 +294,10 @@ export default function CalculadoraCompleta() {
     }
   };
 
+  const limpiarTareas = () => {
+    setTareasSeleccionadas([]);
+  };
+  
   const tiempoTotal = tareasSeleccionadas.reduce(
     (acc, tarea) => acc + tarea.tiempo * tarea.cantidad,
     0
@@ -425,10 +483,19 @@ export default function CalculadoraCompleta() {
           {tareasSeleccionadas.length === 0 ? (
             <p className="text-gray-500">No hay tareas agregadas.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
               {tareasSeleccionadas.map((tarea) => (
-                <div key={tarea.id} className="flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm">
-                  <span className="flex-1">{tarea.nombre}</span>
+                <div
+                key={tarea.id}
+                className={`flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm ${
+                  tarea.origen ? "pl-6 text-gray-600 italic" : ""
+                }`}
+              >
+                <span className="flex-1 flex items-center gap-1">
+                  {tarea.origen && <span className="text-xs text-blue-400">↳</span>}
+                  {tarea.nombre}
+                </span>
+              
                 
                   {/* Selector si la tarea tiene opciones */}
                   {tarea.opciones && (
@@ -487,7 +554,7 @@ export default function CalculadoraCompleta() {
                 
                   {/* Eliminar */}
                   <button
-                    className="text-red-600"
+                    className="text-red-600 transition-transform duration-150 hover:scale-110 active:scale-95"
                     onClick={() => eliminarTarea(tarea.id)}
                     title="Eliminar tarea"
                   >
@@ -495,8 +562,18 @@ export default function CalculadoraCompleta() {
                   </button>
                 </div>            
               ))}
-            </div>
-          )}
+                  {/* Botón en esquina inferior derecha */}
+              <div className="sticky bottom-0 flex justify-end p-2 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent">
+                <button
+                  onClick={limpiarTareas}
+                  className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 shadow-md"
+                >
+                  <FaBroom className="text-white" />
+                  Limpiar lista
+                </button>
+              </div>
+            </div>                 
+            )}          
         </div>
         
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow text-sm mb-6">
@@ -505,47 +582,41 @@ export default function CalculadoraCompleta() {
 
         {/* RESULTADO FINAL */}
         <div className="bg-blue-50 p-6 rounded-xl shadow space-y-4 relative">
-  <h2 className="text-xl font-semibold text-blue-800">💰 Resumen del Presupuesto</h2>
-  {tareasSeleccionadas.length >= 3 && tiempoTotal > 120 && (
-    <p className="text-lg">
-      ⏱️ Tiempo Estimado: {/*tiempoConMargen*/}  {horasMargen}h {minutosMargen}min <i className="text-xs text-gray-500">(no incluye tiempo de tareas administrativas.)</i>
-    </p>
-  )}
-
-
-  <div className="flex flex-col md:flex-row md:items-center gap-4">
-    <label className="flex-1">
-      Ajuste de Precio <br />(<i>% sobre el valor de las tareas s/visita</i>):
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="1"
-        value={ajustePorcentaje}
-        onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
-        className="w-full"
-      />
-      <span className="block text-center mt-1">{ajustePorcentaje}%</span>
-    </label>
-
-    <ContadorAnimado valor={costoFinal} />
-  </div>
-
-  
-        {/* BOTÓN DENTRO DEL FLUJO, ALINEADO A LA DERECHA */}
-        <div className="flex justify-end mt-4">
-          <button
-            onClick={() => setIncluirVisita(!incluirVisita)}
-            className={`absolute bottom-36 px-4 py-2 rounded-full text-sm font-semibold shadow transition ${
-              incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"
-            }`}
-          >
-            {incluirVisita ? "Cobrando visita" : "Visita bonificada"}
-          </button>
+          <h2 className="text-xl font-semibold text-blue-800">💰 Resumen del Presupuesto</h2>
+          {tareasSeleccionadas.length >= 2 && tiempoTotal > 120 && (
+            <p className="text-lg">
+              ⏱️ Tiempo Estimado: {/*tiempoConMargen*/}  {horasMargen}h {minutosMargen}min <i className="text-xs text-gray-500">(no incluye tiempo de tareas administrativas.)</i>
+            </p>
+          )}
+ 
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <label className="flex-1">
+            Ajuste de Precio <i className="text-xs text-gray-500">(% sobre las tareas sin incluir el costo de la visita)</i>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={ajustePorcentaje}
+              onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
+              className="w-full"
+            />
+            <span className="block text-center mt-1">{ajustePorcentaje}%</span>
+          </label>
+        {/* Botón fijo dentro del resumen */}
+          <div className="absolute top-6 right-6 z-10">
+              <button
+                onClick={() => setIncluirVisita(!incluirVisita)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold shadow-md transition-all duration-300 ease-in-out hover:scale-105 ${
+                  incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"
+                }`}
+              >
+                {incluirVisita ? "Cobrando visita" : "Visita bonificada"}
+              </button>
+          </div>
+            <ContadorAnimado valor={costoFinal} />
+          </div>
         </div>
-
-        </div>
-
       </div>
     </div>
   );

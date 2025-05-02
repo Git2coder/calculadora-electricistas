@@ -1,11 +1,9 @@
 // components/ModalTarifa.jsx
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 
-export default function ModalTarifa({
-  setTarifaHoraria,
-  onClose,
-}) {
+export default function ModalTarifa({ setTarifaHoraria, onClose }) {
   const [gastosFijos, setGastosFijos] = useState(0);
   const [gastosVariables, setGastosVariables] = useState(0);
   const horasTrabajadas = 96;
@@ -20,8 +18,14 @@ export default function ModalTarifa({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full relative">
-        <h2 className="text-xl font-bold mb-4 text-center">Calcular Tarifa Horaria</h2>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white p-6 rounded shadow-lg max-w-sm w-full relative"
+      >
+        <h2 className="text-xl font-bold mb-4 text-center text-blue-700">📊 Calcular Tarifa Horaria</h2>
 
         <label className="block mb-3">
           Gastos Fijos Mensuales ($):
@@ -31,6 +35,7 @@ export default function ModalTarifa({
             value={gastosFijos}
             onChange={(e) => setGastosFijos(e.target.value)}
           />
+          <p className="text-sm text-gray-500 mt-1">Ej: alquiler, seguros, herramientas</p>
         </label>
 
         <label className="block mb-3">
@@ -41,6 +46,7 @@ export default function ModalTarifa({
             value={gastosVariables}
             onChange={(e) => setGastosVariables(e.target.value)}
           />
+          <p className="text-sm text-gray-500 mt-1">Ej: combustible, viáticos, impresiones</p>
         </label>
 
         <div className="flex justify-between mt-6">
@@ -57,7 +63,7 @@ export default function ModalTarifa({
             Cancelar
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

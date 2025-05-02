@@ -2,7 +2,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaCalculator, FaBook, FaNewspaper } from "react-icons/fa";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaClock, FaClipboardCheck, FaChartLine, FaBolt } from "react-icons/fa";
+import { BotonSuscripcion } from "../components/BotonSuscripcion";
+
 
 
 export function Home() {
@@ -153,7 +155,7 @@ export function Home() {
             {/* TESTIMONIOS HORIZONTALES */}
       <section className="bg-gray py-8 px-3">
         <h2 className="text-2xl font-bold text-center text-blue-800 mb-12">
-          Lo que dicen otros profesionales
+          Lo que dicen los profesionales
         </h2>
 
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6">
@@ -205,6 +207,56 @@ export function Home() {
             </motion.div>
 
                     
+        </div>
+      </section>
+     
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center bg-blue-50 p-8 rounded-2xl shadow-lg border border-blue-200 relative overflow-hidden">
+          <div className="absolute -top-4 -right-4 rotate-12 bg-green-500 text-white font-bold px-6 py-1 rounded-bl-lg shadow-md">
+            💎 Suscripción 
+          </div>
+          <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
+            🔥 50% OFF oferta de lanzamiento
+          </div>
+
+          <h2 className="text-3xl font-bold text-blue-800 mb-4">Suscripción Profesional</h2>
+          <p className="text-lg text-gray-700 mb-6">Accedé al máximo potencial de tu trabajo</p>
+
+          <ul className="text-left max-w-md mx-auto text-gray-700 mb-6 space-y-4">
+            <li className="flex items-start gap-3">
+              <FaClock className="text-green-600 mt-1" />
+              <span>Ahorrás <strong>tiempo valioso</strong> al presupuestar</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <FaClipboardCheck className="text-green-600 mt-1" />
+              <span>Cotizás con <strong>criterio técnico y económico</strong></span>
+            </li>
+            <li className="flex items-start gap-3">
+              <FaChartLine className="text-green-600 mt-1" />
+              <span>Aumentás tus <strong>posibilidades de cerrar trabajos</strong></span>
+            </li>
+            <li className="flex items-start gap-3">
+              <FaBolt className="text-green-600 mt-1" />
+              <span>Sistema especializado <strong>100% en electricistas</strong></span>
+            </li>
+          </ul>
+
+          <div className="text-4xl font-extrabold text-green-600 mb-4">
+            $7.990 <span className="text-lg text-gray-600 font-normal">/mes</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            <strong>1 presupuesto te llevaba 30 min</strong>. Podés hacer 3 veces o más en el mismo tiempo.
+                        
+          </p>
+
+          <div className="flex justify-center items-center mt-6">
+            <BotonSuscripcion />
+          </div>
+
+          <p className="text-xs text-gray-500 mt-2">
+            ¡Con menos de 1 trabajo extra al mes, <strong>ya recuperás la inversión</strong>!
+          </p>
+
         </div>
       </section>
 
