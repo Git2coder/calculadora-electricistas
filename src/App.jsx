@@ -106,30 +106,12 @@ export default function App() {
           )}
         </nav>
 
-      {/* RESTO DEL CÓDIGO SIGUE IGUAL */}
+      {/* RESTO DEL CÓDIGO SIGUE IGUAL */} 
       <main className="flex-grow p-4 bg-gray-50">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route
-              path="/calculadora"
-              element={
-                <ProtectedRoute>
-                  <Calculadora />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/acerca" element={<Acerca />} />
-            <Route path="/noticias" element={<Noticias />} />
-            <Route path="/reglamentacion" element={<Reglamentacion />} />
-            <Route path="/comentarios" element={<ComentariosPage />} />
-            <Route path="/admin" element={
-                <AdminRoute>
-                  <AdminUsuarios />
-                </AdminRoute>
-              } />
-
-          </Routes>
-        </main>
+  <Routes>
+    <Route path="*" element={<Mantenimiento />} />
+  </Routes>
+</main>
 
 
         <footer className="bg-blue-800 text-white text-center py-4">
