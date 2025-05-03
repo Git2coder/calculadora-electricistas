@@ -1,89 +1,81 @@
-import { initializeApp, cert } from "firebase-admin/app";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import fetch from "node-fetch";
+import { buffer } from "micro";
 
-// ⚠️ Esta línea es esencial para que Vercel no procese automáticamente el cuerpo de la petición
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-import { Readable } from "stream";
-
-// 🔧 Función para obtener el body sin procesar (raw body)
-async function getRawBody(req) {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-
-console.log("▶️ Webhook preparado, esperando eventos...");
-
-// Inicializar Firebase si no está iniciado
-if (!global._firebaseAdmin) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
-
+// Inicializar Firebase solo una vez
+if (!getApps().length) {
   initializeApp({
-    credential: cert(serviceAccount),
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    }),
   });
-
-  global._firebaseAdmin = true;
 }
 
 const db = getFirestore();
 
 export default async function handler(req, res) {
-  console.log("▶️ Webhook recibido");
-
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
     return res.status(405).end("Method Not Allowed");
   }
 
+  const rawBody = await buffer(req);
+  const jsonString = rawBody.toString("utf8");
+
+  console.log("📦 Contenido recibido:", jsonString);
+
+  let body;
   try {
-    const rawBody = await getRawBody(req);
-    const body = JSON.parse(rawBody);
+    body = JSON.parse(jsonString);
+  } catch (e) {
+    console.error("❌ Error al parsear JSON:", e);
+    return res.status(400).send("Invalid JSON");
+  }
 
-    console.log("📦 Contenido recibido:", body);
+  const paymentId = body.resource;
+  const topic = body.topic;
 
-    const { type, data } = body;
-    console.log("📨 Evento recibido:", type);
+  console.log("📨 Evento recibido:", topic);
+  if (topic !== "payment" || !paymentId) {
+    console.warn("⚠️ Evento no es de tipo 'payment' o falta ID");
+    return res.status(200).send("Evento ignorado");
+  }
 
-    if (type === "payment.created" || type === "payment.updated") {
-      const paymentId = data.id;
-      console.log("🔎 Consultando pago ID:", paymentId);
+  try {
+    const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+      },
+    });
 
-      const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
-        },
-      });
-      const paymentInfo = await response.json();
+    const paymentData = await response.json();
+    console.log("💰 Datos del pago:", paymentData);
 
-      const uid = paymentInfo.metadata?.uid;
-      console.log("UID recibido desde metadata:", uid);
-
-      if (!uid) {
-        console.error("❌ No se encontró metadata.uid en el pago");
-        return res.status(400).json({ error: "uid no encontrado" });
+    if (paymentData.status === "approved") {
+      const email = paymentData.payer?.email;
+      if (!email) {
+        console.warn("⚠️ No se encontró email del comprador");
+        return res.status(200).send("Sin email");
       }
 
-      const ref = db.collection("usuarios").doc(uid);
-      await ref.update({
-        estado: "activo",
-        fechaExpiracion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-      });
+      await db.collection("usuarios").doc(email).set({
+        accesoCalculadora: true,
+        fechaPago: new Date().toISOString(),
+      }, { merge: true });
 
-      console.log(`✅ Usuario ${uid} activado con éxito.`);
-      return res.status(200).json({ ok: true });
+      console.log("✅ Acceso otorgado a:", email);
     }
-
-    return res.status(200).json({ msg: "Evento ignorado" });
   } catch (error) {
-    console.error("❌ Error procesando el webhook:", error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    console.error("❌ Error al procesar pago:", error);
   }
+
+  res.status(200).send("OK");
 }
