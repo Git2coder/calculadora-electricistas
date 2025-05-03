@@ -1,81 +1,53 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import * as admin from "firebase-admin";
 import fetch from "node-fetch";
 import { buffer } from "micro";
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// Inicializar Firebase solo una vez
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    }),
+// 🔒 Usa tu único secreto de Firebase
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
   });
 }
+const db = admin.firestore();
 
-const db = getFirestore();
+export const config = {
+  api: { bodyParser: false }
+};
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).end("Method Not Allowed");
-  }
+  if (req.method !== "POST") return res.status(405).end();
 
-  const rawBody = await buffer(req);
-  const jsonString = rawBody.toString("utf8");
+  // Leemos el raw body
+  const buf = await buffer(req);
+  const body = JSON.parse(buf.toString("utf8"));
+  console.log("📦 Webhook body:", body);
 
-  console.log("📦 Contenido recibido:", jsonString);
-
-  let body;
-  try {
-    body = JSON.parse(jsonString);
-  } catch (e) {
-    console.error("❌ Error al parsear JSON:", e);
-    return res.status(400).send("Invalid JSON");
-  }
-
+  // Mercado Pago en prod envía { resource, topic }
   const paymentId = body.resource;
-  const topic = body.topic;
-
-  console.log("📨 Evento recibido:", topic);
+  const topic     = body.topic;
   if (topic !== "payment" || !paymentId) {
-    console.warn("⚠️ Evento no es de tipo 'payment' o falta ID");
-    return res.status(200).send("Evento ignorado");
+    console.log("⚠️ Ignorado:", topic);
+    return res.status(200).end("Ignored");
   }
 
-  try {
-    const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
-      },
-    });
+  // Consultamos el pago con tu token correcto
+  const mpRes = await fetch(
+    `https://api.mercadopago.com/v1/payments/${paymentId}`,
+    { headers: { Authorization: `Bearer ${process.env.MERCADO_PAGO_TOKEN}` } }
+  );
+  const payment = await mpRes.json();
+  console.log("💰 Pago:", payment);
 
-    const paymentData = await response.json();
-    console.log("💰 Datos del pago:", paymentData);
+  if (payment.status === "approved") {
+    const uid = payment.metadata?.uid;
+    console.log("🔑 Activando acceso para UID:", uid);
 
-    if (paymentData.status === "approved") {
-      const email = paymentData.payer?.email;
-      if (!email) {
-        console.warn("⚠️ No se encontró email del comprador");
-        return res.status(200).send("Sin email");
-      }
+    await db.collection("usuarios").doc(uid)
+      .set({ accesoCalculadora: true, fechaPago: new Date() }, { merge: true });
 
-      await db.collection("usuarios").doc(email).set({
-        accesoCalculadora: true,
-        fechaPago: new Date().toISOString(),
-      }, { merge: true });
-
-      console.log("✅ Acceso otorgado a:", email);
-    }
-  } catch (error) {
-    console.error("❌ Error al procesar pago:", error);
+    console.log("✅ Acceso habilitado");
   }
 
-  res.status(200).send("OK");
+  res.status(200).end("OK");
 }
