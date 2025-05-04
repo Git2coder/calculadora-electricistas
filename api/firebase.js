@@ -1,11 +1,22 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('./secrets/serviceAccountKey.json'); // ajusta la ruta según corresponda
+// api/firebase.js
+import admin from "firebase-admin";
+import { readFileSync } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://calculadora-electricistas.firebaseio.com' // este URL es opcional si usás solo Firestore
-});
+// Para obtener __dirname en módulos ES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-module.exports = admin;
+// Ruta relativa a la raíz del proyecto
+const serviceAccountPath = path.join(__dirname, "../secrets/serviceAccountKey.json");
+const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
+
+// Inicializar solo una vez
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 export default admin;
