@@ -1,5 +1,5 @@
 import { buffer } from "micro";
-import admin from "./firebase";
+import admin from "./firebase.js";
 
 export const config = {
   api: {
