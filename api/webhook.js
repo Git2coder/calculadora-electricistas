@@ -1,27 +1,11 @@
 import { buffer } from "micro";
-import admin from "firebase-admin";
+import admin from "./firebase";
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
-
-// Inicializar Firebase si aún no está inicializado
-if (!admin.apps.length) {
-  const firebasePrivateKey = process.env.FIREBASE_ADMIN_KEY;
-  if (!firebasePrivateKey) {
-    console.error("❌ FIREBASE_ADMIN_KEY no está definida");
-  }
-
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(firebasePrivateKey)),
-    });
-  } catch (error) {
-    console.error("❌ Error al inicializar Firebase:", error);
-  }
-}
 
 export default async function webhookHandler(req, res) {
   if (req.method !== "POST") {
