@@ -7,3 +7,5 @@ admin.initializeApp({
 });
 
 module.exports = admin;
+
+export default admin;
