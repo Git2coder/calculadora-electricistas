@@ -47,6 +47,10 @@ export default async function webhookHandler(req, res) {
           await admin.firestore().collection("usuarios").doc(uid).update({
             suscripcionActiva: true,
             fechaPago: admin.firestore.FieldValue.serverTimestamp(),
+            fechaExpiracion: admin.firestore.Timestamp.fromDate(
+              new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días desde ahora
+            ),
+            
           });
 
           console.log("✅ Suscripción activada para UID:", uid);
