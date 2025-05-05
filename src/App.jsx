@@ -16,6 +16,9 @@ import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { AdminRoute } from "./components/AdminRoute";
 import { useEffect } from "react"; 
 import { Mantenimiento } from "./pages/Mantenimiento";
+import Gracias from "./pages/Gracias";
+import ErrorPago from "./pages/ErrorPago";
+import Espera from "./pages/Espera";
 
 
 export function ComentariosPage() {
@@ -127,7 +130,10 @@ export default function App() {
                   <AdminUsuarios />
                 </AdminRoute>
               } />
-
+      {/* NUEVAS RUTAS POST-PAGO */}
+            <Route path="/gracias" element={<Gracias />} />
+            <Route path="/error" element={<ErrorPago />} />
+            <Route path="/espera" element={<Espera />} />
           </Routes>
         </main>
 
