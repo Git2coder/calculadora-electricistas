@@ -31,35 +31,35 @@ export function ProtectedRoute({ children }) {
   }, [usuario]);
 
   // Mostrar loader mientras verifica
-  if (cargando) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-  
+ 
 
-  if (!usuario || cargando || !datosUsuario) {
-    return (
-      <div className="max-w-xl mx-auto mt-20 p-8 bg-white rounded-xl shadow text-center border border-blue-200">
-        <h2 className="text-2xl font-bold text-blue-800 mb-4">🔒 Acceso exclusivo para usuarios registrados</h2>
-        <p className="text-gray-700 mb-6">
-          Para acceder a esta herramienta necesitás crear una cuenta o iniciar sesión.<br />
-          El registro es gratuito y te permite probarla durante 7 días.
-        </p>
-  
-        {/* Botón de acceso */}
-        <a
-          href="#"
-          onClick={() => window.dispatchEvent(new CustomEvent("abrirModalAcceso"))}
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-full transition"
-        >
-          🔑 Crear cuenta o Iniciar sesión
-        </a>
-      </div>
-    );
-  }
+  if (cargando) {
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+}
+
+if (!usuario || !datosUsuario) {
+  return (
+    <div className="max-w-xl mx-auto mt-20 p-8 bg-white rounded-xl shadow text-center border border-blue-200">
+      <h2 className="text-2xl font-bold text-blue-800 mb-4">🔒 Acceso exclusivo para usuarios registrados</h2>
+      <p className="text-gray-700 mb-6">
+        Para acceder a esta herramienta necesitás crear una cuenta o iniciar sesión.<br />
+        El registro es gratuito y te permite probarla durante 7 días.
+      </p>
+      <a
+        href="#"
+        onClick={() => window.dispatchEvent(new CustomEvent("abrirModalAcceso"))}
+        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-full transition"
+      >
+        🔑 Crear cuenta o Iniciar sesión
+      </a>
+    </div>
+  );
+}
+
   
 
   const ahora = new Date();
@@ -102,7 +102,7 @@ export function ProtectedRoute({ children }) {
   // ⛔ Fin del acceso
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 bg-red-100 border border-red-400 text-red-800 rounded shadow text-center">
-      <p className="text-lg font-semibold mb-2">⏳ Tu período de prueba ha finalizado.</p>
+      <p className="text-lg font-semibold mb-2">⏳ Tu período de acceso ha finalizado.</p>
       <p>Contactanos para seguir usando la herramienta o solicitar una extensión especial.</p>
       <a
         href="https://wa.me/5491123456789"

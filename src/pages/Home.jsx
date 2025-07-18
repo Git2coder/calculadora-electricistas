@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FaCalculator, FaBook, FaNewspaper } from "react-icons/fa";
 import { FaUserCircle, FaClock, FaClipboardCheck, FaChartLine, FaBolt } from "react-icons/fa";
 import { BotonSuscripcion } from "../components/BotonSuscripcion";
-
+import EscalaRemuneracion from "../components/EscalaRemuneracion";
 
 
 export function Home() {
@@ -30,7 +30,7 @@ export function Home() {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 to="/calculadora"
-                className="bg-green-500 hover:bg-green-400 px-5 py-3 rounded-xl text-white font-semibold"
+                className="bg-green-600 hover:bg-green-500 px-5 py-3 rounded-xl text-white font-semibold"
               >
                 ¡Empeza ahora!
               </Link>
@@ -150,8 +150,6 @@ export function Home() {
         </div>
       </section>
 
-
-
             {/* TESTIMONIOS HORIZONTALES */}
       <section className="bg-gray py-8 px-3">
         <h2 className="text-2xl font-bold text-center text-blue-800 mb-12">
@@ -184,7 +182,7 @@ export function Home() {
           >
             <FaUserCircle className="text-4xl text-orange-400 mx-auto mb-2" />
             <p className="text-gray-700 italic text-sm">
-              "Muy útil para los que recién empiezan."
+              "Util para los que recién empiezan."
             </p>
             <p className="mt-2 text-sm font-medium text-gray-600">Jorge</p>
             <p className="text-xs text-gray-500"></p>
@@ -200,17 +198,31 @@ export function Home() {
 >
             <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
             <p className="text-gray-700 italic text-sm">
-              "Armar los presupuestos con esto es lo más."
+              "Es facil de usar."
             </p>
             <p className="mt-2 text-sm font-medium text-gray-600">Sebastian</p>
             <p className="text-xs text-gray-500"></p>
-            </motion.div>
-
-                    
+            </motion.div>                   
         </div>
       </section>
-     
-      <section className="bg-white py-16 px-4">
+
+      <section className="bg-gray-100 py-8 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl font-bold text-center text-blue-800 mb-8">
+              Escala orientativa de remuneración
+            </h2>
+            <motion.div           
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
+            viewport={{ once: true }}
+            >
+            <EscalaRemuneracion />
+             </motion.div>
+          </div>
+        </section>
+
+      <section className="bg-white py-6 px-4">
         <div className="max-w-4xl mx-auto text-center bg-blue-50 p-8 rounded-2xl shadow-lg border border-blue-200 relative overflow-hidden">
           <div className="absolute -top-4 -right-4 rotate-12 bg-green-500 text-white font-bold px-6 py-1 rounded-bl-lg shadow-md">
             💎 Suscripción 
@@ -242,7 +254,7 @@ export function Home() {
           </ul>
 
           <div className="text-4xl font-extrabold text-green-600 mb-4">
-            $7.990 <span className="text-lg text-gray-600 font-normal">/mes</span>
+            $950 <span className="text-lg text-gray-600 font-normal">/mes</span>
           </div>
           <p className="text-sm text-gray-600 mb-4">
             <strong>1 presupuesto te llevaba 30 min</strong>. Podés hacer 3 veces o más en el mismo tiempo.

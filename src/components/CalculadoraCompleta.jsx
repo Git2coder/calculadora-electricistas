@@ -4,6 +4,10 @@ import ModalTarifa from "./ModalTarifa";
 import ModalSugerencia from "./ModalSugerencia";
 import { FaPlus, FaTrash, FaWrench, FaBroom } from "react-icons/fa";
 import { ContadorAnimado } from "./ContadorAnimado";
+import { useRef } from "react";
+import { TooltipInfo } from "./TooltipInfo";
+import { tareasPredefinidas } from "../utils/tareas";
+
 
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
@@ -16,171 +20,9 @@ export default function CalculadoraCompleta() {
   const [mostrarModalSugerencia, setMostrarModalSugerencia] = useState(false);
   const [incluirVisita, setIncluirVisita] = useState(true);
 
+  const sonidoMonedas = useRef(new Audio("/sounds/coin.mp3"));
 
-  const tareasPredefinidas = [
-    // 🔌 Tareas básicas
-    { id: 1, nombre: "Tomacorrientes",
-      opciones: {
-        instalacion: { tiempo: 20, multiplicador: 1.8,
-          incluye: [ {id: 50}, { id: 51 }, { id: 61 }, { id: 52 } ]
-        },
-        reemplazo: { tiempo: 20, multiplicador: 1.8 }
-      },
-      variante: "reemplazo" },
-    
-    { id: 2, nombre: "Interruptor simple",
-        opciones: {
-          instalacion: { tiempo: 10, multiplicador: 1.8,
-            incluye: [ {id: 50}, { id: 51 }, { id: 61 }, { id: 52 } ]
-          },
-          reemplazo: { tiempo: 15, multiplicador: 1.8 }
-        },
-        variante: "reemplazo" },
-
-    { id: 3, nombre: "Interruptor de combinacion",
-        opciones: {
-          instalacion: { tiempo: 10, multiplicador: 2.1,
-            incluye: [ {id: 50}, { id: 51 }, { id: 61 }, { id: 52 } ]
-          },
-          reemplazo: { tiempo: 15, multiplicador: 2.1 }
-        },
-        variante: "reemplazo" },
-
-    /*{ id: 4, nombre: "Interruptor doble", opciones: {
-      instalacion: { tiempo: 25, multiplicador: 2 },
-      reemplazo: { tiempo: 18, multiplicador: 1.4 }
-    }, variante: "instalacion" }, Caso 2 botones*/ 
-    
   
-    // ⚡ Protecciones y dispositivos 
-    { id: 5, nombre: "Termica / Diferencial (2 polos)", tiempo: 10, multiplicador: 2.5 },
-    { id: 6, nombre: "Termica / Diferencial (+2polos)", tiempo: 12, multiplicador: 3.5 },
-    { id: 7, nombre: "Protector de tensión", tiempo: 15, multiplicador: 3.5 },
-    { id: 8, nombre: "Contactor", tiempo: 15, multiplicador: 3.7 },
-    { id: 9, nombre: "Instalacion de Jabalina", tiempo: 80, multiplicador: 3.2 },
-
-    
-    // 💡 Iluminación técnica y comercial
-    { id: 30, nombre: "Artefacto LED", opciones: {
-      instalacion: { tiempo: 20, multiplicador: 2.3 },
-      reemplazo: { tiempo: 15, multiplicador: 1.5 }
-    }, variante: "instalacion" },
-    { id: 31, nombre: "Tiras LED", tiempo: 10, multiplicador: 1.5, unidad: "metro" },
-    { id: 32, nombre: "Montaje de luminarias comerciales", tiempo: 20, multiplicador: 3.5 },
-    { id: 33, nombre: "Montaje de TV", tiempo: 40, multiplicador: 5 },
-    { id: 34, nombre: "Reflector", opciones: {
-      instalacion: { tiempo: 25, multiplicador: 2 },
-      reemplazo: { tiempo: 18, multiplicador: 1.4 }
-    }, variante: "instalacion" }, 
-
-    // 🌀 Climatización y ventilación
-    { id: 40, nombre: "Instalacion de ventilador de techo", tiempo: 80, multiplicador: 2.6 },
-    { id: 41, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 2.35 },
-
-    // 📦 Canalización y cableado
-    { id: 50, nombre: "Instalación de cañería", tiempo: 10, multiplicador: 1.5, unidad: "metros" },
-    { id: 51, nombre: "Colocacion de cajas", tiempo: 10, multiplicador: 2 },
-    { id: 52, nombre: "Cablear",
-      opciones: {
-        "metros": { tiempo: 3, multiplicador: 1.8 },
-        "m²": { tiempo: 4, multiplicador: 1.5 },
-        "ambientes": { tiempo: 60, multiplicador: 2 },
-      },
-      variante: "metros" },
-
-    // 🧠 Diagnóstico y planificación
-    { id: 60, nombre: "Logistica compra de materiales", tiempo: 35, multiplicador: 1.5, unidad: "circuitos" },
-    { id: 61, nombre: "Replanteo", tiempo: 25, multiplicador: 3.5, unidad: "ambientes" },
-    { id: 62, nombre: "Medición y diagnóstico", tiempo: 15, multiplicador: 2, unidad: "circuitos" },
-    { id: 63, nombre: "Elaboración de planos unifilares", tiempo: 15, multiplicador: 1.4, unidad: "circuitos" },
-    { id: 64, nombre: "Busqueda de fuga a tierra", tiempo: 90, multiplicador: 1.85, unidad: "circuitos" },
-    { id: 65, nombre: "Busqueda cortocircuito", tiempo: 10, multiplicador: 1.85, unidad: "Cajas" },
-    
-    // ⚙️ Tableros
-    { id: 70, nombre: "Instalacion de tablero en superficie", tiempo: 45, multiplicador: 1.5 },
-    { id: 71, nombre: "Instalacion de tablero embutido", tiempo: 45, multiplicador: 2 },
-    { id: 72, nombre: "Armado de tablero", tiempo: 10, multiplicador: 3.5, unidad: "polos" },
-    //{ id: 73, nombre: "Tablero BEA (2 bombas M/A)", tiempo: 360, multiplicador: 3 },
-              /*opciones: {
-              "1 bomba simple": { tiempo: 120, multiplicador: 2.6 },
-              "2 bombas automatico": { tiempo: 360, multiplicador: 3 }, 
-      }, variante: "bomba simple"},*/
-    
-    { id: 74, nombre: "Instalación de tablero BEA - 2 bombas M/A",
-              tipo: "paquete",
-              incluye: [
-              { id: 70 }, // Instalación de tablero en superficie
-              { id: 72, cantidad: 8 }, // Armado de tablero por polos (ejemplo: 2 térmicas, 2 contactores, 2 guardamotores, diferencial, relé)
-              { id: 6 }, // Termica/Diferencial
-              { id: 8 }, // Reemplazo de contactores (como referencia)
-              { id: 80 }, // Sensor de movimiento (podés usarlo como base para presostato o relé de nivel)
-              { id: 85 }, // Generar automatismo (programación de alternancia)
-              { id: 61 }, // Medición y diagnóstico
-              { id: 83 }  // Sistema de alarma (usamos sistema de alarma como referencia)
-              ],
-              resumen: {
-              tiempo: 480,
-              multiplicador: 3.6
-              }
-              },
-
-    
-    
-
-    // 🧠 Automatización y control
-    { id: 80, nombre: "Sensor de movimiento", opciones: {
-      instalacion: { tiempo: 30, multiplicador: 1.85 },
-      reemplazo: { tiempo: 20, multiplicador: 1.3 }
-    }, variante: "instalacion" },
-    { id: 81, nombre: "Fotocélula", opciones: {
-      instalacion: { tiempo: 30, multiplicador: 1.85 },
-      reemplazo: { tiempo: 15, multiplicador: 1.2 }
-    }, variante: "instalacion" },
-    { id: 82, nombre: "Reemplazo de flotante", tiempo: 80, multiplicador: 1.2 },
-    { id: 83, nombre: "Portero eléctrico", opciones: {
-      instalacion: { tiempo: 150, multiplicador: 1.85 },
-      reemplazo: { tiempo: 90, multiplicador: 1.3 }
-    }, variante: "instalacion" },
-    { id: 84, nombre: "Instalación de sistema de alarma", tiempo: 60, multiplicador: 1.85 },
-    { id: 85, nombre: "Tareas industriales", tiempo: 90, multiplicador: 3 },
-    { id: 86, nombre: "Generar automatismo", tiempo: 120, multiplicador: 2 },
-
-    // 🚧 Intervenciones complejas
-    { id: 90, nombre: "Colocar Fusibles", tiempo: 20, multiplicador: 3.5 },
-    { id: 91, nombre: "Reparacion en toma primaria", tiempo: 120, multiplicador: 3 },
-    { id: 92,
-      nombre: "Pilar monofasico",
-      opciones: {
-        "sin-albañileria": { tiempo: 210, multiplicador: 3.0 },
-        "con-albañileria": { tiempo: 270, multiplicador: 3.5 },
-      },
-      variante: "monofasico-sin-albañileria"
-    },
-    { id: 93,
-      nombre: "Pilar trifasico",
-      opciones: {
-        "sin-albañileria": { tiempo: 270, multiplicador: 3.8 },
-        "con-albañileria": { tiempo: 330, multiplicador: 4.2 },
-      },
-      variante: "monofasico-sin-albañileria"
-    },
-    
-
-    // 📋 Tareas administrativas - AEA
-    { id: 100, nombre: "DCI - Cat.1 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 200000 },
-    { id: 101, nombre: "DCI - Cat.2 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 480000 },
-    { id: 102, nombre: "DCI - Cat.3 (incluye Doc.+Relev.)", tipo: "administrativa", valor: 1200000 },
-    { id: 103, nombre: "Elaborar documentacion - Cat. 1", tipo: "administrativa", valor: 140000 },
-    { id: 104, nombre: "Elaborar documentacion - Cat. 2", tipo: "administrativa", valor: 336000 },
-    { id: 105, nombre: "Elaborar documentacion - Cat. 3", tipo: "administrativa", valor: 840000 },
-    { id: 106, nombre: "Medicion de Puesta a Tierra (Jabalina)", tipo: "administrativa", valor: 160000 },
-    { id: 107, nombre: "Croquis esquematico", tipo: "administrativa", valor: 160000 },
-    { id: 108, nombre: "Relevamiento de la instalacion - Cat. 1 (residencia pequeña)", tipo: "administrativa", valor: 60000 },
-    { id: 109, nombre: "Relevamiento de la instalacion - Cat. 2 (comercio pequeño)", tipo: "administrativa", valor: 144000 },
-    { id: 110, nombre: "Relevamiento de la instalacion - Cat. 3 (shoppings, etc.)", tipo: "administrativa", valor: 360000 },      
-
-  ];
-
   const tareasPopulares = tareasPredefinidas.slice(0, 7);
 
   const tareasFiltradas = tareasPredefinidas.filter((tarea) =>
@@ -189,24 +31,47 @@ export default function CalculadoraCompleta() {
 
   const agregarTarea = (tarea) => {
     if (tarea.tipo === "paquete") {
-      // Paquete: mostrar como una sola tarea
-      const nuevaTarea = {
-        ...tarea,
-        id: Date.now() + Math.floor(Math.random() * 1000), // ID único
-        cantidad: 1,
-        tiempo: tarea.incluye
-        ? tarea.incluye.reduce((acc, sub) => {
-            const base = tareasPredefinidas.find((t) => t.id === sub.id);
-            const baseConfig = base?.opciones?.[base.variante] || base;
-            return acc + (baseConfig?.tiempo || 0) * (sub.cantidad || 1);
-          }, 0)
-        : 0,
-      // El resumen si existe
-        multiplicador: tarea.resumen?.multiplicador || 1,
-        incluye: tarea.incluye || [], // Guardamos las tareas internas
-      };
-      setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
-    } else {
+  const totalInterno = (tarea.incluye || []).reduce((subAcc, sub) => {
+    const base = tareasPredefinidas.find((t) => t.id === sub.id);
+    if (!base) return subAcc;
+
+    const baseConfig = sub.variante && base.opciones?.[sub.variante]
+      ? base.opciones[sub.variante]
+      : base.opciones?.[base.variante] || base;
+
+    const tiempo = baseConfig.tiempo || 0;
+    const multiplicador = baseConfig.multiplicador ?? 1;
+    const cantidad = sub.cantidad || 1;
+
+    return subAcc + (tiempo / 60) * tarifaHoraria * multiplicador * cantidad;
+  }, 0);
+
+  const nuevaTarea = {
+    ...tarea,
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    cantidad: 1,
+    tiempo: tarea.incluye
+      ? tarea.incluye.reduce((acc, sub) => {
+          const base = tareasPredefinidas.find((t) => t.id === sub.id);
+          const baseConfig = sub.variante
+            ? base?.opciones?.[sub.variante] || base
+            : base?.opciones?.[base.variante] || base;
+
+          return acc + (baseConfig?.tiempo || 0) * (sub.cantidad || 1);
+        }, 0)
+      : 0,
+    multiplicador: tarea.resumen?.multiplicador || 1,
+    valor: totalInterno,
+    incluye: tarea.ocultarSubtareas ? [] : tarea.incluye,
+    originalIncluye: tarea.incluye // 👈 clave para que `costoBase` lo pueda leer
+
+  };
+
+  setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
+  return;
+}
+
+ else {
       // Tarea normal
       const base = tarea.opciones?.[tarea.variante] || tarea;
   
@@ -216,7 +81,11 @@ export default function CalculadoraCompleta() {
         cantidad: 1,
         tiempo: base.tiempo,
         multiplicador: base.multiplicador ?? tarea.multiplicador ?? 1,
-        valor: tarea.valor || 0,
+        valor:
+        tarea.opciones?.[tarea.variante]?.valor ??
+        tarea.valor ??
+        ((base.tiempo / 60) * tarifaHoraria * (base.multiplicador ?? 1)),
+
         variante: tarea.variante || null,
       };
   
@@ -258,11 +127,44 @@ export default function CalculadoraCompleta() {
               variante: valor,
               tiempo: nuevaConfig?.tiempo ?? tareaOriginal.tiempo,
               multiplicador: nuevaConfig?.multiplicador ?? tareaOriginal.multiplicador,
+              valor: nuevaConfig?.valor ?? tareaOriginal.valor, // ✅ <- esta línea es la clave
             },
             ...nuevasInternas,
           ]);
       }
-  
+     if (campo === "cantidad") {
+  return tareas.map((t) => {
+    if (t.id !== id) return t;
+
+    const nuevaCantidad = parseInt(valor);
+    const cantidadFinal = isNaN(nuevaCantidad) || nuevaCantidad < 1 ? 1 : nuevaCantidad;
+
+    const nuevoValor = t.valorUnidad
+      ? Math.round((t.valorUnidad / 3) * cantidadFinal)
+      : t.valor;
+
+    return {
+      ...t,
+      cantidad: cantidadFinal,
+      valor: nuevoValor,
+    };
+  });
+}
+
+
+        if (campo === "valorUnidad") {
+      const nuevoValor = parseFloat(valor);
+      return tareas.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              valorUnidad: nuevoValor, 
+              valor: Math.round((nuevoValor / 3) * (t.cantidad || 1)), // 👈 ahora incluye cantidad
+            }
+          : t
+      );
+    }
+
       // Otros campos como cantidad
       return tareas.map((t) =>
         t.id === id
@@ -274,10 +176,6 @@ export default function CalculadoraCompleta() {
       );
     });
   };
-  
-  
-
-  
 
   const eliminarTarea = (id) => {
     setTareasSeleccionadas(tareasSeleccionadas.filter((t) => t.id !== id));
@@ -304,32 +202,73 @@ export default function CalculadoraCompleta() {
   );
   const horas = Math.floor(tiempoTotal / 60);
   const minutos = tiempoTotal % 60;
-  const tiempoConMargen = tiempoTotal + 20;
+  const tiempoConMargen = tiempoTotal + 30;
   const horasMargen = Math.floor(tiempoConMargen / 60);
   const minutosMargen = tiempoConMargen % 60;
 
 
   const tarifaSegura = isNaN(tarifaHoraria) || tarifaHoraria <= 0 ? 0 : tarifaHoraria;
   const visitaSegura = isNaN(costoConsulta) || costoConsulta < 0 ? 0 : costoConsulta;
+  
+  function calcularTareaConSubtareas(subTarea, tarifaHoraria, tareasPredefinidas) {
+  const base = tareasPredefinidas.find((t) => t.id === subTarea.id);
+  if (!base) return 0;
+
+  const variante = subTarea.variante || base.variante;
+  const baseConfig = variante && base.opciones?.[variante] ? base.opciones[variante] : base;
+
+  const tiempo = baseConfig.tiempo || 0;
+  const multiplicador = baseConfig.multiplicador ?? 1;
+  const cantidad = subTarea.cantidad || 1;
+
+  const valorPropio = (tiempo / 60) * tarifaHoraria * multiplicador * cantidad;
+
+  const incluye = baseConfig.incluye || [];
+  const valorSubtareas = incluye.reduce((acc, sub) => acc + calcularTareaConSubtareas(sub, tarifaHoraria, tareasPredefinidas), 0);
+
+  return valorPropio + valorSubtareas;
+}
+
   const costoBase = tareasSeleccionadas.reduce((acc, tarea) => {
     if (tarea.tipo === "administrativa") {
       return acc + tarea.valor * tarea.cantidad;
     }
   
-    if (tarea.tipo === "paquete" && Array.isArray(tarea.incluye)) {
-      // Sumamos lo que contiene el paquete
-      const totalInterno = tarea.incluye.reduce((subAcc, subTarea) => {
-        const base = tareasPredefinidas.find((t) => t.id === subTarea.id);
-        if (!base) return subAcc;
-        const baseConfig = base.opciones?.[base.variante] || base;
-        const tiempo = baseConfig.tiempo || 0;
-        const multiplicador = baseConfig.multiplicador ?? 1;
-        const cantidad = subTarea.cantidad || 1;
-        return subAcc + (tiempo / 60) * tarifaHoraria * multiplicador * cantidad;
-      }, 0);
-      return acc + totalInterno * tarea.cantidad;
-    }
-  
+       if (tarea.tipo === "paquete") {
+  const totalInterno = (tarea.originalIncluye || tarea.incluye || []).reduce((subAcc, subTarea) => {
+    return subAcc + calcularTareaConSubtareas(subTarea, tarifaHoraria, tareasPredefinidas);
+  }, 0);
+  return acc + totalInterno * tarea.cantidad;
+}
+
+
+
+
+
+        if (tarea.tipo === "composicion") {
+          const tiempoPorPolo = 10;
+          const multArmado = 2.7;
+          const multDiseno = 3.2;
+          const horas = (tarea.cantidad * tiempoPorPolo) / 60;
+
+          const costoTotal = horas * tarifaHoraria * (
+            tarea.opciones?.["Diseño + armado"]?.porcentajeDiseno * multDiseno +
+            tarea.opciones?.["Diseño + armado"]?.porcentajeArmado * multArmado
+          );
+
+          const variante = tarea.opciones?.[tarea.variante] || {};
+          const pDiseno = variante.porcentajeDiseno ?? 0;
+          const pArmado = variante.porcentajeArmado ?? 0;
+
+          const total = costoTotal * (pDiseno + pArmado);
+
+          return acc + total;
+        }
+        if (tarea.tipo === "calculada" && tarea.valor !== undefined && tarea.valor !== null) {
+          return acc + tarea.valor;
+        }
+
+
     const factor = tarea.multiplicador ?? 1;
     const costoTarea = (tarea.tiempo / 60) * tarifaHoraria * tarea.cantidad * factor;
     return acc + costoTarea;
@@ -448,21 +387,27 @@ export default function CalculadoraCompleta() {
 
 
           <div className="flex flex-wrap gap-2">
-            {tareasPopulares.map((tarea) => (
-              <button
-                key={tarea.id}
-                className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm hover:bg-blue-600"
-                onClick={() => agregarTarea(tarea)}
-              >
-                {tarea.nombre}
-              </button>
-            ))}
-          </div>
+  {tareasPopulares.map((tarea) => (
+    <button
+      key={tarea.id}
+      className={`px-4 py-2 rounded-full text-sm transition-colors duration-200 ${
+        tarea.nombre === "Boca"
+          ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
+          : "bg-blue-500 text-white hover:bg-blue-600"
+      }`}
+      onClick={() => agregarTarea(tarea)}
+      title={tarea.nombre === "Boca" ? "Esta tarea es útil como unidad de medida para estimaciones rápidas" : ""}
+    >
+      {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
+    </button>
+  ))}
+</div>
+
           
           <div className="text-center">
             <button
               onClick={() => setMostrarModalSugerencia(true)}
-              className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
             >
               <FaPlus className="inline mr-2" />
               ¿Tenés una tarea que no encontras?
@@ -483,7 +428,7 @@ export default function CalculadoraCompleta() {
           {tareasSeleccionadas.length === 0 ? (
             <p className="text-gray-500">No hay tareas agregadas.</p>
           ) : (
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 relative">
               {tareasSeleccionadas.map((tarea) => (
                 <div
                 key={tarea.id}
@@ -491,12 +436,16 @@ export default function CalculadoraCompleta() {
                   tarea.origen ? "pl-6 text-gray-600 italic" : ""
                 }`}
               >
-                <span className="flex-1 flex items-center gap-1">
+                <span className="flex-1 flex items-center gap-1 relative">
                   {tarea.origen && <span className="text-xs text-blue-400">↳</span>}
                   {tarea.nombre}
+                  {tarea.descripcion && (
+                  <TooltipInfo texto={tarea.descripcion} />
+                  )}
+
                 </span>
-              
-                
+
+                            
                   {/* Selector si la tarea tiene opciones */}
                   {tarea.opciones && (
                     <div className="flex gap-2 flex-wrap">
@@ -537,6 +486,18 @@ export default function CalculadoraCompleta() {
                     />
                   </div>
                 
+                {tarea.requiereInput && (
+                  <div className="flex items-center gap-1">
+                    <label className="text-gray-500">Valor TV:</label>
+                    <input
+                      type="number"
+                      className="w-24 p-1 border rounded"
+                      value={tarea.valorUnidad || ""}
+                      onChange={(e) => modificarTarea(tarea.id, "valorUnidad", e.target.value)}
+                    />
+                  </div>
+                )}
+
                   {/* Tiempo o Valor */}
                   {tarea.tipo === "administrativa" && (
                     <div className="flex items-center gap-1">
@@ -566,10 +527,10 @@ export default function CalculadoraCompleta() {
               <div className="sticky bottom-0 flex justify-end p-2 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent">
                 <button
                   onClick={limpiarTareas}
-                  className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 shadow-md"
+                  className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-400 text-white rounded hover:bg-black shadow-md"
                 >
                   <FaBroom className="text-white" />
-                  Limpiar lista
+                  Vaciar lista
                 </button>
               </div>
             </div>                 
@@ -583,7 +544,7 @@ export default function CalculadoraCompleta() {
         {/* RESULTADO FINAL */}
         <div className="bg-blue-50 p-6 rounded-xl shadow space-y-4 relative">
           <h2 className="text-xl font-semibold text-blue-800">💰 Resumen del Presupuesto</h2>
-          {tareasSeleccionadas.length >= 2 && tiempoTotal > 120 && (
+          {tareasSeleccionadas.length >= 1 && tiempoTotal > 20 && (
             <p className="text-lg">
               ⏱️ Tiempo Estimado: {/*tiempoConMargen*/}  {horasMargen}h {minutosMargen}min <i className="text-xs text-gray-500">(no incluye tiempo de tareas administrativas.)</i>
             </p>
@@ -591,7 +552,7 @@ export default function CalculadoraCompleta() {
  
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <label className="flex-1">
-            Ajuste de Precio <i className="text-xs text-gray-500">(% sobre las tareas sin incluir el costo de la visita)</i>
+            Ajuste de Precio <i className="text-xs text-gray-500">(% sobre las tareas sin incluir la visita)</i>
             <input
               type="range"
               min="0"
@@ -606,7 +567,12 @@ export default function CalculadoraCompleta() {
         {/* Botón fijo dentro del resumen */}
           <div className="absolute top-6 right-6 z-10">
               <button
-                onClick={() => setIncluirVisita(!incluirVisita)}
+                onClick={() => {
+                  setIncluirVisita((prev) => !prev);
+                  sonidoMonedas.current.currentTime = 0; // reinicia el sonido
+                  sonidoMonedas.current.play(); // lo reproduce
+                }}
+
                 className={`px-4 py-2 rounded-full text-sm font-semibold shadow-md transition-all duration-300 ease-in-out hover:scale-105 ${
                   incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"
                 }`}

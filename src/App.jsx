@@ -12,13 +12,17 @@ import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
-import { AdminUsuarios } from "./pages/AdminUsuarios";
+import { UsuariosAdmin } from "./pages/admin/UsuariosAdmin";
 import { AdminRoute } from "./components/AdminRoute";
 import { useEffect } from "react"; 
 import { Mantenimiento } from "./pages/Mantenimiento";
 import Gracias from "./pages/Gracias";
 import ErrorPago from "./pages/ErrorPago";
 import Espera from "./pages/Espera";
+import Terminos from "./pages/Terminos";
+import DashboardLayout from "./layouts/DashboardLayout";
+import { TareasAdmin } from "./pages/admin/TareasAdmin";
+import CargarTareasManual from "./CargarTareasManual";
 
 
 export function ComentariosPage() {
@@ -46,7 +50,7 @@ export default function App() {
     <Router>
       <div className="min-h-screen flex flex-col">
         {/* NAVBAR */}
-        <nav className="bg-blue-800 text-white shadow-md px-5 py-2 relative z-50">
+        <nav className="bg-blue-800 text-white shadow-md px-5 py-2 relative sticky top-0 z-50">
           <div className="max-w-8xl mx-auto flex items-center justify-between">
 
             {/* Botón Hamburguesa (solo en pantallas pequeñas) */}
@@ -70,7 +74,16 @@ export default function App() {
             {/* Menú horizontal para pantallas grandes */}
             <ul className="hidden sm:flex justify-center items-center gap-[2px]">
               <li><Link to="/calculadora" className="block w-32 text-center py-2 rounded hover:bg-blue-700 transition">Calculadora</Link></li>
-              <li><Link to="/noticias" className="block w-32 text-center py-2 rounded hover:bg-blue-700 transition">Noticias</Link></li>
+              <li className="group relative">
+                <span className="block w-32 text-center py-2 rounded hover:bg-blue-700 cursor-pointer transition">
+                  Novedades ▾
+                </span>
+                <ul className="absolute left-0 top-full w-48 bg-blue-800 hidden group-hover:block shadow-lg z-10">
+                  <li>
+                    <Link to="/novedades/noticias" className="block px-4 py-2 hover:bg-blue-700">Noticias</Link>
+                  </li>                  
+                </ul>
+              </li>
               <li><Link to="/reglamentacion" className="block w-32 text-center py-2 rounded hover:bg-blue-700 transition">Reglamentación</Link></li>
               <li><Link to="/acerca" className="block w-32 text-center py-2 rounded hover:bg-blue-700 transition">Acerca de</Link></li>
               <li><Link to="/comentarios" className="block w-32 text-center py-2 rounded hover:bg-blue-700 transition">Comentarios</Link></li>
@@ -78,22 +91,21 @@ export default function App() {
 
             {/* Espacio login */}
             <div className="flex gap-2 items-center">
-            {usuario ? (
-  <button
-    onClick={() => signOut(auth)}
-    className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
-  >
-    Cerrar sesión
-  </button>
-) : (
-  <button
-    onClick={() => setMostrarModalAcceso(true)}
-    className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
-  >
-    Acceder
-  </button>
-)}
-
+              {usuario ? (
+                <button
+                  onClick={() => signOut(auth)}
+                  className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
+                >
+                  Cerrar sesión
+                </button>
+              ) : (
+                <button
+                  onClick={() => setMostrarModalAcceso(true)}
+                  className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
+                >
+                  Acceder
+                </button>
+              )}
             </div>
           </div>
 
@@ -101,7 +113,7 @@ export default function App() {
           {menuAbierto && (
             <div className="sm:hidden absolute top-full left-0 w-full bg-blue-900 flex flex-col items-center py-4 space-y-2">
               <Link to="/calculadora" onClick={() => setMenuAbierto(false)} className="hover:bg-blue-700 px-4 py-2 rounded">Calculadora</Link>
-              <Link to="/noticias" onClick={() => setMenuAbierto(false)} className="hover:bg-blue-700 px-4 py-2 rounded">Noticias</Link>
+              <Link to="/novedades/noticias" onClick={() => setMenuAbierto(false)} className="hover:bg-blue-700 px-4 py-2 rounded">Noticias</Link>
               <Link to="/reglamentacion" onClick={() => setMenuAbierto(false)} className="hover:bg-blue-700 px-4 py-2 rounded">Reglamentación</Link>
               <Link to="/acerca" onClick={() => setMenuAbierto(false)} className="hover:bg-blue-700 px-4 py-2 rounded">Acerca de</Link>
               <Link to="/comentarios" onClick={() => setMenuAbierto(false)} className="hover:bg-blue-700 px-4 py-2 rounded">Comentarios</Link>
@@ -109,13 +121,43 @@ export default function App() {
           )}
         </nav>
 
-      {/* RESTO DEL CÓDIGO SIGUE IGUAL */} 
+      {/* RESTO DEL CÓDIGO SIGUE IGUAL */}
       <main className="flex-grow p-4 bg-gray-50">
-  <Routes>
-    <Route path="*" element={<Mantenimiento />} />
-  </Routes>
-</main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/calculadora"
+              element={
+                <ProtectedRoute>
+                  <Calculadora />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/acerca" element={<Acerca />} />
+            <Route path="/novedades/noticias" element={<Noticias />} />
+            <Route path="/reglamentacion" element={<Reglamentacion />} />
+            <Route path="/comentarios" element={<ComentariosPage />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <DashboardLayout />
+                </AdminRoute>
+              }
+            >
+              <Route path="usuarios" element={<UsuariosAdmin />} />
+              <Route path="tareas" element={<TareasAdmin />} />  
+              {/* Rutas adicionales se agregarán aquí */}
+              <Route path="cargar-tareas" element={<CargarTareasManual />} />
+            </Route>
+      {/* NUEVAS RUTAS POST-PAGO */}
+            <Route path="/gracias" element={<Gracias />} />
+            <Route path="/error" element={<ErrorPago />} />
+            <Route path="/espera" element={<Espera />} />
+            <Route path="/terminos" element={<Terminos />} />
 
+          </Routes>
+        </main>
 
         <footer className="bg-blue-800 text-white text-center py-4">
           <p>&copy; {new Date().getFullYear()} Todos los derecho reservados. ⚡Electricista+ </p>

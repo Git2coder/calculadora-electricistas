@@ -114,14 +114,14 @@ export function ModalAcceso({ onClose }) {
           >
             Iniciar sesion
           </button>
-          <button
+          {/* <button
             onClick={() => cambiarVista("registro")}
             className={`px-4 py-2 rounded-t-md font-semibold ${
               vista === "registro" ? "bg-blue-600 text-white" : "bg-gray-200"
             }`}
           >
             Crear cuenta
-          </button>
+          </button> */}
         </div>
 
         <form onSubmit={manejarAccion} className="space-y-4">

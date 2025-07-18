@@ -107,9 +107,9 @@ export function TablaReglamentosAEA() {
         onChange={(e) => setFiltro(e.target.value)}
       />
 
-      <div className="overflow-auto">
+      <div className="max-h-[500px] overflow-y-auto border rounded-xl shadow">
         <table className="w-full table-auto border-collapse bg-white shadow rounded-xl">
-          <thead className="bg-blue-800 text-white">
+          <thead className="bg-blue-800 text-white sticky top-0 z-10">
             <tr>
               <th className="p-3 text-left">Código</th>
               <th className="p-3 text-left">Edición</th>
@@ -129,7 +129,7 @@ export function TablaReglamentosAEA() {
       </div>
 
       <p className="mt-4 text-sm text-gray-500">
-        Comunicate con los sitios oficiales de AEA para adquirir estos documentos.
+        Comunicate con los sitios oficiales de AEA para adquirir la reglamentacion correspondiente.
       </p>
     </section>
   );

@@ -16,7 +16,7 @@ export default function Gracias() {
       });
     
       // 🔊 Reproducir sonido
-    const audio = new Audio("../public/sounds/confetti.mp3");
+    const audio = new Audio("/sounds/confeti.mp3");
     audio.play().catch((err) => {
       console.log("Error al reproducir el audio:", err);
     });
