@@ -1,228 +1,180 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebaseConfig";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
-export default function ModalAcceso({ onClose }) {
-  const [modo, setModo] = useState("login"); // "login" o "registro"
+export default function ModalAcceso({ isOpen, onClose }) {
+  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // Estados para registro asistente
-  const [paso, setPaso] = useState(1);
-  const [nombre, setNombre] = useState("");
   const [ubicacion, setUbicacion] = useState("");
-  const [tipoTrabajo, setTipoTrabajo] = useState("");
+  const [experiencia, setExperiencia] = useState("");
+  const [conoceTarifa, setConoceTarifa] = useState(null);
   const [tarifaHoraria, setTarifaHoraria] = useState("");
 
-  // Intentar detectar ubicación automáticamente
+  const modalRef = useRef();
+
+  // Cierre por clic fuera
   useEffect(() => {
-    if (modo === "registro") {
-      navigator.geolocation?.getCurrentPosition(
-        async (pos) => {
-          try {
-            const res = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=es`
-            );
-            const data = await res.json();
-            if (data.city && data.countryName) {
-              setUbicacion(`${data.city}, ${data.countryName}`);
-            }
-          } catch (e) {
-            console.log("No se pudo obtener ubicación automática");
-          }
-        },
-        () => console.log("Usuario rechazó geolocalización")
-      );
+    function handleClickOutside(event) {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
     }
-  }, [modo]);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, onClose]);
 
-  // Guardar nuevo usuario
-  const registrarUsuario = async () => {
+  const handleAuth = async () => {
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "usuarios", userCred.user.uid), {
-        uid: userCred.user.uid,
-        email,
-        nombre,
-        ubicacion,
-        tipoTrabajo,
-        tarifaHoraria: parseFloat(tarifaHoraria) || 0,
-        fechaRegistro: new Date().toISOString()
-      });
+      if (isRegister) {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        await setDoc(doc(db, "usuarios", userCredential.user.uid), {
+          estado: "activo",
+          email,
+          ubicacion,
+          experiencia,
+          conoceTarifa,
+          tarifaHoraria: conoceTarifa ? Number(tarifaHoraria) : null,
+          fechaRegistro: Timestamp.now()
+        });
+        alert("Cuenta creada con éxito");
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Inicio de sesión exitoso");
+      }
       onClose();
     } catch (error) {
-      alert("Error al registrar: " + error.message);
+      alert(error.message);
     }
   };
 
-  // Login normal
-  const iniciarSesion = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onClose();
-    } catch (error) {
-      alert("Error al iniciar sesión: " + error.message);
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">
-          {modo === "login" ? "Iniciar sesión" : "Registro de nuevo usuario"}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative"
+      >
+        {/* Botón Cerrar */}
+        <button
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          onClick={onClose}
+        >
+          ❌
+        </button>
+
+        <h2 className="text-2xl font-bold mb-4 text-center">
+          {isRegister ? "Crear cuenta" : "Iniciar sesión"}
         </h2>
 
-        {/* LOGIN */}
-        {modo === "login" && (
+        <input
+          type="email"
+          placeholder="Correo electrónico"
+          className="border rounded w-full p-2 mb-3"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Contraseña"
+          className="border rounded w-full p-2 mb-3"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {isRegister && (
           <>
             <input
-              type="email"
-              placeholder="Correo electrónico"
-              className="w-full mb-3 p-2 border rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Ubicación (ciudad, provincia)"
+              className="border rounded w-full p-2 mb-3"
+              value={ubicacion}
+              onChange={(e) => setUbicacion(e.target.value)}
             />
-            <input
-              type="password"
-              placeholder="Contraseña"
-              className="w-full mb-4 p-2 border rounded"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              onClick={iniciarSesion}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+
+            <select
+              className="border rounded w-full p-2 mb-3"
+              value={experiencia}
+              onChange={(e) => setExperiencia(e.target.value)}
             >
-              Entrar
-            </button>
-            <p className="mt-4 text-center text-sm">
-              ¿No tenés cuenta?{" "}
-              <button
-                className="text-blue-600 underline"
-                onClick={() => setModo("registro")}
-              >
-                Registrate
-              </button>
-            </p>
+              <option value="">Años de experiencia</option>
+              <option value="0-1">0-1 años</option>
+              <option value="2-5">2-5 años</option>
+              <option value="5+">Más de 5 años</option>
+            </select>
+
+            {/* Pregunta sobre tarifa horaria */}
+            <div className="mb-3">
+              <p className="mb-2 font-medium">
+                ¿Sabés tu tarifa horaria actual?
+              </p>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  className={`px-3 py-1 rounded border ${
+                    conoceTarifa === true ? "bg-green-200" : ""
+                  }`}
+                  onClick={() => setConoceTarifa(true)}
+                >
+                  Sí
+                </button>
+                <button
+                  type="button"
+                  className={`px-3 py-1 rounded border ${
+                    conoceTarifa === false ? "bg-red-200" : ""
+                  }`}
+                  onClick={() => setConoceTarifa(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+
+            {conoceTarifa && (
+              <input
+                type="number"
+                placeholder="Tarifa horaria en $"
+                className="border rounded w-full p-2 mb-3"
+                value={tarifaHoraria}
+                onChange={(e) => setTarifaHoraria(e.target.value)}
+              />
+            )}
+
+            {conoceTarifa === false && (
+              <p className="text-sm text-gray-600 mb-3">
+                No te preocupes, te ayudaremos a calcularla más adelante.
+              </p>
+            )}
           </>
         )}
 
-        {/* REGISTRO ASISTENTE */}
-        {modo === "registro" && (
-          <div>
-            {paso === 1 && (
-              <>
-                <p className="mb-2">¿Cuál es tu correo electrónico?</p>
-                <input
-                  type="email"
-                  className="w-full mb-3 p-2 border rounded"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <p className="mb-2">Elegí una contraseña segura:</p>
-                <input
-                  type="password"
-                  className="w-full mb-4 p-2 border rounded"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-                  onClick={() => setPaso(2)}
-                >
-                  Siguiente
-                </button>
-              </>
-            )}
-            {paso === 2 && (
-              <>
-                <p className="mb-2">¿Cómo te llamás?</p>
-                <input
-                  type="text"
-                  className="w-full mb-4 p-2 border rounded"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                />
-                <div className="flex justify-between">
-                  <button className="text-gray-500" onClick={() => setPaso(1)}>Atrás</button>
-                  <button
-                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    onClick={() => setPaso(3)}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </>
-            )}
-            {paso === 3 && (
-              <>
-                <p className="mb-2">¿Dónde trabajás normalmente?</p>
-                <input
-                  type="text"
-                  className="w-full mb-4 p-2 border rounded"
-                  value={ubicacion}
-                  onChange={(e) => setUbicacion(e.target.value)}
-                  placeholder="Ej: Buenos Aires, Argentina"
-                />
-                <div className="flex justify-between">
-                  <button className="text-gray-500" onClick={() => setPaso(2)}>Atrás</button>
-                  <button
-                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    onClick={() => setPaso(4)}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </>
-            )}
-            {paso === 4 && (
-              <>
-                <p className="mb-2">¿Qué tipo de trabajos realizás?</p>
-                <select
-                  className="w-full mb-4 p-2 border rounded"
-                  value={tipoTrabajo}
-                  onChange={(e) => setTipoTrabajo(e.target.value)}
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="residencial">Residencial</option>
-                  <option value="comercial">Comercial</option>
-                  <option value="industrial">Industrial</option>
-                  <option value="mixto">Mixto</option>
-                </select>
-                <div className="flex justify-between">
-                  <button className="text-gray-500" onClick={() => setPaso(3)}>Atrás</button>
-                  <button
-                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    onClick={() => setPaso(5)}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </>
-            )}
-            {paso === 5 && (
-              <>
-                <p className="mb-2">Ingresá tu tarifa horaria estimada ($ARS):</p>
-                <input
-                  type="number"
-                  className="w-full mb-4 p-2 border rounded"
-                  value={tarifaHoraria}
-                  onChange={(e) => setTarifaHoraria(e.target.value)}
-                />
-                <div className="flex justify-between">
-                  <button className="text-gray-500" onClick={() => setPaso(4)}>Atrás</button>
-                  <button
-                    className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-                    onClick={registrarUsuario}
-                  >
-                    Finalizar registro
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
+        <button
+          onClick={handleAuth}
+          className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700 transition"
+        >
+          {isRegister ? "Registrarme" : "Ingresar"}
+        </button>
+
+        <p
+          className="mt-4 text-center text-sm cursor-pointer text-blue-500 hover:underline"
+          onClick={() => setIsRegister(!isRegister)}
+        >
+          {isRegister
+            ? "¿Ya tienes cuenta? Inicia sesión"
+            : "¿No tienes cuenta? Regístrate"}
+        </p>
       </div>
     </div>
   );

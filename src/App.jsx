@@ -36,7 +36,7 @@ export function ComentariosPage() {
 
 export default function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [mostrarModalAcceso, setMostrarModalAcceso] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
   const { user, logout } = useAuth();
   const { usuario } = useAuth(); // si ya lo estás usando, no hace falta repetir
 
@@ -100,7 +100,7 @@ export default function App() {
                 </button>
               ) : (
                 <button
-                  onClick={() => setMostrarModalAcceso(true)}
+                  onClick={() => setModalAbierto(true)}
                   className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
                 >
                   Acceder
@@ -163,19 +163,9 @@ export default function App() {
           <p>&copy; {new Date().getFullYear()} Todos los derecho reservados. ⚡Electricista+ </p>
         </footer>
       </div>
-    
-
-      {/* Botón flotante de WhatsApp - <a
-        href="https://wa.me/5491123456789"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-4 right-4 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 z-50"
-      >
-        <span className="text-xl">💬</span>
-        <span className="hidden sm:inline">Contactar por WhatsApp</span>
-      </a> */}
-      {mostrarModalAcceso && (
-  <ModalAcceso onClose={() => setMostrarModalAcceso(false)} />
+  
+      {setModalAbierto && (
+<ModalAcceso isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
 )}
 
     </Router>
