@@ -1,4 +1,4 @@
-import { ModalAcceso } from "./components/ModalAcceso";
+import  ModalAcceso  from "./components/ModalAcceso";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";

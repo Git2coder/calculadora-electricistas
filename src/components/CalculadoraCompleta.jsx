@@ -75,22 +75,22 @@ export default function CalculadoraCompleta() {
       // Tarea normal
       const base = tarea.opciones?.[tarea.variante] || tarea;
   
+      const varianteConfig = tarea.variante && tarea.opciones?.[tarea.variante]
+    ? tarea.opciones[tarea.variante]
+    : tarea;
+
       const nuevaTarea = {
         ...tarea,
         id: Date.now() + Math.floor(Math.random() * 1000),
         cantidad: 1,
-        tiempo: base.tiempo,
-        multiplicador: base.multiplicador ?? tarea.multiplicador ?? 1,
-        valor:
-        tarea.opciones?.[tarea.variante]?.valor ??
-        tarea.valor ??
-        ((base.tiempo / 60) * tarifaHoraria * (base.multiplicador ?? 1)),
-
+        tiempo: varianteConfig.tiempo || tarea.tiempo,
+        multiplicador: varianteConfig.multiplicador ?? tarea.multiplicador ?? 1,
+        valor: (varianteConfig.tiempo / 60) * tarifaHoraria * (varianteConfig.multiplicador ?? 1),
         variante: tarea.variante || null,
       };
-  
+
       setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
-    }
+      }
   };
   
   
@@ -140,7 +140,7 @@ export default function CalculadoraCompleta() {
     const cantidadFinal = isNaN(nuevaCantidad) || nuevaCantidad < 1 ? 1 : nuevaCantidad;
 
     const nuevoValor = t.valorUnidad
-      ? Math.round((t.valorUnidad / 3) * cantidadFinal)
+      ? Math.round((t.valorUnidad / 4) * cantidadFinal)
       : t.valor;
 
     return {
@@ -159,7 +159,7 @@ export default function CalculadoraCompleta() {
           ? {
               ...t,
               valorUnidad: nuevoValor, 
-              valor: Math.round((nuevoValor / 3) * (t.cantidad || 1)), // 👈 ahora incluye cantidad
+              valor: Math.round((nuevoValor / 4) * (t.cantidad || 1)), // 👈 ahora incluye cantidad
             }
           : t
       );
@@ -228,22 +228,38 @@ export default function CalculadoraCompleta() {
 
   return valorPropio + valorSubtareas;
 }
+// Buscar la definición de Boca en tareasPredefinidas
+const baseBoca = tareasPredefinidas.find(t => t.nombre === "Boca");
+let valorBoca = null;
 
-  const costoBase = tareasSeleccionadas.reduce((acc, tarea) => {
-    if (tarea.tipo === "administrativa") {
-      return acc + tarea.valor * tarea.cantidad;
-    }
-  
-       if (tarea.tipo === "paquete") {
-  const totalInterno = (tarea.originalIncluye || tarea.incluye || []).reduce((subAcc, subTarea) => {
-    return subAcc + calcularTareaConSubtareas(subTarea, tarifaHoraria, tareasPredefinidas);
-  }, 0);
-  return acc + totalInterno * tarea.cantidad;
+if (baseBoca) {
+  const factor = baseBoca.multiplicador ?? 1;
+  valorBoca = (baseBoca.tiempo / 60) * tarifaHoraria * factor;
 }
 
 
+  const costoBase = tareasSeleccionadas.reduce((acc, tarea) => {
+    // Si depende de Boca, se calcula a partir de su valor
+        if (tarea.dependeDe === "Boca" && valorBoca !== null) {
+        let factor = tarea.factorBoca ?? 1;
 
+        if (tarea.variante && tarea.opciones?.[tarea.variante]) {
+          factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
+        }
 
+        return acc + (valorBoca * factor) * tarea.cantidad;
+      }
+
+        if (tarea.tipo === "administrativa") {
+          return acc + tarea.valor * tarea.cantidad;
+        }
+  
+       if (tarea.tipo === "paquete") {
+          const totalInterno = (tarea.originalIncluye || tarea.incluye || []).reduce((subAcc, subTarea) => {
+            return subAcc + calcularTareaConSubtareas(subTarea, tarifaHoraria, tareasPredefinidas);
+          }, 0);
+          return acc + totalInterno * tarea.cantidad;
+        }
 
         if (tarea.tipo === "composicion") {
           const tiempoPorPolo = 10;
