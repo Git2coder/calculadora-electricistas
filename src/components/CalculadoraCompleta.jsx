@@ -296,6 +296,14 @@ if (baseBoca) {
   ? 0
   : (costoBase + (incluirVisita ? visitaSegura : 0)) + (costoBase * ajustePorcentaje) / 100;
 
+  // Botones + y - adiciona o disminuyen la cantidad de la tarea
+  const actualizarCantidad = (id, nuevaCantidad) => {
+    setTareasSeleccionadas((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
+      )
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
@@ -491,15 +499,21 @@ if (baseBoca) {
                     <label className="text-gray-500">
                       {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
                     </label>
-                    <input
-                      type="number"
-                      min="1"
-                      className="w-16 p-1 border rounded"
-                      value={tarea.cantidad}
-                      onChange={(e) =>
-                        modificarTarea(tarea.id, "cantidad", e.target.value)
-                      }
-                    />
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => actualizarCantidad(tarea.id, tarea.cantidad - 1)}
+                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                      >
+                        −
+                      </button>
+                      <span className="w-8 text-center">{tarea.cantidad}</span>
+                      <button
+                        onClick={() => actualizarCantidad(tarea.id, tarea.cantidad + 1)}
+                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 
                 {tarea.requiereInput && (
@@ -531,7 +545,7 @@ if (baseBoca) {
                 
                   {/* Eliminar */}
                   <button
-                    className="text-red-600 transition-transform duration-150 hover:scale-110 active:scale-95"
+                    className="text-red-600 transition-transform duration-150 hover:scale-150 active:scale-95"
                     onClick={() => eliminarTarea(tarea.id)}
                     title="Eliminar tarea"
                   >
@@ -589,7 +603,7 @@ if (baseBoca) {
                   sonidoMonedas.current.play(); // lo reproduce
                 }}
 
-                className={`px-4 py-2 rounded-full text-sm font-semibold shadow-md transition-all duration-300 ease-in-out hover:scale-105 ${
+                className={`px-4 py-2 rounded-full text-sm sm:text-base sm:px-5 sm:py-2 font-semibold shadow-md transition-all duration-300 ease-in-out hover:scale-105 ${
                   incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"
                 }`}
               >

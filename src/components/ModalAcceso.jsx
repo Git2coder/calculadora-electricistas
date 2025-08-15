@@ -1,180 +1,345 @@
-import { useState, useEffect, useRef } from "react";
-import { auth, db } from "../firebaseConfig";
+import { useEffect, useState } from "react";
+import { auth, db } from "../firebaseConfig"; // ajustá si tu ruta difiere
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function ModalAcceso({ isOpen, onClose }) {
-  const [isRegister, setIsRegister] = useState(false);
+  const [modo, setModo] = useState("login"); // "login" | "registro"
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Campos comunes
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Campos de registro
+  const [nombre, setNombre] = useState("");
   const [ubicacion, setUbicacion] = useState("");
-  const [experiencia, setExperiencia] = useState("");
-  const [conoceTarifa, setConoceTarifa] = useState(null);
-  const [tarifaHoraria, setTarifaHoraria] = useState("");
+  const [tipoTrabajo, setTipoTrabajo] = useState("");
+  const [experiencia, setExperiencia] = useState(""); // ej: "0-1", "2-5"
+  const [grado, setGrado] = useState(""); // "Idóneo/Electricista" | "Técnico" | "Ingeniero"
+  const [sabeTarifa, setSabeTarifa] = useState(""); // "Si" | "No"
+  const [valorBoca, setValorBoca] = useState(""); // opcional
 
-  const modalRef = useRef();
-
-  // Cierre por clic fuera
+  // Cerrar con ESC
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
-      }
-    }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (!isOpen) return;
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
-  const handleAuth = async () => {
-    try {
-      if (isRegister) {
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-        await setDoc(doc(db, "usuarios", userCredential.user.uid), {
-          estado: "activo",
-          email,
-          ubicacion,
-          experiencia,
-          conoceTarifa,
-          tarifaHoraria: conoceTarifa ? Number(tarifaHoraria) : null,
-          fechaRegistro: Timestamp.now()
-        });
-        alert("Cuenta creada con éxito");
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Inicio de sesión exitoso");
-      }
-      onClose();
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  // Resetear mensajes y loading cuando abre
+  useEffect(() => {
+    if (isOpen) setError("");
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div
-        ref={modalRef}
-        className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative"
-      >
-        {/* Botón Cerrar */}
-        <button
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-          onClick={onClose}
-        >
-          ❌
-        </button>
+  const validarRegistro = () => {
+    if (!nombre.trim()) return "El nombre es obligatorio.";
+    if (!email.trim()) return "El email es obligatorio.";
+    if (!password.trim()) return "La contraseña es obligatoria.";
+    if (!ubicacion.trim()) return "La ubicación es obligatoria.";
+    if (!tipoTrabajo.trim()) return "Seleccioná el tipo de trabajo.";
+    if (!experiencia.trim()) return "Indicá tus años de experiencia.";
+    if (!grado.trim()) return "Seleccioná tu grado profesional.";
+    if (!sabeTarifa.trim()) return "Respondé si sabés tu tarifa horaria.";
+    return "";
+  };
 
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          {isRegister ? "Crear cuenta" : "Iniciar sesión"}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      if (modo === "login") {
+        await signInWithEmailAndPassword(auth, email, password);
+        onClose();
+      } else {
+        const msg = validarRegistro();
+        if (msg) {
+          setError(msg);
+          setLoading(false);
+          return;
+        }
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // Set displayName
+        try {
+          await updateProfile(cred.user, { displayName: nombre });
+        } catch {}
+
+        // Guardar perfil en Firestore
+        await setDoc(doc(db, "usuarios", cred.user.uid), {
+          uid: cred.user.uid,
+          nombre,
+          email,
+          ubicacion,
+          tipoTrabajo,
+          experiencia, // string (ej "2-5")
+          grado,       // string
+          conoceTarifa: sabeTarifa === "Si",
+          valorBoca: valorBoca !== "" ? Number(valorBoca) : null,
+          creadoEn: serverTimestamp(),
+        });
+
+        onClose();
+      }
+    } catch (err) {
+      setError(err?.message || "Ocurrió un error. Intentá nuevamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose} // clic fuera cierra
+    >
+      <div
+    className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
+    onClick={(e) => e.stopPropagation()} // evita cerrar si clic adentro
+  >
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="inline-flex rounded-lg bg-gray-100 p-1">
+            <button
+              className={`px-4 py-2 text-sm font-medium rounded-md transition ${
+                modo === "login" ? "bg-white shadow" : "text-gray-600"
+              }`}
+              onClick={() => setModo("login")}
+              type="button"
+            >
+              Iniciar sesión
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium rounded-md transition ${
+                modo === "registro" ? "bg-white shadow" : "text-gray-600"
+              }`}
+              onClick={() => setModo("registro")}
+              type="button"
+            >
+              Crear cuenta
+            </button>
+          </div>
+
+          <button
+            className="text-gray-500 hover:text-gray-700"
+            onClick={onClose}
+            type="button"
+            aria-label="Cerrar"
+            title="Cerrar"
+          >
+            ✖
+          </button>
+        </div>
+
+        <h2 className="mb-4 text-center text-2xl font-semibold">
+          {modo === "login" ? "Bienvenido" : "Registrate"}
         </h2>
 
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          className="border rounded w-full p-2 mb-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Contraseña"
-          className="border rounded w-full p-2 mb-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        {isRegister && (
-          <>
-            <input
-              type="text"
-              placeholder="Ubicación (ciudad, provincia)"
-              className="border rounded w-full p-2 mb-3"
-              value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
-            />
-
-            <select
-              className="border rounded w-full p-2 mb-3"
-              value={experiencia}
-              onChange={(e) => setExperiencia(e.target.value)}
-            >
-              <option value="">Años de experiencia</option>
-              <option value="0-1">0-1 años</option>
-              <option value="2-5">2-5 años</option>
-              <option value="5+">Más de 5 años</option>
-            </select>
-
-            {/* Pregunta sobre tarifa horaria */}
-            <div className="mb-3">
-              <p className="mb-2 font-medium">
-                ¿Sabés tu tarifa horaria actual?
-              </p>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  className={`px-3 py-1 rounded border ${
-                    conoceTarifa === true ? "bg-green-200" : ""
-                  }`}
-                  onClick={() => setConoceTarifa(true)}
-                >
-                  Sí
-                </button>
-                <button
-                  type="button"
-                  className={`px-3 py-1 rounded border ${
-                    conoceTarifa === false ? "bg-red-200" : ""
-                  }`}
-                  onClick={() => setConoceTarifa(false)}
-                >
-                  No
-                </button>
-              </div>
-            </div>
-
-            {conoceTarifa && (
-              <input
-                type="number"
-                placeholder="Tarifa horaria en $"
-                className="border rounded w-full p-2 mb-3"
-                value={tarifaHoraria}
-                onChange={(e) => setTarifaHoraria(e.target.value)}
-              />
-            )}
-
-            {conoceTarifa === false && (
-              <p className="text-sm text-gray-600 mb-3">
-                No te preocupes, te ayudaremos a calcularla más adelante.
-              </p>
-            )}
-          </>
+        {error && (
+          <div className="mb-4 rounded-md bg-red-100 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
         )}
 
-        <button
-          onClick={handleAuth}
-          className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700 transition"
-        >
-          {isRegister ? "Registrarme" : "Ingresar"}
-        </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* EMAIL / PASSWORD siempre */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              Correo electrónico<span className="text-red-500"> *</span>
+            </label>
+            <input
+              type="email"
+              className="w-full rounded-md border p-2"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
 
-        <p
-          className="mt-4 text-center text-sm cursor-pointer text-blue-500 hover:underline"
-          onClick={() => setIsRegister(!isRegister)}
-        >
-          {isRegister
-            ? "¿Ya tienes cuenta? Inicia sesión"
-            : "¿No tienes cuenta? Regístrate"}
-        </p>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              Contraseña<span className="text-red-500"> *</span>
+            </label>
+            <input
+              type="password"
+              className="w-full rounded-md border p-2"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={modo === "login" ? "current-password" : "new-password"}
+            />
+          </div>
+
+          {modo === "registro" && (
+            <>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Nombre completo<span className="text-red-500"> *</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-md border p-2"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  autoComplete="name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Ubicación (Ciudad, País)<span className="text-red-500"> *</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-md border p-2"
+                  value={ubicacion}
+                  onChange={(e) => setUbicacion(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">
+                    Tipo de trabajo<span className="text-red-500"> *</span>
+                  </label>
+                  <select
+                    className="w-full rounded-md border p-2"
+                    value={tipoTrabajo}
+                    onChange={(e) => setTipoTrabajo(e.target.value)}
+                  >
+                    <option value="">Seleccionar…</option>
+                    <option value="Doméstico">Doméstico</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Industrial">Industrial</option>
+                    <option value="Mixto">Mixto</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">
+                    Años de experiencia<span className="text-red-500"> *</span>
+                  </label>
+                  <select
+                    className="w-full rounded-md border p-2"
+                    value={experiencia}
+                    onChange={(e) => setExperiencia(e.target.value)}
+                  >
+                    <option value="">Seleccionar…</option>
+                    <option value="0-1">0-1</option>
+                    <option value="2-5">2-5</option>
+                    <option value="5-10">5-10</option>
+                    <option value="10+">10+</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">
+                    Grado profesional<span className="text-red-500"> *</span>
+                  </label>
+                  <select
+                    className="w-full rounded-md border p-2"
+                    value={grado}
+                    onChange={(e) => setGrado(e.target.value)}
+                  >
+                    <option value="">Seleccionar…</option>
+                    <option value="Idóneo/Electricista">Idóneo/Electricista</option>
+                    <option value="Técnico">Técnico</option>
+                    <option value="Ingeniero">Ingeniero</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">
+                    ¿Sabés tu tarifa horaria?<span className="text-red-500"> *</span>
+                  </label>
+                  <div className="flex gap-3">
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="sabeTarifa"
+                        value="Si"
+                        checked={sabeTarifa === "Si"}
+                        onChange={(e) => setSabeTarifa(e.target.value)}
+                      />
+                      <span>Sí</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="sabeTarifa"
+                        value="No"
+                        checked={sabeTarifa === "No"}
+                        onChange={(e) => setSabeTarifa(e.target.value)}
+                      />
+                      <span>No</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Valor estimado de la “boca” en tu zona (opcional)
+                </label>
+                <input
+                  type="number"
+                  className="w-full rounded-md border p-2"
+                  value={valorBoca}
+                  onChange={(e) => setValorBoca(e.target.value)}
+                  min="0"
+                  inputMode="numeric"
+                />
+              </div>
+            </>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-md bg-blue-600 py-2 font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading
+              ? "Procesando…"
+              : modo === "login"
+              ? "Ingresar"
+              : "Crear cuenta"}
+          </button>
+
+          <p className="pt-2 text-center text-sm">
+            {modo === "login" ? (
+              <>
+                ¿No tenés cuenta?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline"
+                  onClick={() => setModo("registro")}
+                >
+                  Registrate
+                </button>
+              </>
+            ) : (
+              <>
+                ¿Ya tenés cuenta?{" "}
+                <button
+                  type="button"
+                  className="text-blue-600 underline"
+                  onClick={() => setModo("login")}
+                >
+                  Iniciá sesión
+                </button>
+              </>
+            )}
+          </p>
+        </form>
       </div>
     </div>
   );
