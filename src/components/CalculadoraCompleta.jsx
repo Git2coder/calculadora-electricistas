@@ -506,7 +506,22 @@ if (baseBoca) {
                       >
                         −
                       </button>
-                      <span className="w-8 text-center">{tarea.cantidad}</span>
+                      {/* Campo editable */}
+                        <input
+                          type="number"
+                          min="1"
+                          value={tarea.cantidad}
+                          onChange={(e) =>
+                            setTareasSeleccionadas((prev) =>
+                              prev.map((t) =>
+                                t.id === tarea.id
+                                  ? { ...t, cantidad: Math.max(1, Number(e.target.value)) }
+                                  : t
+                              )
+                            )
+                          }
+                          className="w-14 text-center border border-gray-300 rounded-md"
+                        />
                       <button
                         onClick={() => actualizarCantidad(tarea.id, tarea.cantidad + 1)}
                         className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
@@ -594,22 +609,24 @@ if (baseBoca) {
             />
             <span className="block text-center mt-1">{ajustePorcentaje}%</span>
           </label>
-        {/* Botón fijo dentro del resumen */}
-          <div className="absolute top-6 right-6 z-10">
+          
+          {/* Botón adaptativo dentro del resumen */}
+            <div className="flex justify-end mt-4 sm:mt-0 sm:absolute sm:top-6 sm:right-6 sm:z-10">
               <button
                 onClick={() => {
                   setIncluirVisita((prev) => !prev);
-                  sonidoMonedas.current.currentTime = 0; // reinicia el sonido
-                  sonidoMonedas.current.play(); // lo reproduce
+                  sonidoMonedas.current.currentTime = 0;
+                  sonidoMonedas.current.play();
                 }}
-
-                className={`px-4 py-2 rounded-full text-sm sm:text-base sm:px-5 sm:py-2 font-semibold shadow-md transition-all duration-300 ease-in-out hover:scale-105 ${
-                  incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"
-                }`}
+                className={`px-3 py-2 sm:px-5 sm:py-2 rounded-full font-semibold shadow-md 
+                            transition-all duration-300 ease-in-out hover:scale-105
+                            text-sm sm:text-base
+                            ${incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"}`}
               >
                 {incluirVisita ? "Cobrando visita" : "Visita bonificada"}
               </button>
-          </div>
+            </div>
+
             <ContadorAnimado valor={costoFinal} />
           </div>
         </div>
