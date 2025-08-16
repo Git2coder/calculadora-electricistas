@@ -9,12 +9,12 @@ import { Noticias } from "./pages/Noticias";
 import { Reglamentacion } from "./pages/Reglamentacion";
 import { Comentarios } from "./components/Comentarios";
 import { useState } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import { UsuariosAdmin } from "./pages/admin/UsuariosAdmin";
 import { AdminRoute } from "./components/AdminRoute";
-import { useEffect } from "react"; 
+import { useEffect, useRef } from "react"; 
 import { Mantenimiento } from "./pages/Mantenimiento";
 import Gracias from "./pages/Gracias";
 import ErrorPago from "./pages/ErrorPago";
@@ -37,8 +37,27 @@ export function ComentariosPage() {
 export default function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
-  const { user, logout } = useAuth();
-  const { usuario } = useAuth(); // si ya lo estás usando, no hace falta repetir
+  const [menuUsuario, setMenuUsuario] = useState(false);
+  const { usuario } = useAuth();
+
+  const menuRef = useRef(null);
+
+  // Cerrar menú de usuario al hacer click afuera
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuUsuario(false);
+      }
+    }
+    if (menuUsuario) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuUsuario]);
 
   useEffect(() => {
     const handler = () => setMostrarModalAcceso(true);
@@ -90,14 +109,69 @@ export default function App() {
             </ul>
 
             {/* Espacio login */}
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center relative">
               {usuario ? (
-                <button
-                  onClick={() => signOut(auth)}
-                  className="bg-white text-blue-800 px-4 py-1.5 rounded-full text-sm hover:bg-gray-100"
-                >
-                  Cerrar sesión
-                </button>
+                <div className="relative flex items-center gap-2" ref={menuRef}>
+                  <button
+                    onClick={() => setMenuUsuario((prev) => !prev)}
+                    className="flex items-center gap-2 text-white hover:opacity-80 transition"
+                  >
+                    <FaUserCircle className="text-3xl" />
+                    <span className="hidden sm:inline">{usuario.nombre || usuario.email}</span>
+                  </button>
+
+                  {menuUsuario && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-20 animate-fadeIn">
+                      <button
+                        onClick={() => alert("Abrir perfil")}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        👤 Mi perfil
+                      </button>
+                      <button
+                        onClick={() => alert("Abrir configuración")}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        ⚙️ Configuración
+                      </button>
+                      <button
+                        onClick={() => alert("Ver historial de presupuestos")}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        📂 Historial de presupuestos
+                      </button>
+                      <button
+                        onClick={() => alert("Ver estadísticas")}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        📊 Panel de estadísticas
+                      </button>
+                      <button
+                        onClick={() => alert("Abrir ayuda / tutorial")}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        ❓ Ayuda / FAQ
+                      </button>
+                      <button
+                        onClick={() => alert("Ver notificaciones")}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        🔔 Notificaciones
+                      </button>
+                      <hr className="my-1" />
+                      <button
+                        onClick={() => {
+                              signOut(auth);
+                              setMenuUsuario(false);
+                          }}
+                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+                      >
+                        🚪 Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+
+                </div>
               ) : (
                 <button
                   onClick={() => setModalAbierto(true)}
