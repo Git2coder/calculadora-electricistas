@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ModalTarifa from "./ModalTarifa";
 import ModalSugerencia from "./ModalSugerencia";
 import { FaPlus, FaTrash, FaWrench, FaBroom } from "react-icons/fa";
@@ -7,7 +7,9 @@ import { ContadorAnimado } from "./ContadorAnimado";
 import { useRef } from "react";
 import { TooltipInfo } from "./TooltipInfo";
 import { tareasPredefinidas } from "../utils/tareas";
-
+// 🚀 importamos Firebase
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
 
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
@@ -22,12 +24,30 @@ export default function CalculadoraCompleta() {
 
   const sonidoMonedas = useRef(new Audio("/sounds/coin.mp3"));
 
-  
-  const tareasPopulares = tareasPredefinidas.slice(0, 7);
+  // 🔹 Estado para guardar las tareas desde Firestore
+  const [tareasDisponibles, setTareasDisponibles] = useState([]);
 
-  const tareasFiltradas = tareasPredefinidas.filter((tarea) =>
-    tarea.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchTareas = async () => {
+      const querySnapshot = await getDocs(collection(db, "tareas"));
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTareasDisponibles(data);
+    };
+    fetchTareas();
+  }, []);
+
+  // 🔹 Solo mostramos las tareas activas en buscador y populares
+const tareasFiltradas = tareasDisponibles
+  .filter((t) => !t.pausada)
+  .filter((t) => t.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+
+const tareasPopulares = tareasDisponibles
+  .filter((t) => !t.pausada)
+  .slice(0, 7);
+
 
   const agregarTarea = (tarea) => {
     if (tarea.tipo === "paquete") {
@@ -153,17 +173,20 @@ export default function CalculadoraCompleta() {
 
 
         if (campo === "valorUnidad") {
-      const nuevoValor = parseFloat(valor);
-      return tareas.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              valorUnidad: nuevoValor, 
-              valor: Math.round((nuevoValor / 4) * (t.cantidad || 1)), // 👈 ahora incluye cantidad
-            }
-          : t
-      );
-    }
+          const nuevoValor = parseFloat(valor);
+          return tareas.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  valorUnidad: nuevoValor,
+                  valor: Math.round(
+                    (nuevoValor * ((t.porcentaje ?? 25) / 100)) * (t.cantidad || 1) // 👈 usa el % de Firestore
+                  ),
+                }
+              : t
+          );
+        }
+
 
       // Otros campos como cantidad
       return tareas.map((t) =>
@@ -280,9 +303,16 @@ if (baseBoca) {
 
           return acc + total;
         }
-        if (tarea.tipo === "calculada" && tarea.valor !== undefined && tarea.valor !== null) {
-          return acc + tarea.valor;
-        }
+        if (tarea.tipo === "calculada" && tarea.valorUnidad !== undefined && tarea.porcentaje !== undefined) {
+  const cantidad = tarea.cantidad || 1;
+  const valorUnidad = tarea.valorUnidad || 0;
+  const porcentaje = tarea.porcentaje || 25;
+
+  // costo dinámico: (valor del TV * % / 100) * cantidad
+  return acc + ((valorUnidad * porcentaje) / 100) * cantidad;
+}
+
+
 
 
     const factor = tarea.multiplicador ?? 1;
@@ -411,21 +441,21 @@ if (baseBoca) {
 
 
           <div className="flex flex-wrap gap-2">
-  {tareasPopulares.map((tarea) => (
-    <button
-      key={tarea.id}
-      className={`px-4 py-2 rounded-full text-sm transition-colors duration-200 ${
-        tarea.nombre === "Boca"
-          ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
-          : "bg-blue-500 text-white hover:bg-blue-600"
-      }`}
-      onClick={() => agregarTarea(tarea)}
-      title={tarea.nombre === "Boca" ? "Esta tarea es útil como unidad de medida para estimaciones rápidas" : ""}
-    >
-      {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
-    </button>
-  ))}
-</div>
+            {tareasPopulares.map((tarea) => (
+              <button
+                key={tarea.id}
+                className={`px-4 py-2 rounded-full text-sm transition-colors duration-200 ${
+                  tarea.nombre === "Boca"
+                    ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+                onClick={() => agregarTarea(tarea)}
+                title={tarea.nombre === "Boca" ? "Esta tarea es útil como unidad de medida para estimaciones rápidas" : ""}
+              >
+                {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
+              </button>
+            ))}
+          </div>
 
           
           <div className="text-center">
@@ -449,136 +479,141 @@ if (baseBoca) {
         {/* TAREAS SELECCIONADAS */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-xl font-semibold mb-4">🛠️ Tareas Seleccionadas</h2>
-          {tareasSeleccionadas.length === 0 ? (
-            <p className="text-gray-500">No hay tareas agregadas.</p>
-          ) : (
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 relative">
-              {tareasSeleccionadas.map((tarea) => (
-                <div
-                key={tarea.id}
-                className={`flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm ${
-                  tarea.origen ? "pl-6 text-gray-600 italic" : ""
-                }`}
-              >
-                <span className="flex-1 flex items-center gap-1 relative">
-                  {tarea.origen && <span className="text-xs text-blue-400">↳</span>}
-                  {tarea.nombre}
-                  {tarea.descripcion && (
-                  <TooltipInfo texto={tarea.descripcion} />
-                  )}
-
-                </span>
-
-                            
-                  {/* Selector si la tarea tiene opciones */}
-                  {tarea.opciones && (
-                    <div className="flex gap-2 flex-wrap">
-                    {Object.entries(tarea.opciones).map(([clave, config]) => (
-                      <button
-                        key={clave}
-                        className={`px-2 py-1 text-xs rounded ${
-                          tarea.variante === clave
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-700"
-                        }`}
-                        onClick={() => {
-                          modificarTarea(tarea.id, "variante", clave);
-                          modificarTarea(tarea.id, "tiempo", config.tiempo);
-                          modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
-                        }}
+            {tareasSeleccionadas.length === 0 ? (
+              <p className="text-gray-500">No hay tareas agregadas.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 relative">
+                    {tareasSeleccionadas.map((tarea) => (
+                      <div
+                        key={tarea.id}
+                        className={`flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm ${
+                          tarea.origen ? "pl-6 italic" : ""
+                        } ${tarea.pausada ? "opacity-50 cursor-not-allowed" : ""}`} // 👈 efecto visual
                       >
-                        {clave.replaceAll("-", " ").replace("monofasico", "Monofásico").replace("trifasico", "Trifásico")}
-                      </button>
+                        <span className="flex-1 flex items-center gap-1 relative">
+                          {tarea.origen && <span className="text-xs text-blue-400">↳</span>}
+                          {tarea.nombre}
+                          {tarea.pausada && (
+                            <span className="ml-2 text-xs bg-yellow-300 px-2 py-0.5 rounded">
+                              Pausada
+                            </span>
+                          )}
+                        </span>
+
+                        {/* 👉 Si está pausada, no muestro controles de edición */}
+                        {!tarea.pausada && (
+                          <>
+                                  
+                        {/* Selector si la tarea tiene opciones */}
+                        {tarea.opciones && (
+                          <div className="flex gap-2 flex-wrap">
+                            {Object.entries(tarea.opciones).map(([clave, config]) => (
+                              <button
+                                key={clave}
+                                className={`px-2 py-1 text-xs rounded ${
+                                  tarea.variante === clave
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-200 text-gray-700"
+                                }`}
+                                onClick={() => {
+                                  modificarTarea(tarea.id, "variante", clave);
+                                  modificarTarea(tarea.id, "tiempo", config.tiempo);
+                                  modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
+                                }}
+                              >
+                                {clave.replaceAll("-", " ").replace("monofasico", "Monofásico").replace("trifasico", "Trifásico")}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      
+                        {/* Cantidad */}
+                        <div className="flex items-center gap-1">
+                          <label className="text-gray-500">
+                            {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => actualizarCantidad(tarea.id, tarea.cantidad - 1)}
+                              className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              −
+                            </button>
+                            {/* Campo editable */}
+                              <input
+                                type="number"
+                                min="1"
+                                value={tarea.cantidad}
+                                onChange={(e) =>
+                                  setTareasSeleccionadas((prev) =>
+                                    prev.map((t) =>
+                                      t.id === tarea.id
+                                        ? { ...t, cantidad: Math.max(1, Number(e.target.value)) }
+                                        : t
+                                    )
+                                  )
+                                }
+                                className="w-14 text-center border border-gray-300 rounded-md"
+                              />
+                            <button
+                              onClick={() => actualizarCantidad(tarea.id, tarea.cantidad + 1)}
+                              className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      
+                        {tarea.requiereInput && (
+                          <div className="flex items-center gap-1">
+                            <label className="text-gray-500">Valor TV:</label>
+                            <input
+                              type="number"
+                              className="w-24 p-1 border rounded"
+                              value={tarea.valorUnidad || ""}
+                              onChange={(e) => modificarTarea(tarea.id, "valorUnidad", e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {/* Tiempo o Valor */}
+                        {tarea.tipo === "administrativa" && (
+                          <div className="flex items-center gap-1">
+                            <label className="text-gray-500">Valor:</label>
+                            <input
+                              type="number"
+                              className="w-24 p-1 border rounded"
+                              value={tarea.valor}
+                              onChange={(e) =>
+                                modificarTarea(tarea.id, "valor", e.target.value)
+                              }
+                            />
+                          </div>
+                        )}
+                      
+                        {/* Eliminar */}
+                        <button
+                          className="text-red-600 transition-transform duration-150 hover:scale-150 active:scale-95"
+                          onClick={() => eliminarTarea(tarea.id)}
+                          title="Eliminar tarea"
+                        >
+                          <FaTrash />
+                        </button>
+                      </>
+                        )}
+                      </div>          
                     ))}
-                    </div>
-                    )}
-
-                
-                  {/* Cantidad */}
-                  <div className="flex items-center gap-1">
-                    <label className="text-gray-500">
-                      {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => actualizarCantidad(tarea.id, tarea.cantidad - 1)}
-                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        −
-                      </button>
-                      {/* Campo editable */}
-                        <input
-                          type="number"
-                          min="1"
-                          value={tarea.cantidad}
-                          onChange={(e) =>
-                            setTareasSeleccionadas((prev) =>
-                              prev.map((t) =>
-                                t.id === tarea.id
-                                  ? { ...t, cantidad: Math.max(1, Number(e.target.value)) }
-                                  : t
-                              )
-                            )
-                          }
-                          className="w-14 text-center border border-gray-300 rounded-md"
-                        />
-                      <button
-                        onClick={() => actualizarCantidad(tarea.id, tarea.cantidad + 1)}
-                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                
-                {tarea.requiereInput && (
-                  <div className="flex items-center gap-1">
-                    <label className="text-gray-500">Valor TV:</label>
-                    <input
-                      type="number"
-                      className="w-24 p-1 border rounded"
-                      value={tarea.valorUnidad || ""}
-                      onChange={(e) => modificarTarea(tarea.id, "valorUnidad", e.target.value)}
-                    />
-                  </div>
-                )}
-
-                  {/* Tiempo o Valor */}
-                  {tarea.tipo === "administrativa" && (
-                    <div className="flex items-center gap-1">
-                      <label className="text-gray-500">Valor:</label>
-                      <input
-                        type="number"
-                        className="w-24 p-1 border rounded"
-                        value={tarea.valor}
-                        onChange={(e) =>
-                          modificarTarea(tarea.id, "valor", e.target.value)
-                        }
-                      />
-                    </div>
-                  )}
-                
-                  {/* Eliminar */}
-                  <button
-                    className="text-red-600 transition-transform duration-150 hover:scale-150 active:scale-95"
-                    onClick={() => eliminarTarea(tarea.id)}
-                    title="Eliminar tarea"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>            
-              ))}
-                  {/* Botón en esquina inferior derecha */}
-              <div className="sticky bottom-0 flex justify-end p-2 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent">
-                <button
-                  onClick={limpiarTareas}
-                  className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-400 text-white rounded hover:bg-black shadow-md"
-                >
-                  <FaBroom className="text-white" />
-                  Vaciar lista
-                </button>
-              </div>
-            </div>                 
+                        {/* Botón en esquina inferior derecha */}
+                        <div className="sticky bottom-0 flex justify-end p-2 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent">
+                          <button
+                            onClick={limpiarTareas}
+                            className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-400 text-white rounded hover:bg-black shadow-md"
+                          >
+                            <FaBroom className="text-white" />
+                            Vaciar lista
+                          </button>
+                        </div>
+                  </div>                 
             )}          
         </div>
         

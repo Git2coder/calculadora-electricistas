@@ -136,7 +136,7 @@ export const tareasPredefinidas = [
       
     // 🌀 Climatización
 
-{ id: 29, nombre: "Instalación de aire acondicionado split", tiempo: 200, multiplicador: 3 },
+
 
     // 📦 Canalización y cableado
 {

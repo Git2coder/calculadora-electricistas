@@ -39,6 +39,8 @@ export default function App() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [menuUsuario, setMenuUsuario] = useState(false);
   const { usuario } = useAuth();
+  const esAdmin = usuario?.email === "admindeprueba@gmail.com"; // 👈 poné aquí tu correo admin
+
 
   const menuRef = useRef(null);
 
@@ -122,6 +124,15 @@ export default function App() {
 
                   {menuUsuario && (
                     <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-20 animate-fadeIn">
+                      {esAdmin && (
+                        <Link
+                          to="/admin/tareas"
+                          onClick={() => setMenuUsuario(false)}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          🛠 Panel de control
+                        </Link>
+                      )}
                       <button
                         onClick={() => alert("Abrir perfil")}
                         className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -150,7 +161,7 @@ export default function App() {
                         onClick={() => alert("Abrir ayuda / tutorial")}
                         className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
-                        ❓ Ayuda / FAQ
+                        ❓ Ayuda / info
                       </button>
                       <button
                         onClick={() => alert("Ver notificaciones")}
