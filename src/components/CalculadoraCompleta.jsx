@@ -14,7 +14,7 @@ import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState([]);
-  const [tarifaHoraria, setTarifaHoraria] = useState(16500);
+  const [tarifaHoraria, setTarifaHoraria] = useState(20000);
   const [costoConsulta, setCostoConsulta] = useState(25000);
   const [ajustePorcentaje, setAjustePorcentaje] = useState(0);
   const [mostrarModalTarifa, setMostrarModalTarifa] = useState(false);
@@ -270,19 +270,19 @@ if (baseBoca) {
           factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
         }
 
-        return acc + (valorBoca * factor) * tarea.cantidad;
-      }
+          return acc + (valorBoca * factor) * tarea.cantidad;
+        }
 
         if (tarea.tipo === "administrativa") {
           return acc + tarea.valor * tarea.cantidad;
         }
   
-       if (tarea.tipo === "paquete") {
-          const totalInterno = (tarea.originalIncluye || tarea.incluye || []).reduce((subAcc, subTarea) => {
-            return subAcc + calcularTareaConSubtareas(subTarea, tarifaHoraria, tareasPredefinidas);
-          }, 0);
-          return acc + totalInterno * tarea.cantidad;
-        }
+        if (tarea.tipo === "paquete") {
+            const totalInterno = (tarea.originalIncluye || tarea.incluye || []).reduce((subAcc, subTarea) => {
+              return subAcc + calcularTareaConSubtareas(subTarea, tarifaHoraria, tareasPredefinidas);
+            }, 0);
+            return acc + totalInterno * tarea.cantidad;
+          }
 
         if (tarea.tipo === "composicion") {
           const tiempoPorPolo = 10;
@@ -303,37 +303,33 @@ if (baseBoca) {
 
           return acc + total;
         }
+
         if (tarea.tipo === "calculada" && tarea.valorUnidad !== undefined && tarea.porcentaje !== undefined) {
-  const cantidad = tarea.cantidad || 1;
-  const valorUnidad = tarea.valorUnidad || 0;
-  const porcentaje = tarea.porcentaje || 25;
+          const cantidad = tarea.cantidad || 1;
+          const valorUnidad = tarea.valorUnidad || 0;
+          const porcentaje = tarea.porcentaje || 25;
 
-  // costo dinámico: (valor del TV * % / 100) * cantidad
-  return acc + ((valorUnidad * porcentaje) / 100) * cantidad;
-}
+          // costo dinámico: (valor del TV * % / 100) * cantidad
+          return acc + ((valorUnidad * porcentaje) / 100) * cantidad;
+        }
 
+          const factor = tarea.multiplicador ?? 1;
+          const costoTarea = (tarea.tiempo / 60) * tarifaHoraria * tarea.cantidad * factor;
+            return acc + costoTarea;
+          }, 0);
 
+          const costoFinal = isNaN(costoBase)
+          ? 0
+          : (costoBase + (incluirVisita ? visitaSegura : 0)) + (costoBase * ajustePorcentaje) / 100;
 
-
-    const factor = tarea.multiplicador ?? 1;
-    const costoTarea = (tarea.tiempo / 60) * tarifaHoraria * tarea.cantidad * factor;
-    return acc + costoTarea;
-  }, 0);
-  
-  
-
-  const costoFinal = isNaN(costoBase)
-  ? 0
-  : (costoBase + (incluirVisita ? visitaSegura : 0)) + (costoBase * ajustePorcentaje) / 100;
-
-  // Botones + y - adiciona o disminuyen la cantidad de la tarea
-  const actualizarCantidad = (id, nuevaCantidad) => {
-    setTareasSeleccionadas((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
-      )
-    );
-  };
+          // Botones + y - adiciona o disminuyen la cantidad de la tarea
+          const actualizarCantidad = (id, nuevaCantidad) => {
+            setTareasSeleccionadas((prev) =>
+              prev.map((t) =>
+                t.id === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
+              )
+            );
+          };
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
@@ -668,4 +664,4 @@ if (baseBoca) {
       </div>
     </div>
   );
-}
+};

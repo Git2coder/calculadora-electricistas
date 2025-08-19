@@ -28,9 +28,10 @@ export function UsuariosAdmin() {
 
   const hoy = new Date();
 
-  const usuariosFiltrados = usuarios.filter(u =>
-    u.correo?.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const usuariosFiltrados = usuarios.filter((u) => {
+    const mail = (u.correo || u.email || "").toLowerCase();
+    return mail.includes(busqueda.toLowerCase());
+  });
 
   // Indicadores
   const total = usuarios.length;
@@ -146,7 +147,7 @@ export function UsuariosAdmin() {
               const estado = obtenerEstadoVisual(u);
               return (
                 <tr key={u.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2">{u.correo || "—"}</td>
+                  <td className="px-4 py-2">{u.correo || u.email || "—"}</td>
                   <td className={`px-4 py-2 font-medium ${estado.color}`}>{estado.texto}</td>
                   <td className="px-4 py-2">
                     {u.creadoEn
