@@ -1,25 +1,26 @@
 // components/BotonRenovacion.jsx
 import React from "react";
-import { useAuth } from "../context/AuthContext"; // 👈 para obtener el usuario actual
+import { useAuth } from "../context/AuthContext";
 
 export function BotonRenovacion() {
-  const { usuario } = useAuth(); // usuario.uid viene de Firebase
+  const { usuario } = useAuth();
 
   const handleRenovar = async () => {
     try {
       const res = await fetch("/api/createPreferenceRenovacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: usuario.uid }), // 👈 enviamos el UID al backend
+        body: JSON.stringify({ uid: usuario.uid }), // enviamos el UID al backend
       });
 
       const data = await res.json();
 
-      if (data.id) {
-        // Redirigimos al checkout de MP
-        window.location.href = `https://www.mercadopago.com.ar/checkout/v1/redirect?preference-id=${data.id}`;
+      if (data.init_point) {
+        // Redirigir al checkout de Mercado Pago
+        window.location.href = data.init_point;
       } else {
         alert("No se pudo iniciar la renovación.");
+        console.error("Respuesta inesperada:", data);
       }
     } catch (error) {
       console.error("❌ Error iniciando renovación:", error);
