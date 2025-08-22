@@ -23,7 +23,7 @@ import Terminos from "./pages/Terminos";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { TareasAdmin } from "./pages/admin/TareasAdmin";
 import CargarTareasManual from "./CargarTareasManual";
-import RenovarSuscripcion from "./components/RenovarSuscripcion";
+import { BotonRenovacion } from "./components/BotonRenovacion";
 
 export function ComentariosPage() {
   return (
@@ -179,8 +179,7 @@ export default function App() {
                       >
                         🚪 Cerrar sesión
                       </button>
-                      {/* Aquí aparece el aviso y botón si corresponde */}
-    <RenovarSuscripcion usuario={usuario} />
+                      <BotonRenovacion />
                     </div>
                   )}
 

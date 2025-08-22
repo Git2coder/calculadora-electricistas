@@ -44,16 +44,33 @@ export default async function webhookHandler(req, res) {
         const uid = paymentData.metadata?.uid;
 
         if (uid) {
-          await admin.firestore().collection("usuarios").doc(uid).update({
-            suscripcionActiva: true,
-            fechaPago: admin.firestore.FieldValue.serverTimestamp(),
-            fechaExpiracion: admin.firestore.Timestamp.fromDate(
-              new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días desde ahora
-            ),
-            
-          });
+          const userRef = admin.firestore().collection("usuarios").doc(uid);
+          const userSnap = await userRef.get();
 
-          console.log("✅ Suscripción activada para UID:", uid);
+          let fechaBase = new Date();
+
+          // Si ya tenía una suscripción vigente, sumamos sobre esa fecha
+          if (userSnap.exists) {
+            const data = userSnap.data();
+            if (data.fechaExpiracion && data.fechaExpiracion.toDate() > new Date()) {
+              fechaBase = data.fechaExpiracion.toDate();
+            }
+          }
+
+          const nuevaFecha = admin.firestore.Timestamp.fromDate(
+            new Date(fechaBase.getTime() + 30 * 24 * 60 * 60 * 1000)
+          );
+
+          await userRef.set(
+            {
+              suscripcionActiva: true,
+              fechaPago: admin.firestore.FieldValue.serverTimestamp(),
+              fechaExpiracion: nuevaFecha,
+            },
+            { merge: true }
+          );
+
+          console.log("✅ Suscripción activada/renovada para UID:", uid);
         } else {
           console.error("⚠️ UID no encontrado en metadata");
         }
