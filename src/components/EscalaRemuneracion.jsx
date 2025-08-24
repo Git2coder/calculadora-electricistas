@@ -5,25 +5,25 @@ export default function EscalaRemuneracion() {
     {
       rol: "Ayudante",
       icono: <ShieldHalf size={20} className="text-green-600 inline-block mr-1" />,
-      valor: 47016.58, // 24 dias
+      valor: 47890.00, // 24 dias
       descripcion: "Realiza tareas físicas simples.",
     },
     {
       rol: "Medio Oficial",
       icono: <Sword size={20} className="text-blue-500 inline-block mr-1" />,
-      valor: 51290.81, // 22 dias
+      valor: 52243.00, // 22 dias
       descripcion: "Realiza conexiones bajo supervisión.",
     },
     {
       rol: "Oficial",
       icono: <Swords size={20} className="text-red-500 inline-block mr-1" />,
-      valor: 59389.36, // 19 dias
+      valor: 60492.00, // 19 dias
       descripcion: "Interpreta planos y realiza pruebas. Trabaja con autonomía.",
     },
     {
       rol: "Especializado",
       icono: <Medal size={20} className="text-yellow-500 inline-block mr-1" />,
-      valor: 66376.35, // 17 dias
+      valor: 67609.00, // 17 dias
       descripcion: "Domina automatización, armado de tableros complejos y liderazgo técnico en obra.",
     },
   ];
@@ -34,7 +34,7 @@ export default function EscalaRemuneracion() {
         💼 Escala de Remuneración por Categoría Técnica 
       </h2>
       <p className="text-sm text-gray-600 mb-4">
-        Basado en la Canasta Básica Total de junio 2025 - Gran Buenos Aires ($1.128.398 mensuales por hogar tipo: 4 integrantes). 
+        Basado en la Canasta Básica Total de julio 2025 - Gran Buenos Aires. 
       </p>
 
       <table className="w-full text-sm border-t border-b border-gray-200">
@@ -60,7 +60,7 @@ export default function EscalaRemuneracion() {
       </table>
 
       <p className="text-xs text-gray-500 mt-4 italic">
-         Esta escala simplemente sugiere valores de referencia. Los mismos pueden ajustarse según experiencia, condiciones y ubicación geográfica.
+         Esta escala simplemente sugiere valores de referencia. Los mismos pueden ajustarse según experiencia, condiciones y ubicación geográfica. Se utiliza como base del calculo un hogar con 3.25 unidades consumidoras o adultos equivalentes, publicado por el INDEC en el informe de prensa mensual para la CBT.
       </p>
     </div>
   );

@@ -24,6 +24,8 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { TareasAdmin } from "./pages/admin/TareasAdmin";
 import CargarTareasManual from "./CargarTareasManual";
 import { BotonRenovacion } from "./components/BotonRenovacion";
+import { Configuracion } from "./pages/admin/Configuracion";
+
 
 export function ComentariosPage() {
   return (
@@ -236,6 +238,8 @@ export default function App() {
               {/* Rutas adicionales se agregarán aquí */}
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>
+            <Route path="configuracion" element={<Configuracion />} />
+
       {/* NUEVAS RUTAS POST-PAGO */}
             <Route path="/gracias" element={<Gracias />} />
             <Route path="/error" element={<ErrorPago />} />

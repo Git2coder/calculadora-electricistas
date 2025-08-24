@@ -44,8 +44,8 @@ export function Calculadora() {
   return (
     <div className="max-w-6xl mx-auto py-1 px-4">
       {diasRestantes !== null && diasRestantes <= 7 && (
-        <div className="bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500 px-4 py-3 rounded mb-6 text-sm shadow">
-          <strong>¡Estás usando el período de prueba!</strong> Te quedan <b>{diasRestantes}</b> día(s) para seguir usando la calculadora de forma gratuita.
+        <div className="bg-green-100 text-green-800 border-l-4 border-green-800 px-4 py-3 rounded mb-6 text-sm shadow">
+          <strong>¡Te quedan {diasRestantes} día(s)!</strong> para continuar utilizando la calculadora. Seguí ganando tiempo y dinero. No olvides suscribirte ⭐
         </div>
       )}
       <CalculadoraCompleta />

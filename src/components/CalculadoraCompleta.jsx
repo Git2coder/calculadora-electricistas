@@ -14,7 +14,7 @@ import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState([]);
-  const [tarifaHoraria, setTarifaHoraria] = useState(20000);
+  const [tarifaHoraria, setTarifaHoraria] = useState(22500);
   const [costoConsulta, setCostoConsulta] = useState(25000);
   const [ajustePorcentaje, setAjustePorcentaje] = useState(0);
   const [mostrarModalTarifa, setMostrarModalTarifa] = useState(false);
