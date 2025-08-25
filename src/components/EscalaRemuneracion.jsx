@@ -53,10 +53,14 @@ export default function EscalaRemuneracion() {
     const fecha = typeof jornales.fechaActualizacion.toDate === "function"
       ? jornales.fechaActualizacion.toDate()
       : new Date(jornales.fechaActualizacion);
+
+    // ⚡ Retrocedemos un mes
+    fecha.setMonth(fecha.getMonth() - 1);
+
+    // Mostramos solo mes y año en español
     fechaLegible = fecha.toLocaleDateString("es-AR", {
       year: "numeric",
       month: "long",
-      day: "numeric",
     });
   }
 
@@ -66,7 +70,7 @@ export default function EscalaRemuneracion() {
         💼 Escala de Remuneración por Categoría Técnica 
       </h2>
       <p className="text-sm text-gray-600 mb-4">
-        Basado en la Canasta Básica Total al {fechaLegible} - Gran Buenos Aires.
+        Basado en la Canasta Básica Total de {fechaLegible} - Gran Buenos Aires.
       </p>
 
       <table className="w-full text-sm border-t border-b border-gray-200">
