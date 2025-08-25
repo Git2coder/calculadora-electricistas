@@ -73,14 +73,7 @@ if (!usuario || !datosUsuario) {
       <div className="max-w-xl mx-auto mt-10 p-6 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded shadow text-center">
         <p className="text-lg font-semibold mb-2">⚠️ Acceso restringido</p>
         <p>Tu cuenta está suspendida. Contactanos para más información.</p>
-        <a
-          href="https://wa.me/5491123456789"
-          className="inline-block mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          💬 Contactar por WhatsApp
-        </a>
+        
       </div>
     );
   }
@@ -103,15 +96,8 @@ if (!usuario || !datosUsuario) {
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 bg-red-100 border border-red-400 text-red-800 rounded shadow text-center">
       <p className="text-lg font-semibold mb-2">⏳ Tu período de acceso ha finalizado.</p>
-      <p>Contactanos para seguir usando la herramienta o solicitar una extensión especial.</p>
-      <a
-        href="https://wa.me/5491123456789"
-        className="inline-block mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        💬 Contactar por WhatsApp
-      </a>
+      <p>Para seguir usando la herramienta tienes que activar la suscripcion.</p>
+      
     </div>
   );
 }

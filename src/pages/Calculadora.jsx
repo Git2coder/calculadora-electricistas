@@ -27,16 +27,9 @@ export function Calculadora() {
           Tu período de prueba ha finalizado
         </h2>
         <p className="mb-6 text-gray-700">
-          Para seguir usando la calculadora, podés ponerte en contacto con nosotros para activar una suscripción.
+          Para seguir usando la calculadora tienes que activar una suscripción.
         </p>
-        <a
-          href="https://wa.me/5491123456789"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full shadow inline-block"
-        >
-          Contactar por WhatsApp
-        </a>
+        
       </div>
     );
   }
@@ -45,7 +38,7 @@ export function Calculadora() {
     <div className="max-w-6xl mx-auto py-1 px-4">
       {diasRestantes !== null && diasRestantes <= 7 && (
         <div className="bg-green-100 text-green-800 border-l-4 border-green-800 px-4 py-3 rounded mb-6 text-sm shadow">
-          <strong>¡Te quedan {diasRestantes} día(s)!</strong> un verdadero profesional ganá tiempo y dinero. Si esta calculadora te sirvio ¡No olvides suscribirte! 👌
+          <strong>⏳ ¡Te quedan {diasRestantes} día(s)!</strong> un verdadero profesional ganá tiempo y dinero. Si esta calculadora te sirvio ¡No olvides suscribirte! 👌
         </div>
       )}
       <CalculadoraCompleta />

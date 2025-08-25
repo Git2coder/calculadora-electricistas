@@ -1,16 +1,20 @@
 // components/BotonRenovacion.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 export function BotonRenovacion() {
   const { usuario, fechaExpiracion } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   if (!usuario || !fechaExpiracion) return null;
 
   const hoy = new Date();
-  const diasRestantes = Math.ceil((fechaExpiracion - hoy) / (1000 * 60 * 60 * 24));
+  const diasRestantes = Math.ceil(
+    (fechaExpiracion - hoy) / (1000 * 60 * 60 * 24)
+  );
 
   const handleRenovar = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/createPreferenceRenovacion", {
         method: "POST",
@@ -29,24 +33,33 @@ export function BotonRenovacion() {
     } catch (error) {
       console.error("❌ Error iniciando renovación:", error);
       alert("Hubo un problema al iniciar la renovación.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Mostrar el botón SOLO si faltan 7 días o menos
+  // Mostrar un aviso si la suscripción sigue activa
   if (diasRestantes > 7) {
     return (
-      <p className="px-4 py-2 text-gray-500 text-sm">
-        ✅ Suscripcion activada
+      <p className="px-4 py-2 text-gray-500 text-sm text-center">
+        ✅ Suscripción activa (vence en {diasRestantes} días)
       </p>
     );
   }
 
+  // Mostrar botón de renovación
   return (
-    <button
-      onClick={handleRenovar}
-      className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100"
-    >
-      🔄 Renovar suscripción
-    </button>
+    <div className="flex flex-col items-center gap-1 mt-1">
+      
+      <button
+        onClick={handleRenovar}
+        disabled={loading}
+        className={`px-2 py-2 font-semibold text-white rounded-xl transition ${
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-green-600"
+        }`}
+      >
+        {loading ? "Procesando..." : "🔄 Renovar suscripción"}
+      </button>
+    </div>
   );
 }

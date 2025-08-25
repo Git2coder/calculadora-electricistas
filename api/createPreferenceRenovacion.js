@@ -1,15 +1,12 @@
 // api/createPreferenceRenovacion.js
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
+import admin from "firebase-admin";
 
-// ⚡ Inicializar Firebase (si ya lo hacés en otro archivo común, podés reutilizarlo)
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -17,27 +14,33 @@ export default async function handler(req, res) {
   }
 
   const { uid } = req.body;
-
   if (!uid) {
     return res.status(400).json({ error: "Falta el uid" });
   }
 
   try {
-    // 🔎 Traer el precio dinámico desde Firestore
-    const configSnap = await getDoc(doc(db, "config", "app"));
-    if (!configSnap.exists()) {
-      return res.status(500).json({ error: "No existe la configuración en Firestore" });
-    }
-    const { suscripcionPrecio } = configSnap.data();
-    if (!suscripcionPrecio) {
-      return res.status(500).json({ error: "No está definido el precio de suscripción" });
+    // 🔒 Leer precio desde Firestore (Admin SDK)
+    const snap = await admin.firestore().doc("config/app").get();
+    if (!snap.exists) {
+      return res.status(500).json({ error: "Config no encontrada en Firestore" });
     }
 
-    // 📦 Crear preferencia en Mercado Pago
+    const { suscripcionPrecio } = snap.data();
+    if (!suscripcionPrecio) {
+      return res.status(500).json({ error: "Precio no definido en Firestore" });
+    }
+
+    // 🔑 Token MercadoPago
+    const token = process.env.MERCADO_PAGO_TOKEN;
+    if (!token) {
+      return res.status(500).json({ error: "Falta MERCADO_PAGO_TOKEN" });
+    }
+
+    // 📤 Crear preferencia en MercadoPago
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -47,7 +50,7 @@ export default async function handler(req, res) {
             description: "Extiende 30 días adicionales",
             quantity: 1,
             currency_id: "ARS",
-            unit_price: suscripcionPrecio, // 💰 ahora dinámico desde Firestore
+            unit_price: Number(suscripcionPrecio), // 👈 igual que la suscripción inicial
           },
         ],
         back_urls: {
@@ -56,14 +59,14 @@ export default async function handler(req, res) {
           pending: "https://calculadora-electricistas.vercel.app/espera",
         },
         auto_return: "approved",
-        metadata: { uid },
+        metadata: { uid }, // 👈 se guarda el UID del usuario
       }),
     });
 
     const data = await response.json();
 
     if (!data.init_point) {
-      console.error("❌ Error creando preferencia:", data);
+      console.error("❌ Error creando preferencia de renovación:", data);
       return res.status(500).json({ error: "No se pudo crear la preferencia de renovación" });
     }
 
