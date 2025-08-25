@@ -8,13 +8,14 @@ import { Acerca } from "./pages/Acerca";
 import { Noticias } from "./pages/Noticias";
 import { Reglamentacion } from "./pages/Reglamentacion";
 import { Comentarios } from "./components/Comentarios";
-import { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import { UsuariosAdmin } from "./pages/admin/UsuariosAdmin";
 import { AdminRoute } from "./components/AdminRoute";
-import { useEffect, useRef } from "react"; 
+
 import { Mantenimiento } from "./pages/Mantenimiento";
 import Gracias from "./pages/Gracias";
 import ErrorPago from "./pages/ErrorPago";
@@ -25,7 +26,7 @@ import { TareasAdmin } from "./pages/admin/TareasAdmin";
 import CargarTareasManual from "./CargarTareasManual";
 import { BotonRenovacion } from "./components/BotonRenovacion";
 import { Configuracion } from "./pages/admin/Configuracion";
-
+import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 
 export function ComentariosPage() {
   return (
@@ -41,36 +42,52 @@ export default function App() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [menuUsuario, setMenuUsuario] = useState(false);
   const { usuario } = useAuth();
-  const esAdmin = usuario?.email === "admindeprueba@gmail.com"; // 👈 poné aquí tu correo admin
+  const esAdmin = usuario?.email === "admindeprueba@gmail.com"; 
 
-
+  const [config, setConfig] = useState(null);
   const menuRef = useRef(null);
 
-  // Cerrar menú de usuario al hacer click afuera
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuUsuario(false);
-      }
+
+useEffect(() => {
+  const db = getFirestore();
+  const docRef = doc(db, "config", "app");
+
+  // Suscripción en tiempo real
+  const unsub = onSnapshot(docRef, (snap) => {
+    if (snap.exists()) {
+      setConfig(snap.data());
     }
-    if (menuUsuario) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menuUsuario]);
+  });
+
+  return () => unsub();
+}, []);
+
 
   useEffect(() => {
-    const handler = () => setMostrarModalAcceso(true);
-    window.addEventListener("abrirModalAcceso", handler);
-    return () => window.removeEventListener("abrirModalAcceso", handler);
-  }, []);
-  
+  const handleClickOutside = (e) => {
+    if (menuUsuario && menuRef.current && !menuRef.current.contains(e.target)) {
+      setMenuUsuario(false);
+    }
+  };
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, [menuUsuario]);
+
+  if (!config) return <p>Cargando...</p>;
+
+ if (!config.habilitado && !esAdmin) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <h1 className="text-2xl font-bold text-red-600">
+        🚧 Sitio en mantenimiento 🚧
+      </h1>
+    </div>
+  );
+}
+
   return (
     <Router>
+
       <div className="min-h-screen flex flex-col">
         {/* NAVBAR */}
         <nav className="bg-blue-800 text-white shadow-md px-5 py-2 relative sticky top-0 z-50">
@@ -234,11 +251,12 @@ export default function App() {
               }
             >
               <Route path="usuarios" element={<UsuariosAdmin />} />
-              <Route path="tareas" element={<TareasAdmin />} />  
+              <Route path="tareas" element={<TareasAdmin />} /> 
+              <Route path="Configuracion" element={<Configuracion />} />
+ 
               {/* Rutas adicionales se agregarán aquí */}
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>
-            <Route path="configuracion" element={<Configuracion />} />
 
       {/* NUEVAS RUTAS POST-PAGO */}
             <Route path="/gracias" element={<Gracias />} />

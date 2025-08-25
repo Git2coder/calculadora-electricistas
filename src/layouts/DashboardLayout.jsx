@@ -9,6 +9,8 @@ const secciones = [
   { path: "/admin/actividad", label: "Actividad" },
   { path: "/admin/notificaciones", label: "Notificaciones" },
   { path: "/admin/permisos", label: "Permisos" },
+  { path: "/admin/configuracion", label: "Configuracion" },
+
 ];
 
 export default function DashboardLayout() {

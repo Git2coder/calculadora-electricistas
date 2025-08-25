@@ -14,15 +14,20 @@ export function Configuracion() {
 
   // Cargar config actual
   useEffect(() => {
-    const fetchConfig = async () => {
+  const fetchConfig = async () => {
+    try {
       const snap = await getDoc(docRef);
+      console.log("CONFIG snapshot:", snap.exists(), snap.data());
       if (snap.exists()) {
         setConfig(snap.data());
       }
-      setCargando(false);
-    };
-    fetchConfig();
-  }, []);
+    } catch (error) {
+      console.error("❌ Error al leer config:", error);
+    }
+    setCargando(false);
+  };
+  fetchConfig();
+}, []);
 
   // Guardar cambios
   const actualizarConfig = async (nuevaConfig) => {

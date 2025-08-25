@@ -5,25 +5,25 @@ export default function EscalaRemuneracion() {
     {
       rol: "Ayudante",
       icono: <ShieldHalf size={20} className="text-green-600 inline-block mr-1" />,
-      valor: 47890.00, // 24 dias
+      valor: 50369.43, // 24 dias
       descripcion: "Realiza tareas físicas simples.",
     },
     {
       rol: "Medio Oficial",
       icono: <Sword size={20} className="text-blue-500 inline-block mr-1" />,
-      valor: 52243.00, // 22 dias
+      valor: 54948.46, // 22 dias
       descripcion: "Realiza conexiones bajo supervisión.",
     },
     {
       rol: "Oficial",
       icono: <Swords size={20} className="text-red-500 inline-block mr-1" />,
-      valor: 60492.00, // 19 dias
+      valor: 63624.54, // 19 dias
       descripcion: "Interpreta planos y realiza pruebas. Trabaja con autonomía.",
     },
     {
       rol: "Especializado",
       icono: <Medal size={20} className="text-yellow-500 inline-block mr-1" />,
-      valor: 67609.00, // 17 dias
+      valor: 71109.78, // 17 dias
       descripcion: "Domina automatización, armado de tableros complejos y liderazgo técnico en obra.",
     },
   ];
