@@ -280,14 +280,15 @@ export function Home() {
             </ul>
 
             <div className="text-4xl font-extrabold text-green-600 mb-4">
-              $950 <span className="text-lg text-gray-600 font-normal">/mes</span>
+              ${config?.suscripcionPrecio?.toLocaleString("es-AR")} 
+              <span className="text-lg text-gray-600 font-normal">/mes</span>
             </div>
             <p className="text-sm text-gray-600 mb-4">
               <strong>1 presupuesto te llevaba 30 min</strong>. Podés hacer 3 veces o más en el mismo tiempo.
             </p>
 
             <div className="flex justify-center items-center mt-6">
-              <BotonSuscripcion />
+              <BotonSuscripcion precio={config?.suscripcionPrecio} />
             </div>
 
             <p className="text-xs text-gray-500 mt-2">
@@ -326,9 +327,11 @@ export function Home() {
               </li>
             </ul>
 
-            <div className="text-4xl font-extrabold text-gray-500 mb-4">
-              $950 <span className="text-lg text-gray-400 font-normal">/mes</span>
+            <div className="text-4xl font-extrabold text-green-600 mb-4">
+              ${config?.suscripcionPrecio?.toLocaleString("es-AR")} 
+              <span className="text-lg text-gray-600 font-normal">/mes</span>
             </div>
+
             <p className="text-sm text-gray-400 mb-4">
               La suscripción no está disponible en este momento.
             </p>

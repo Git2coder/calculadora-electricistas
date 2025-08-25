@@ -7,6 +7,7 @@ export function Configuracion() {
     habilitado: true,
     calculadoraHabilitada: true,
     jornalesHabilitados: true,
+    suscripcionPrecio: 950, // 👈 nuevo campo
   });
   const [cargando, setCargando] = useState(true);
   const db = getFirestore();
@@ -61,6 +62,17 @@ export function Configuracion() {
           />
         </div>
       ))}
+      <div className="mt-6">
+        <label className="block font-medium mb-2">💎 Precio de Suscripción (ARS)</label>
+        <input
+          type="number"
+          value={config.suscripcionPrecio || ""}
+          onChange={(e) =>
+            actualizarConfig({ ...config, suscripcionPrecio: Number(e.target.value) })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
     </div>
   );
 }
