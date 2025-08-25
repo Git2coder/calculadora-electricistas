@@ -8,7 +8,7 @@ import { useRef } from "react";
 import { TooltipInfo } from "./TooltipInfo";
 import { tareasPredefinidas } from "../utils/tareas";
 // 🚀 importamos Firebase
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
 
 export default function CalculadoraCompleta() {
@@ -23,6 +23,26 @@ export default function CalculadoraCompleta() {
   const [incluirVisita, setIncluirVisita] = useState(true);
 
   const sonidoMonedas = useRef(new Audio("/sounds/coin.mp3"));
+  const [config, setConfig] = useState(null);
+
+  useEffect(() => {
+ const fetchConfig = async () => {
+  try {
+    const docRef = doc(db, "config", "app");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      console.log("CONFIG:", docSnap.data());
+      setConfig(docSnap.data());
+    } else {
+      console.log("❌ No existe el documento config/app");
+    }
+  } catch (error) {
+    console.error("Error cargando config:", error);
+  }
+};
+
+    fetchConfig();
+  }, []);
 
   // 🔹 Estado para guardar las tareas desde Firestore
   const [tareasDisponibles, setTareasDisponibles] = useState([]);
@@ -330,6 +350,19 @@ if (baseBoca) {
               )
             );
           };
+
+  if (!config) {
+  return <div className="p-4">Cargando configuración...</div>;
+}
+
+// 👇 chequeás si está habilitada
+if (!config.calculadoraCompletaHabilitada) {
+  return (
+    <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
+      🚧 La calculadora está en mantenimiento temporal.
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">

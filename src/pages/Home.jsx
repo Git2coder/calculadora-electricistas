@@ -1,4 +1,6 @@
 // Home.jsx adaptado para electricistas con animación progresiva y fondo en Hero
+import { useEffect, useState } from "react";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaCalculator, FaBook, FaNewspaper } from "react-icons/fa";
@@ -8,6 +10,27 @@ import EscalaRemuneracion from "../components/EscalaRemuneracion";
 
 
 export function Home() {
+  const [config, setConfig] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const db = getFirestore();
+        const ref = doc(db, "config", "app");
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setConfig(snap.data());
+        }
+      } catch (e) {
+        console.error("Error cargando config:", e);
+      }
+    };
+    fetchConfig();
+  }, []);
+  if (!config) {
+    return <p className="text-center mt-10 text-gray-600">Cargando configuración...</p>;
+  }
+
   return (
     <div className="space-y-0">
 
@@ -166,9 +189,9 @@ export function Home() {
             viewport={{ once: true }}
 >            <FaUserCircle className="text-4xl text-blue-500 mx-auto mb-2" />
             <p className="text-gray-700 italic text-sm">
-              "Me ayudó a orientarme para cotizar un trabajo."
+              "...."
             </p>
-            <p className="mt-2 text-sm font-medium text-gray-600">Diego</p>
+            <p className="mt-2 text-sm font-medium text-gray-600">N1</p>
             <p className="text-xs text-gray-500"></p>
             </motion.div>
 
@@ -182,9 +205,9 @@ export function Home() {
           >
             <FaUserCircle className="text-4xl text-orange-400 mx-auto mb-2" />
             <p className="text-gray-700 italic text-sm">
-              "Util para los que recién empiezan."
+              "...."
             </p>
-            <p className="mt-2 text-sm font-medium text-gray-600">Jorge</p>
+            <p className="mt-2 text-sm font-medium text-gray-600">N2</p>
             <p className="text-xs text-gray-500"></p>
           </motion.div>
 
@@ -198,9 +221,9 @@ export function Home() {
 >
             <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
             <p className="text-gray-700 italic text-sm">
-              "Es facil de usar."
+              "...."
             </p>
-            <p className="mt-2 text-sm font-medium text-gray-600">Sebastian</p>
+            <p className="mt-2 text-sm font-medium text-gray-600">N3</p>
             <p className="text-xs text-gray-500"></p>
             </motion.div>                   
         </div>
@@ -219,58 +242,100 @@ export function Home() {
             >
             <EscalaRemuneracion />
              </motion.div>
+          </div>       
+        </section>
+        
+   
+      {config?.suscripcionHabilitada ? (
+        // ✅ Suscripción habilitada → venta normal
+        <section className="bg-white py-6 px-4">
+          <div className="max-w-4xl mx-auto text-center bg-blue-50 p-8 rounded-2xl shadow-lg border border-blue-200 relative overflow-hidden">
+            <div className="absolute -top-4 -right-4 rotate-12 bg-green-500 text-white font-bold px-6 py-1 rounded-bl-lg shadow-md">
+              💎 Suscripción 
+            </div>
+            <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
+              🔥 50% OFF oferta de lanzamiento
+            </div>
+
+            <h2 className="text-3xl font-bold text-blue-800 mb-4">Suscripción Profesional</h2>
+            <p className="text-lg text-gray-700 mb-6">Accedé al máximo potencial de tu trabajo</p>
+
+            <ul className="text-left max-w-md mx-auto text-gray-700 mb-6 space-y-4">
+              <li className="flex items-start gap-3">
+                <FaClock className="text-green-600 mt-1" />
+                <span>Ahorrás <strong>tiempo valioso</strong> al presupuestar</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <FaClipboardCheck className="text-green-600 mt-1" />
+                <span>Cotizás con <strong>criterio técnico y económico</strong></span>
+              </li>
+              <li className="flex items-start gap-3">
+                <FaChartLine className="text-green-600 mt-1" />
+                <span>Aumentás tus <strong>posibilidades de cerrar trabajos</strong></span>
+              </li>
+              <li className="flex items-start gap-3">
+                <FaBolt className="text-green-600 mt-1" />
+                <span>Sistema especializado <strong>100% en electricistas</strong></span>
+              </li>
+            </ul>
+
+            <div className="text-4xl font-extrabold text-green-600 mb-4">
+              $950 <span className="text-lg text-gray-600 font-normal">/mes</span>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              <strong>1 presupuesto te llevaba 30 min</strong>. Podés hacer 3 veces o más en el mismo tiempo.
+            </p>
+
+            <div className="flex justify-center items-center mt-6">
+              <BotonSuscripcion />
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              ¡Con menos de 1 trabajo extra al mes, <strong>ya recuperás la inversión</strong>!
+            </p>
           </div>
         </section>
+      ) : (
+        // ❌ Suscripción deshabilitada → mostrar como AGOTADA
+        <section className="bg-white py-6 px-4">
+          <div className="max-w-4xl mx-auto text-center bg-gray-100 p-8 rounded-2xl shadow-lg border border-gray-300 relative overflow-hidden opacity-80">
+            <h2 className="text-3xl font-bold text-gray-500 mb-4">Suscripción Profesional</h2>
+            <p className="text-lg text-gray-500 mb-6">Actualmente no disponible</p>
 
-      <section className="bg-white py-6 px-4">
-        <div className="max-w-4xl mx-auto text-center bg-blue-50 p-8 rounded-2xl shadow-lg border border-blue-200 relative overflow-hidden">
-          <div className="absolute -top-4 -right-4 rotate-12 bg-green-500 text-white font-bold px-6 py-1 rounded-bl-lg shadow-md">
-            💎 Suscripción 
+            {/* Cinta diagonal */}
+            <div className="absolute top-10 -right-16 w-64 bg-red-600 text-white text-center font-bold transform rotate-45 shadow-lg">
+              ¡PROXIMAMENTE!
+            </div>
+
+            <ul className="text-left max-w-md mx-auto text-gray-500 mb-6 space-y-4">
+              <li className="flex items-start gap-3">
+                <FaClock className="text-gray-400 mt-1" />
+                <span>Ahorrás tiempo al presupuestar</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <FaClipboardCheck className="text-gray-400 mt-1" />
+                <span>Cotizás con criterio técnico</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <FaChartLine className="text-gray-400 mt-1" />
+                <span>Aumentás tus posibilidades de cerrar trabajos</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <FaBolt className="text-gray-400 mt-1" />
+                <span>Sistema especializado en electricistas</span>
+              </li>
+            </ul>
+
+            <div className="text-4xl font-extrabold text-gray-500 mb-4">
+              $950 <span className="text-lg text-gray-400 font-normal">/mes</span>
+            </div>
+            <p className="text-sm text-gray-400 mb-4">
+              La suscripción no está disponible en este momento.
+            </p>
           </div>
-          <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
-            🔥 50% OFF oferta de lanzamiento
-          </div>
+        </section>
+      )}
 
-          <h2 className="text-3xl font-bold text-blue-800 mb-4">Suscripción Profesional</h2>
-          <p className="text-lg text-gray-700 mb-6">Accedé al máximo potencial de tu trabajo</p>
-
-          <ul className="text-left max-w-md mx-auto text-gray-700 mb-6 space-y-4">
-            <li className="flex items-start gap-3">
-              <FaClock className="text-green-600 mt-1" />
-              <span>Ahorrás <strong>tiempo valioso</strong> al presupuestar</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <FaClipboardCheck className="text-green-600 mt-1" />
-              <span>Cotizás con <strong>criterio técnico y económico</strong></span>
-            </li>
-            <li className="flex items-start gap-3">
-              <FaChartLine className="text-green-600 mt-1" />
-              <span>Aumentás tus <strong>posibilidades de cerrar trabajos</strong></span>
-            </li>
-            <li className="flex items-start gap-3">
-              <FaBolt className="text-green-600 mt-1" />
-              <span>Sistema especializado <strong>100% en electricistas</strong></span>
-            </li>
-          </ul>
-
-          <div className="text-4xl font-extrabold text-green-600 mb-4">
-            $950 <span className="text-lg text-gray-600 font-normal">/mes</span>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            <strong>1 presupuesto te llevaba 30 min</strong>. Podés hacer 3 veces o más en el mismo tiempo.
-                        
-          </p>
-
-          <div className="flex justify-center items-center mt-6">
-            <BotonSuscripcion />
-          </div>
-
-          <p className="text-xs text-gray-500 mt-2">
-            ¡Con menos de 1 trabajo extra al mes, <strong>ya recuperás la inversión</strong>!
-          </p>
-
-        </div>
-      </section>
 
      </div>
     

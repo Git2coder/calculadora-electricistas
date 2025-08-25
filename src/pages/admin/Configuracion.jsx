@@ -42,9 +42,12 @@ export function Configuracion() {
       <h1 className="text-xl font-bold mb-4 text-blue-800">Configuración de la app</h1>
 
       {[
-        { key: "habilitado", label: "Sitio habilitado" },
-        { key: "calculadoraHabilitada", label: "Sección Calculadora" },
+        { key: "habilitado", label: "Sitio Web General" },
+      //{ key: "calculadoraHabilitada", label: "Sección Calculadora" },
+        { key: "calculadoraCompletaHabilitada", label: "Sección Calculadora" },
+        { key: "suscripcionHabilitada", label: "Sección Suscripcion" },
         { key: "jornalesHabilitados", label: "Sección Jornales" },
+      
       ].map((item) => (
         <div key={item.key} className="flex items-center justify-between mb-4">
           <span>{item.label}</span>

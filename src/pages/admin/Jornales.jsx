@@ -118,7 +118,7 @@ export function Jornales() {
             </div>
 
             {/* Valor calculado */}
-            <span className="text-sm text-gray-600 w-28 text-right">
+            <span className="text text-gray-600 w-28 text-right">
               ${(jornales.CBT / jornales[r.key]).toFixed(2)}
             </span>
           </div>

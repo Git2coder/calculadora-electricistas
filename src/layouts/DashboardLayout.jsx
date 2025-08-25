@@ -2,14 +2,14 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 
 const secciones = [
   { path: "/admin/usuarios", label: "Usuarios" },
-  { path: "/admin/accesos", label: "Accesos" },
+  { path: "/admin/configuracion", label: "Accesos" },
   { path: "/admin/estadisticas", label: "Estadísticas" },
   { path: "/admin/tareas", label: "Tareas" },
   { path: "/admin/jornales", label: "Jornales" },
   { path: "/admin/actividad", label: "Actividad" },
   { path: "/admin/notificaciones", label: "Notificaciones" },
   { path: "/admin/permisos", label: "Permisos" },
-  { path: "/admin/configuracion", label: "Configuracion" },
+ 
 
 ];
 
