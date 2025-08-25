@@ -26,6 +26,8 @@ import { TareasAdmin } from "./pages/admin/TareasAdmin";
 import CargarTareasManual from "./CargarTareasManual";
 import { BotonRenovacion } from "./components/BotonRenovacion";
 import { Configuracion } from "./pages/admin/Configuracion";
+import { Jornales } from "./pages/admin/Jornales";
+
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 
 export function ComentariosPage() {
@@ -253,7 +255,7 @@ useEffect(() => {
               <Route path="usuarios" element={<UsuariosAdmin />} />
               <Route path="tareas" element={<TareasAdmin />} /> 
               <Route path="Configuracion" element={<Configuracion />} />
- 
+              <Route path="Jornales" element={<Jornales />} />
               {/* Rutas adicionales se agregarán aquí */}
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>

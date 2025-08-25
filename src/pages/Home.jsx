@@ -68,9 +68,9 @@ export function Home() {
           {/* Tarjeta Reglamentación */}
           <Link to="/reglamentacion" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
             <FaBook className="text-4xl text-blue-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Reglamentación</h3>
+            <h3 className="text-xl font-semibold mb-2">Indice</h3>
             <p className="text-gray-600">
-              Buscala por tema y ubica aquella que podias estar necesitando.
+              Los reglamentos son muchos, fijate y ubica el que podias estar necesitando.
             </p>
           </Link>
         </div>        
@@ -214,7 +214,7 @@ export function Home() {
             <motion.div           
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
             >
             <EscalaRemuneracion />

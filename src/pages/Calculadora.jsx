@@ -45,7 +45,7 @@ export function Calculadora() {
     <div className="max-w-6xl mx-auto py-1 px-4">
       {diasRestantes !== null && diasRestantes <= 7 && (
         <div className="bg-green-100 text-green-800 border-l-4 border-green-800 px-4 py-3 rounded mb-6 text-sm shadow">
-          <strong>¡Te quedan {diasRestantes} día(s)!</strong> para continuar utilizando la calculadora. Seguí ganando tiempo y dinero. No olvides suscribirte ⭐
+          <strong>¡Te quedan {diasRestantes} día(s)!</strong> un verdadero profesional ganá tiempo y dinero. Si esta calculadora te sirvio ¡No olvides suscribirte! 👌
         </div>
       )}
       <CalculadoraCompleta />

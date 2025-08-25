@@ -97,11 +97,11 @@ export function TablaReglamentosAEA() {
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-10">
-      <h2 className="text-3xl font-bold text-blue-800 mb-6">📚 Listado de Reglamentos AEA</h2>
+      <h2 className="text-3xl font-bold text-blue-800 mb-6">📚 Indice de Reglamentos AEA</h2>
 
       <input
         type="text"
-        placeholder="Buscar por código, año o detalle..."
+        placeholder="Buscar por código, año o titulo..."
         className="w-full p-3 border rounded mb-6"
         value={filtro}
         onChange={(e) => setFiltro(e.target.value)}
