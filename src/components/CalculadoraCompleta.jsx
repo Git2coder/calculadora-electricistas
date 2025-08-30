@@ -3,13 +3,17 @@ import { useState, useEffect } from "react";
 import ModalTarifa from "./ModalTarifa";
 import ModalSugerencia from "./ModalSugerencia";
 import { FaPlus, FaTrash, FaWrench, FaBroom } from "react-icons/fa";
-import { ContadorAnimado } from "./ContadorAnimado";
 import { useRef } from "react";
 import { TooltipInfo } from "./TooltipInfo";
 import { tareasPredefinidas } from "../utils/tareas";
 // 🚀 importamos Firebase
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
+import ConfiguracionTarifas from "./calculadora/ConfiguracionTarifas";
+import TareasSeleccionadas from "./calculadora/TareasSeleccionadas";
+import ResumenPresupuesto from "./calculadora/ResumenPresupuesto";
+import BuscadorTareas from "./calculadora/BuscadorTareas";
+
 
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
@@ -381,123 +385,30 @@ if (!config.calculadoraCompletaHabilitada) {
         )}
      
         {/* CONFIGURACIÓN DE TARIFAS */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">⚙️ Configuración de Tarifas</h2>
-            <button
-              className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700"
-              onClick={() => setMostrarModalTarifa(true)}
-            >
-              Calcular Tarifa
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label>
-              Tarifa Horaria ($/h):
-              <input
-                type="number"
-                className="w-full p-2 border rounded mt-1"
-                value={tarifaHoraria}
-                onChange={(e) => setTarifaHoraria(parseFloat(e.target.value))}
-              />
-            </label>
-            <label>
-              Valor de la visita ($):
-              <input
-                type="number"
-                className="w-full p-2 border rounded mt-1"
-                value={costoConsulta}
-                onChange={(e) => setCostoConsulta(parseFloat(e.target.value))}
-              />
-            </label>
-          </div>
-        </div>
-        
+        <ConfiguracionTarifas
+          tarifaHoraria={tarifaHoraria}
+          setTarifaHoraria={setTarifaHoraria}
+          costoConsulta={costoConsulta}
+          setCostoConsulta={setCostoConsulta}
+          onOpenModal={() => setMostrarModalTarifa(true)}
+        />
+
         {/* MODAL SUGERENCIA */}
         {mostrarModalSugerencia && (
           <ModalSugerencia onClose={() => setMostrarModalSugerencia(false)} />
         )}
           
         {/* BUSCADOR Y TAREAS POPULARES */}
-        <div className="bg-white p-6 rounded-xl shadow space-y-4">
-          <h2 className="text-xl font-semibold">📋 Buscar y Agregar Tarea</h2>
-          <input
-            type="text"
-            className="w-full p-2 border rounded"
-            placeholder="Buscar tarea..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") {
-                setIndiceSeleccionado((prev) =>
-                  Math.min(prev + 1, tareasFiltradas.length - 1)
-                );
-              } else if (e.key === "ArrowUp") {
-                setIndiceSeleccionado((prev) => Math.max(prev - 1, 0));
-              } else if (e.key === "Enter" && tareasFiltradas[indiceSeleccionado]) {
-                agregarTarea(tareasFiltradas[indiceSeleccionado]);
-                setBusqueda("");
-                setIndiceSeleccionado(-1);
-              }
-            }}
-/>
-
-          {busqueda && (
-            <div className="border rounded bg-white max-h-40 overflow-auto">
-              {tareasFiltradas.length === 0 ? (
-                <div className="p-2 text-gray-500 text-sm text-center">
-                  Si la tarea es de tipo administrativa envianos un mensaje para poder añadirla a la lista.
-                </div>
-              ) : (
-                tareasFiltradas.map((tarea, i) => (
-                  <div
-                    key={tarea.id}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                      i === indiceSeleccionado ? "bg-blue-100 font-semibold" : ""
-                    }`}
-                    onClick={() => {
-                      agregarTarea(tarea);
-                      setBusqueda("");
-                      setIndiceSeleccionado(-1);
-                    }}
-                  >
-                    {tarea.nombre}
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-
-          <div className="flex flex-wrap gap-2">
-            {tareasPopulares.map((tarea) => (
-              <button
-                key={tarea.id}
-                className={`px-4 py-2 rounded-full text-sm transition-colors duration-200 ${
-                  tarea.nombre === "Boca"
-                    ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
-                    : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
-                onClick={() => agregarTarea(tarea)}
-                title={tarea.nombre === "Boca" ? "Esta tarea es útil como unidad de medida para estimaciones rápidas" : ""}
-              >
-                {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
-              </button>
-            ))}
-          </div>
-
-          
-          <div className="text-center">
-            <button
-              onClick={() => setMostrarModalSugerencia(true)}
-              className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
-            >
-              <FaPlus className="inline mr-2" />
-              ¿Tenés una tarea que no encontras?
-            </button>
-          </div>
-
-        </div>
+        <BuscadorTareas
+          busqueda={busqueda}
+          setBusqueda={setBusqueda}
+          indiceSeleccionado={indiceSeleccionado}
+          setIndiceSeleccionado={setIndiceSeleccionado}
+          tareasFiltradas={tareasFiltradas}
+          tareasPopulares={tareasPopulares}
+          agregarTarea={agregarTarea}
+          setMostrarModalSugerencia={setMostrarModalSugerencia}
+        />
 
         {/* Leyenda informativa sobre tiempos */}
         <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
@@ -506,194 +417,34 @@ if (!config.calculadoraCompletaHabilitada) {
         </div>
 
         {/* TAREAS SELECCIONADAS */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-xl font-semibold mb-4">🛠️ Tareas Seleccionadas</h2>
-            {tareasSeleccionadas.length === 0 ? (
-              <p className="text-gray-500">No hay tareas agregadas.</p>
-                ) : (
-                  <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 relative">
-                    {tareasSeleccionadas.map((tarea) => (
-                      <div
-                        key={tarea.id}
-                        className={`flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm ${
-                          tarea.origen ? "pl-6 italic" : ""
-                        } ${tarea.pausada ? "opacity-50 cursor-not-allowed" : ""}`} // 👈 efecto visual
-                      >
-                        <span className="flex-1 flex items-center gap-1 relative">
-                          {tarea.origen && <span className="text-xs text-blue-400">↳</span>}
-                          {tarea.nombre}
-                          {tarea.pausada && (
-                            <span className="ml-2 text-xs bg-yellow-300 px-2 py-0.5 rounded">
-                              Pausada
-                            </span>
-                          )}
-                        </span>
+        <TareasSeleccionadas
+          tareasSeleccionadas={tareasSeleccionadas}
+          modificarTarea={modificarTarea}
+          actualizarCantidad={actualizarCantidad}
+          eliminarTarea={eliminarTarea}
+          limpiarTareas={limpiarTareas}
+          setTareasSeleccionadas={setTareasSeleccionadas}
+        />
 
-                        {/* 👉 Si está pausada, no muestro controles de edición */}
-                        {!tarea.pausada && (
-                          <>
-                                  
-                        {/* Selector si la tarea tiene opciones */}
-                        {tarea.opciones && (
-                          <div className="flex gap-2 flex-wrap">
-                            {Object.entries(tarea.opciones).map(([clave, config]) => (
-                              <button
-                                key={clave}
-                                className={`px-2 py-1 text-xs rounded ${
-                                  tarea.variante === clave
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-gray-200 text-gray-700"
-                                }`}
-                                onClick={() => {
-                                  modificarTarea(tarea.id, "variante", clave);
-                                  modificarTarea(tarea.id, "tiempo", config.tiempo);
-                                  modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
-                                }}
-                              >
-                                {clave.replaceAll("-", " ").replace("monofasico", "Monofásico").replace("trifasico", "Trifásico")}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      
-                        {/* Cantidad */}
-                        <div className="flex items-center gap-1">
-                          <label className="text-gray-500">
-                            {tarea.unidad ? `${tarea.unidad.charAt(0).toUpperCase() + tarea.unidad.slice(1)}:` : "Cant.:"}
-                          </label>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => actualizarCantidad(tarea.id, tarea.cantidad - 1)}
-                              className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                              −
-                            </button>
-                            {/* Campo editable */}
-                              <input
-                                type="number"
-                                min="1"
-                                value={tarea.cantidad}
-                                onChange={(e) =>
-                                  setTareasSeleccionadas((prev) =>
-                                    prev.map((t) =>
-                                      t.id === tarea.id
-                                        ? { ...t, cantidad: Math.max(1, Number(e.target.value)) }
-                                        : t
-                                    )
-                                  )
-                                }
-                                className="w-14 text-center border border-gray-300 rounded-md"
-                              />
-                            <button
-                              onClick={() => actualizarCantidad(tarea.id, tarea.cantidad + 1)}
-                              className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      
-                        {tarea.requiereInput && (
-                          <div className="flex items-center gap-1">
-                            <label className="text-gray-500">Valor TV:</label>
-                            <input
-                              type="number"
-                              className="w-24 p-1 border rounded"
-                              value={tarea.valorUnidad || ""}
-                              onChange={(e) => modificarTarea(tarea.id, "valorUnidad", e.target.value)}
-                            />
-                          </div>
-                        )}
-
-                        {/* Tiempo o Valor */}
-                        {tarea.tipo === "administrativa" && (
-                          <div className="flex items-center gap-1">
-                            <label className="text-gray-500">Valor:</label>
-                            <input
-                              type="number"
-                              className="w-24 p-1 border rounded"
-                              value={tarea.valor}
-                              onChange={(e) =>
-                                modificarTarea(tarea.id, "valor", e.target.value)
-                              }
-                            />
-                          </div>
-                        )}
-                      
-                        {/* Eliminar */}
-                        <button
-                          className="text-red-600 transition-transform duration-150 hover:scale-150 active:scale-95"
-                          onClick={() => eliminarTarea(tarea.id)}
-                          title="Eliminar tarea"
-                        >
-                          <FaTrash />
-                        </button>
-                      </>
-                        )}
-                      </div>          
-                    ))}
-                        {/* Botón en esquina inferior derecha */}
-                        <div className="sticky bottom-0 flex justify-end p-2 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent">
-                          <button
-                            onClick={limpiarTareas}
-                            className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-400 text-white rounded hover:bg-black shadow-md"
-                          >
-                            <FaBroom className="text-white" />
-                            Vaciar lista
-                          </button>
-                        </div>
-                  </div>                 
-            )}          
-        </div>
-        
+        {/* Leyenda informativa sobre desarrollo de la app */}
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow text-sm mb-6">
           ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong> Si querés sugerir una mejora, podés dejarnos tu mensaje en la <Link to="/comentarios" className="underline text-blue-700 hover:text-blue-900">sección de comentarios</Link>.
         </div>
 
         {/* RESULTADO FINAL */}
-        <div className="bg-blue-50 p-6 rounded-xl shadow space-y-4 relative">
-          <h2 className="text-xl font-semibold text-blue-800">💰 Resumen del Presupuesto</h2>
-          {tareasSeleccionadas.length >= 1 && tiempoTotal > 20 && (
-            <p className="text-lg">
-              ⏱️ Tiempo Estimado: {/*tiempoConMargen*/}  {horasMargen}h {minutosMargen}min <i className="text-xs text-gray-500">(no incluye tiempo de tareas administrativas.)</i>
-            </p>
-          )}
- 
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <label className="flex-1">
-            Ajuste de Precio <i className="text-xs text-gray-500">(% sobre las tareas sin incluir la visita)</i>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={ajustePorcentaje}
-              onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
-              className="w-full"
-            />
-            <span className="block text-center mt-1">{ajustePorcentaje}%</span>
-          </label>
-          
-          {/* Botón adaptativo dentro del resumen */}
-            <div className="flex justify-end mt-4 sm:mt-0 sm:absolute sm:top-6 sm:right-6 sm:z-10">
-              <button
-                onClick={() => {
-                  setIncluirVisita((prev) => !prev);
-                  sonidoMonedas.current.currentTime = 0;
-                  sonidoMonedas.current.play();
-                }}
-                className={`px-3 py-2 sm:px-5 sm:py-2 rounded-full font-semibold shadow-md 
-                            transition-all duration-300 ease-in-out hover:scale-105
-                            text-sm sm:text-base
-                            ${incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"}`}
-              >
-                {incluirVisita ? "Cobrando visita" : "Visita bonificada"}
-              </button>
-            </div>
+        <ResumenPresupuesto
+          tareasSeleccionadas={tareasSeleccionadas}
+          tiempoTotal={tiempoTotal}
+          horasMargen={horasMargen}
+          minutosMargen={minutosMargen}
+          ajustePorcentaje={ajustePorcentaje}
+          setAjustePorcentaje={setAjustePorcentaje}
+          incluirVisita={incluirVisita}
+          setIncluirVisita={setIncluirVisita}
+          sonidoMonedas={sonidoMonedas}
+          costoFinal={costoFinal}
+        />
 
-            <ContadorAnimado valor={costoFinal} />
-          </div>
-        </div>
       </div>
     </div>
   );

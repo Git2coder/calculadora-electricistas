@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 
-export function ContadorAnimado({ valor }) {
+const ContadorAnimado = ({ valor }) => {
   const valorAnimado = useMotionValue(valor);
   const [valorMostrado, setValorMostrado] = useState(valor);
 
@@ -13,7 +13,6 @@ export function ContadorAnimado({ valor }) {
         setValorMostrado(
           v.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         ),
-      
     });
     return () => controls.stop();
   }, [valor]);
@@ -23,4 +22,6 @@ export function ContadorAnimado({ valor }) {
       Total Estimado: ${valorMostrado}
     </motion.div>
   );
-}
+};
+
+export default ContadorAnimado;
