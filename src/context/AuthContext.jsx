@@ -1,82 +1,116 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { auth } from "../firebaseConfig";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
 
 const AuthContext = createContext();
 
-export function useAuth() {
+export const useAuth = () => {
   return useContext(AuthContext);
-}
+};
 
-export function AuthProvider({ children }) {
+// 🔑 Función para evaluar estado de acceso
+const evaluarAcceso = (usuarioData) => {
+  if (!usuarioData) return { estadoAcceso: "sin-usuario", puedeAcceder: false };
+
+  const ahora = new Date();
+
+  // 1. Si está suspendido manualmente
+  if (usuarioData.estado === "suspendido") {
+    return { estadoAcceso: "suspendido", puedeAcceder: false };
+  }
+
+  // 2. Si tiene fechaExpiracion futura
+  if (usuarioData.fechaExpiracion && usuarioData.fechaExpiracion.toDate() > ahora) {
+    return { estadoAcceso: "suscripto", puedeAcceder: true };
+  }
+
+  // 3. Si está en período de prueba (7 días desde creadoEn)
+  // 🚀 Si creadoEn aún es null (porque serverTimestamp no llegó),
+  // asumimos que es un usuario nuevo y le damos trial temporalmente
+  if (!usuarioData.creadoEn) {
+    return { estadoAcceso: "trial", puedeAcceder: true };
+  }
+
+  if (usuarioData.creadoEn && usuarioData.creadoEn.toDate) {
+    const creado = usuarioData.creadoEn.toDate();
+    const diasDesdeCreacion = (ahora - creado) / (1000 * 60 * 60 * 24);
+    if (diasDesdeCreacion <= 7) {
+      return { estadoAcceso: "trial", puedeAcceder: true };
+    }
+  }
+
+  // 4. Caso contrario: vencido
+  return { estadoAcceso: "vencido", puedeAcceder: false };
+};
+
+export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
-  const [fechaCreacion, setFechaCreacion] = useState(null);
-  const [fechaExpiracion, setFechaExpiracion] = useState(null);
-  const [activo, setActivo] = useState(true); // por defecto activo
-  const [rol, setRol] = useState("usuario");  // por defecto usuario
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (usuarioFirebase) => {
-      setUsuario(usuarioFirebase);
-
-      if (usuarioFirebase) {
-        const db = getFirestore();
-        const docRef = doc(db, "usuarios", usuarioFirebase.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "usuarios", user.uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          const data = docSnap.data();
-          setActivo(data.estado === "activo");
-          setRol(data.rol ?? "usuario");
+          const usuarioDoc = docSnap.data();
 
-          // Fecha de creación
-          if (data.creadoEn) {
-            const fecha =
-              typeof data.creadoEn.toDate === "function"
-                ? data.creadoEn.toDate()
-                : new Date(data.creadoEn);
-            setFechaCreacion(fecha);
-          } else {
-            setFechaCreacion(null);
-          }
-
-          // Fecha de expiración
-          if (data.fechaExpiracion) {
-            const fecha =
-              typeof data.fechaExpiracion.toDate === "function"
-                ? data.fechaExpiracion.toDate()
-                : new Date(data.fechaExpiracion);
-            setFechaExpiracion(fecha);
-          } else {
-            setFechaExpiracion(null);
-          }
-
+          setUsuario({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            ...usuarioDoc,
+            ...evaluarAcceso(usuarioDoc),
+          });
         } else {
-          // Si el documento no existe, dejar todo como inactivo
-          setActivo(false);
-          setRol("usuario");
-          setFechaCreacion(null);
-          setFechaExpiracion(null);
+          // 🚀 Si no existe, lo creamos en Firestore
+          await setDoc(docRef, {
+            email: user.email,
+            displayName: user.displayName || "",
+            creadoEn: serverTimestamp(),
+            estado: "activo",
+            rol: "usuario",
+            suscripcionActiva: false,
+            fechaExpiracion: null,
+          });
+
+          // 👇 IMPORTANTE:
+          // No seteamos usuario manualmente aquí.
+          // Dejamos que en la próxima vuelta el snapshot de Firestore
+          // lo traiga correctamente con el serverTimestamp.
         }
-
       } else {
-        setFechaCreacion(null);
-        setFechaExpiracion(null);
-        setActivo(false);
-        setRol("usuario");
+        setUsuario(null);
       }
-
       setCargando(false);
     });
 
-    return unsub;
+    return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  const actualizarPerfil = async (nombre) => {
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: nombre });
+      setUsuario((prev) => ({ ...prev, displayName: nombre }));
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ usuario, fechaCreacion, fechaExpiracion, activo, rol }}>
+    <AuthContext.Provider
+      value={{
+        usuario,
+        cargando,
+        logout,
+        actualizarPerfil,
+      }}
+    >
       {!cargando && children}
     </AuthContext.Provider>
   );
-}
+};

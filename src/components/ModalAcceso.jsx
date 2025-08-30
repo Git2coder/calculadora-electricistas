@@ -9,7 +9,8 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function ModalAcceso({ isOpen, onClose }) {
   const [modo, setModo] = useState("login"); // "login" | "registro"
-  const [loading, setLoading] = useState(false);
+  const [registroExitoso, setRegistroExitoso] = useState(false);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
   // Campos comunes
@@ -52,48 +53,45 @@ export default function ModalAcceso({ isOpen, onClose }) {
     return "";
   };
 
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
-    try {
-      if (modo === "login") {
-        await signInWithEmailAndPassword(auth, email, password);
-        onClose();
-      } else {
-        const msg = validarRegistro();
-        if (msg) {
-          setError(msg);
-          setLoading(false);
-          return;
-        }
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        // Set displayName
-        try {
-          await updateProfile(cred.user, { displayName: nombre });
-        } catch {}
+    setCargando(true);
 
-        // Guardar perfil en Firestore
+    try {
+      if (modo === "registro") {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "usuarios", cred.user.uid), {
-          uid: cred.user.uid,
           nombre,
-          email,
           ubicacion,
           tipoTrabajo,
-          experiencia, // string (ej "2-5")
-          grado,       // string
-          conoceTarifa: sabeTarifa === "Si",
-          valorBoca: valorBoca !== "" ? Number(valorBoca) : null,
+          experiencia,
+          grado,
+          sabeTarifa,
+          valorBoca,
+          email,
           creadoEn: serverTimestamp(),
+          estado: "activo",
+          rol: "usuario",
         });
 
+        setRegistroExitoso(true);
+        setTimeout(() => {
+          onClose();
+          setRegistroExitoso(false);
+        }, 2000);
+      } else {
+        // 🟢 Login
+        await signInWithEmailAndPassword(auth, email, password);
         onClose();
       }
     } catch (err) {
-      setError(err?.message || "Ocurrió un error. Intentá nuevamente.");
-    } finally {
-      setLoading(false);
+      console.error("Error en acceso:", err);
+      setError("No se pudo completar la acción. Intenta nuevamente.");
     }
+
+    setCargando(false);
   };
 
   return (
@@ -304,14 +302,16 @@ export default function ModalAcceso({ isOpen, onClose }) {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-blue-600 py-2 font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+            disabled={cargando}
+            className={`w-full py-2 px-4 rounded-lg text-white font-bold ${
+              cargando ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            {loading
-              ? "Procesando…"
-              : modo === "login"
-              ? "Ingresar"
-              : "Crear cuenta"}
+            {cargando
+              ? "Procesando..."
+              : modo === "registro"
+              ? "Crear cuenta"
+              : "Iniciar sesión"}
           </button>
 
           <p className="pt-2 text-center text-sm">
@@ -340,6 +340,15 @@ export default function ModalAcceso({ isOpen, onClose }) {
             )}
           </p>
         </form>
+        {registroExitoso && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center animate-fadeIn">
+              <div className="text-green-600 text-6xl mb-4 animate-bounce">✔️</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">¡Registro exitoso!</h2>
+              <p className="text-gray-600">Tu cuenta fue creada y el acceso está habilitado.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

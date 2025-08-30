@@ -11,10 +11,10 @@ import { Comentarios } from "./components/Comentarios";
 import React, { useEffect, useState, useRef } from "react";
 
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import { UsuariosAdmin } from "./pages/admin/UsuariosAdmin";
-import { AdminRoute } from "./components/AdminRoute";
+import AdminRoute from "./components/AdminRoute";
 
 import { Mantenimiento } from "./pages/Mantenimiento";
 import Gracias from "./pages/Gracias";
