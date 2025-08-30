@@ -1,18 +1,22 @@
-import React from "react";
 import { useAuth } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
-const AdminRoute = ({ children }) => {
-  const { usuario } = useAuth();
+export default function AdminRoute({ children }) {
+  const { usuario, cargando } = useAuth();
 
-  if (!usuario) {
-    return <p>Debes iniciar sesión para acceder.</p>;
+  // Mientras carga el usuario, mostramos un loading o mensaje
+  if (cargando) {
+    return <div className="text-center mt-10">Cargando...</div>;
   }
 
-  if (usuario.rol === "admin") {
-    return children;
+  // Verificación en consola de lo que recibe AdminRoute
+  console.log("Usuario en AdminRoute:", usuario);
+
+  // Si no hay usuario o el rol no es admin, redirige
+  if (!usuario || usuario.rol !== "admin") {
+    return <Navigate to="/" replace />;
   }
 
-  return <p>Acceso restringido. No tienes permisos de administrador.</p>;
-};
-
-export default AdminRoute;
+  // Si es admin, muestra el contenido
+  return children;
+}

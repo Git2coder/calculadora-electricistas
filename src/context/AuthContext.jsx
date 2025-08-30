@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
 const AuthContext = createContext();
@@ -26,8 +26,6 @@ const evaluarAcceso = (usuarioData) => {
   }
 
   // 3. Si está en período de prueba (7 días desde creadoEn)
-  // 🚀 Si creadoEn aún es null (porque serverTimestamp no llegó),
-  // asumimos que es un usuario nuevo y le damos trial temporalmente
   if (!usuarioData.creadoEn) {
     return { estadoAcceso: "trial", puedeAcceder: true };
   }
@@ -49,45 +47,51 @@ export const AuthProvider = ({ children }) => {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeDoc = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const docRef = doc(db, "usuarios", user.uid);
-        const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const usuarioDoc = docSnap.data();
+        // 🔄 Escucha en tiempo real al documento del usuario
+        unsubscribeDoc = onSnapshot(docRef, async (docSnap) => {
+          if (docSnap.exists()) {
+            const usuarioDoc = docSnap.data();
+            console.log("Usuario cargado en tiempo real:", usuarioDoc);
 
-          setUsuario({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            ...usuarioDoc,
-            ...evaluarAcceso(usuarioDoc),
-          });
-        } else {
-          // 🚀 Si no existe, lo creamos en Firestore
-          await setDoc(docRef, {
-            email: user.email,
-            displayName: user.displayName || "",
-            creadoEn: serverTimestamp(),
-            estado: "activo",
-            rol: "usuario",
-            suscripcionActiva: false,
-            fechaExpiracion: null,
-          });
-
-          // 👇 IMPORTANTE:
-          // No seteamos usuario manualmente aquí.
-          // Dejamos que en la próxima vuelta el snapshot de Firestore
-          // lo traiga correctamente con el serverTimestamp.
-        }
+            // Aseguramos que el rol esté correcto
+            setUsuario((prev) => ({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              rol: usuarioDoc.rol,  // Verificamos que el rol se setee correctamente
+              ...usuarioDoc,
+              ...evaluarAcceso(usuarioDoc),
+            }));
+          } else {
+            // 🚀 Si no existe, lo creamos en Firestore
+            await setDoc(docRef, {
+              email: user.email,
+              displayName: user.displayName || "",
+              creadoEn: serverTimestamp(),
+              estado: "activo",
+              rol: "usuario",  // Aseguramos que los nuevos usuarios tienen rol de "usuario"
+              suscripcionActiva: false,
+              fechaExpiracion: null,
+            });
+          }
+          setCargando(false);  // Aseguramos que se actualice el estado después de cargar
+        });
       } else {
         setUsuario(null);
+        setCargando(false);
       }
-      setCargando(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDoc) unsubscribeDoc();
+    };
   }, []);
 
   const logout = async () => {

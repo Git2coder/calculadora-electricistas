@@ -44,7 +44,7 @@ export default function App() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [menuUsuario, setMenuUsuario] = useState(false);
   const { usuario } = useAuth();
-  const esAdmin = usuario?.email === "admindeprueba@gmail.com"; 
+  const esAdmin = usuario?.rol === "admin";
 
   const [config, setConfig] = useState(null);
   const menuRef = useRef(null);
