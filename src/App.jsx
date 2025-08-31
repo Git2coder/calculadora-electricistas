@@ -27,6 +27,7 @@ import CargarTareasManual from "./CargarTareasManual";
 import { BotonRenovacion } from "./components/BotonRenovacion";
 import { Configuracion } from "./pages/admin/Configuracion";
 import { Jornales } from "./pages/admin/Jornales";
+import Estadisticas from "./pages/admin/Estadisticas"
 
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 
@@ -256,6 +257,7 @@ useEffect(() => {
               <Route path="tareas" element={<TareasAdmin />} /> 
               <Route path="Configuracion" element={<Configuracion />} />
               <Route path="Jornales" element={<Jornales />} />
+              <Route path="Estadisticas" element={<Estadisticas />} />
               {/* Rutas adicionales se agregarán aquí */}
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>

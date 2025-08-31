@@ -42,30 +42,28 @@ const TareasSeleccionadas = ({
                   {/* Selector si la tarea tiene opciones */}
                   {tarea.opciones && (
                     <div className="flex gap-2 flex-wrap">
-                      {Object.entries(tarea.opciones).map(([clave, config]) => (
-                        <button
-                          key={clave}
-                          className={`px-2 py-1 text-xs rounded ${
-                            tarea.variante === clave
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-200 text-gray-700"
-                          }`}
-                          onClick={() => {
-                            modificarTarea(tarea.id, "variante", clave);
-                            modificarTarea(tarea.id, "tiempo", config.tiempo);
-                            modificarTarea(
-                              tarea.id,
-                              "multiplicador",
-                              config.multiplicador ?? 1
-                            );
-                          }}
-                        >
-                          {clave
-                            .replaceAll("-", " ")
-                            .replace("monofasico", "Monofásico")
-                            .replace("trifasico", "Trifásico")}
-                        </button>
-                      ))}
+                      {Object.entries(tarea.opciones)
+                        .sort(([a], [b]) => a.localeCompare(b)) // 🔄 ordena claves
+                        .map(([clave, config]) => (
+                          <button
+                            key={clave}
+                            className={`px-2 py-1 text-xs rounded ${
+                              tarea.variante === clave
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-200 text-gray-700"
+                            }`}
+                            onClick={() => {
+                              modificarTarea(tarea.id, "variante", clave);
+                              modificarTarea(tarea.id, "tiempo", config.tiempo);
+                              modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
+                            }}
+                          >
+                            {clave
+                              .replaceAll("-", " ")
+                              .replace("monofasico", "Monofásico")
+                              .replace("trifasico", "Trifásico")}
+                          </button>
+                        ))}
                     </div>
                   )}
 

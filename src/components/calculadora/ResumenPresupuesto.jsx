@@ -70,7 +70,7 @@ const ResumenPresupuesto = ({
               sonidoMonedas.current.play();
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold shadow-md transition 
-              ${incluirVisita ? "bg-red-600 text-white" : "bg-green-600 text-white"}`}
+              ${incluirVisita ? "bg-green-600 text-white" : "bg-blue-600 text-white"}`}
           >
             <FaTicketAlt />
             {incluirVisita ? "Cobrando visita" : "Visita bonificada"}
@@ -78,7 +78,7 @@ const ResumenPresupuesto = ({
 
           <button
             onClick={handleDescargarPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition shadow"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition shadow"
           >
             <FaFilePdf />
             Descargar PDF

@@ -115,30 +115,32 @@ const tareasPopulares = tareasDisponibles
   return;
 }
 
- else {
-      // Tarea normal
-      const base = tarea.opciones?.[tarea.variante] || tarea;
-  
-      const varianteConfig = tarea.variante && tarea.opciones?.[tarea.variante]
-    ? tarea.opciones[tarea.variante]
-    : tarea;
+  else {
+    const varianteConfig =
+      tarea.variante && tarea.opciones?.[tarea.variante]
+        ? tarea.opciones[tarea.variante]
+        : tarea;
 
-      const nuevaTarea = {
-        ...tarea,
-        id: Date.now() + Math.floor(Math.random() * 1000),
-        cantidad: 1,
-        tiempo: varianteConfig.tiempo || tarea.tiempo,
-        multiplicador: varianteConfig.multiplicador ?? tarea.multiplicador ?? 1,
-        valor: (varianteConfig.tiempo / 60) * tarifaHoraria * (varianteConfig.multiplicador ?? 1),
-        variante: tarea.variante || null,
-      };
+    const nuevaTarea = {
+      ...tarea,
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      cantidad: 1,
+      tiempo: varianteConfig.tiempo || tarea.tiempo || 0,
+      multiplicador: varianteConfig.multiplicador ?? tarea.multiplicador ?? 1,
+      valor:
+        tarea.tipo === "administrativa"
+          ? (varianteConfig.valor ?? tarea.valor ?? 0) // 👈 si hay variante usa su valor
+          : (varianteConfig.tiempo / 60) *
+            tarifaHoraria *
+            (varianteConfig.multiplicador ?? 1),
+      variante: tarea.variante || null,
+    };
 
-      setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
-      }
+    setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
+  }
+
   };
   
-  
-
   const modificarTarea = (id, campo, valor) => {
     setTareasSeleccionadas((tareas) => {
       // Si es cambio de variante, y es "instalacion" o "reemplazo"
@@ -184,7 +186,7 @@ const tareasPopulares = tareasDisponibles
     const cantidadFinal = isNaN(nuevaCantidad) || nuevaCantidad < 1 ? 1 : nuevaCantidad;
 
     const nuevoValor = t.valorUnidad
-      ? Math.round((t.valorUnidad / 4) * cantidadFinal)
+      ? Math.round((t.valorUnidad * ((t.porcentaje ?? 25) / 100)) * cantidadFinal)
       : t.valor;
 
     return {
