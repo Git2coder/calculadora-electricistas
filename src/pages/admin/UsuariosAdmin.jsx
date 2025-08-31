@@ -176,6 +176,7 @@ const UsuariosAdmin = () => {
 
         if (estadoAcceso === "suscripto") suscriptos++;
         if (estadoAcceso === "sin-acceso" || estadoAcceso === "suspendido") sinAcceso++;
+        
 
         const creado = toDateSafe(u.creadoEn);
         if (creado && creado > haceUnMes) nuevos++;
@@ -272,7 +273,8 @@ const UsuariosAdmin = () => {
 
     // 🎭 Rol / Estado (selects)
     const coincideRol = filtroRol === "todos" || (u.rol || "usuario") === filtroRol;
-    const coincideEstado = filtroEstado === "todos" || (u.estado || "activo") === filtroEstado;
+    const estadoAcceso = evaluarAccesoAdmin(u);  // lo usamos también más abajo
+    const coincideEstado = filtroEstado === "todos" || estadoAcceso === filtroEstado;
 
     // 🟦 Filtro activado desde las tarjetas (usa la MISMA lógica)
     const hoy = new Date();
@@ -280,8 +282,7 @@ const UsuariosAdmin = () => {
     haceUnMes.setMonth(haceUnMes.getMonth() - 1);
 
     let coincideTarjeta = true;
-    const estadoAcceso = evaluarAccesoAdmin(u);
-
+    
     if (filtroActivo === "suscriptos") {
       coincideTarjeta = estadoAcceso === "suscripto";
     }
@@ -400,7 +401,9 @@ const UsuariosAdmin = () => {
           className="p-2 border rounded"
         >
           <option value="todos">Todos los estados</option>
-          <option value="activo">Activo</option>
+          <option value="suscripto">Suscripción activa</option>
+          <option value="trial">Periodo de prueba</option>
+          <option value="sin-acceso">Sin acceso</option>
           <option value="suspendido">Suspendido</option>
         </select>
       </div>
@@ -463,7 +466,16 @@ const UsuariosAdmin = () => {
                   <td className="px-4 py-2 border">{u.displayName || u.nombre || "Sin nombre"}</td>
                   <td className="px-4 py-2 border">{u.email}</td>
                   <td className="px-4 py-2 border">{u.rol || "usuario"}</td>
-                  <td className="px-4 py-2 border">{u.estado || "activo"}</td>
+                  <td className="px-4 py-2 border">
+                    {(() => {
+                      const acceso = evaluarAccesoAdmin(u);
+                      if (acceso === "suscripto") return "Suscripción activa";
+                      if (acceso === "trial") return "Periodo de prueba";
+                      if (acceso === "sin-acceso") return "Sin acceso";
+                      if (acceso === "suspendido") return "Suspendido";
+                      return "Desconocido";
+                    })()}
+                  </td>
                   <td className="px-4 py-2 border">
                     {u.creadoEn?.toDate ? u.creadoEn.toDate().toLocaleDateString("es-AR") : "-"}
                   </td>
