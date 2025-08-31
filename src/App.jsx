@@ -13,7 +13,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
-import { UsuariosAdmin } from "./pages/admin/UsuariosAdmin";
+import  UsuariosAdmin  from "./pages/admin/UsuariosAdmin";
 import AdminRoute from "./components/AdminRoute";
 
 import { Mantenimiento } from "./pages/Mantenimiento";
