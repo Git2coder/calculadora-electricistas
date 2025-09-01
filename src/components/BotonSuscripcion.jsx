@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import { db } from "../firebaseConfig"; // ajusta la ruta a tu config
+import { doc, updateDoc } from "firebase/firestore";
 
 export function BotonSuscripcion() {
   const { usuario } = useAuth();
@@ -22,6 +24,17 @@ export function BotonSuscripcion() {
     setLoading(true);
 
     try {
+      // 1️⃣ Guardar aceptación de términos en Firestore como subdocumento
+      const userRef = doc(db, "usuarios", usuario.uid);
+      await updateDoc(userRef, {
+        terminos: {
+          aceptado: true,
+          aceptadoEn: new Date(),
+          version: "2025-08-31", // 📌 pon la fecha o versión de tus T&C
+        },
+      });
+
+      // 2️⃣ Crear la preferencia de pago
       const response = await fetch("/api/createPreference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,7 +44,7 @@ export function BotonSuscripcion() {
       const data = await response.json();
 
       if (data.init_point) {
-        window.location.href = data.init_point; // redirige a Mercado Pago
+        window.location.href = data.init_point;
       } else {
         alert("Hubo un problema al crear la preferencia de pago.");
       }

@@ -1,5 +1,5 @@
-import React from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState } from "react";
+import { FaPlus, FaListUl } from "react-icons/fa";
 
 const BuscadorTareas = ({
   busqueda,
@@ -8,12 +8,17 @@ const BuscadorTareas = ({
   setIndiceSeleccionado,
   tareasFiltradas,
   tareasPopulares,
+  todasLasTareas, // 👈 nuevo: lista completa de tareas activas
   agregarTarea,
   setMostrarModalSugerencia,
 }) => {
+  const [mostrarTodas, setMostrarTodas] = useState(false);
+
   return (
     <div className="bg-white p-6 rounded-xl shadow space-y-4">
       <h2 className="text-xl font-semibold">📋 Buscar y Agregar Tarea</h2>
+
+      {/* 🔎 Input de búsqueda */}
       <input
         type="text"
         className="w-full p-2 border rounded"
@@ -38,6 +43,7 @@ const BuscadorTareas = ({
         }}
       />
 
+      {/* 🔽 Resultados de búsqueda */}
       {busqueda && (
         <div className="border rounded bg-white max-h-40 overflow-auto">
           {tareasFiltradas.length === 0 ? (
@@ -65,6 +71,7 @@ const BuscadorTareas = ({
         </div>
       )}
 
+      {/* ⭐ Populares */}
       <div className="flex flex-wrap gap-2">
         {tareasPopulares.map((tarea) => (
           <button
@@ -75,25 +82,46 @@ const BuscadorTareas = ({
                 : "bg-blue-500 text-white hover:bg-blue-600"
             }`}
             onClick={() => agregarTarea(tarea)}
-            title={
-              tarea.nombre === "Boca"
-                ? "Esta tarea es útil como unidad de medida para estimaciones rápidas"
-                : ""
-            }
           >
             {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
           </button>
         ))}
       </div>
 
-      <div className="text-center">
+      {/* 📋 Listado completo de tareas */}
+      <div className="mt-4">
         <button
-          onClick={() => setMostrarModalSugerencia(true)}
-          className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
+          onClick={() => setMostrarTodas((prev) => !prev)}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
         >
-          <FaPlus className="inline mr-2" />
-          ¿Tenés una tarea que no encontrás?
+          <FaListUl />
+          {mostrarTodas ? "Ocultar todas las tareas" : "Ver todas las tareas"}
         </button>
+
+        {mostrarTodas && (
+          <div className="mt-3 border rounded max-h-60 overflow-auto">
+            {todasLasTareas.map((tarea) => (
+              <div
+                key={tarea.id}
+                className="p-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => agregarTarea(tarea)}
+              >
+                {tarea.nombre}
+              </div>
+            ))}
+
+            {/* 👉 Botón sugerencia dentro del listado */}
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setMostrarModalSugerencia(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
+              >
+                <FaPlus className="inline mr-2" />
+                ¿No encontraste tu tarea? Sugerir nueva
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

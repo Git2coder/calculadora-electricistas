@@ -150,34 +150,35 @@ const tareasPopulares = tareasDisponibles
       if (campo === "variante") {
         const base = tareasPredefinidas.find((t) => t.nombre === tareaOriginal.nombre);
         const nuevaConfig = base?.opciones?.[valor];
-  
+
         const nuevasInternas = (nuevaConfig?.incluye || []).map((sub) => {
           const subBase = tareasPredefinidas.find((t) => t.id === sub.id);
           const subConfig = subBase.opciones?.[subBase.variante] || subBase;
-  
+
           return {
             ...subBase,
             id: Date.now() + Math.floor(Math.random() * 1000),
-            origen: id, // Identifica a qué tarea principal pertenece
+            origen: id,
             cantidad: sub.cantidad || 1,
             tiempo: subConfig.tiempo,
             multiplicador: subConfig.multiplicador ?? 1,
           };
         });
-  
-        return tareas
-          .filter((t) => t.id !== id && t.origen !== id) // eliminamos tarea original y sus internas
-          .concat([
-            {
-              ...tareaOriginal,
-              variante: valor,
-              tiempo: nuevaConfig?.tiempo ?? tareaOriginal.tiempo,
-              multiplicador: nuevaConfig?.multiplicador ?? tareaOriginal.multiplicador,
-              valor: nuevaConfig?.valor ?? tareaOriginal.valor, // ✅ <- esta línea es la clave
-            },
-            ...nuevasInternas,
-          ]);
+
+        // reemplazar en lugar de eliminar y pushear
+        return tareas.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                variante: valor,
+                tiempo: nuevaConfig?.tiempo ?? t.tiempo,
+                multiplicador: nuevaConfig?.multiplicador ?? t.multiplicador,
+                valor: nuevaConfig?.valor ?? t.valor,
+              }
+            : t
+        ).concat(nuevasInternas);
       }
+
      if (campo === "cantidad") {
   return tareas.map((t) => {
     if (t.id !== id) return t;
@@ -373,7 +374,7 @@ if (!config.calculadoraCompletaHabilitada) {
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-center text-blue-700">💡 Calculadora de Presupuestos</h1>
+        <h1 className="text-4xl font-bold text-center text-bkack-700">💡 Calculadora de Presupuestos</h1>
 
         {/* MODAL TARIFA */}
         {mostrarModalTarifa && (
@@ -385,14 +386,13 @@ if (!config.calculadoraCompletaHabilitada) {
             onClose={() => setMostrarModalTarifa(false)}
           />
         )}
-     
-        {/* CONFIGURACIÓN DE TARIFAS */}
+
         <ConfiguracionTarifas
           tarifaHoraria={tarifaHoraria}
           setTarifaHoraria={setTarifaHoraria}
           costoConsulta={costoConsulta}
           setCostoConsulta={setCostoConsulta}
-          onOpenModal={() => setMostrarModalTarifa(true)}
+          onOpen={() => setMostrarModalTarifa(true)}
         />
 
         {/* MODAL SUGERENCIA */}
@@ -408,6 +408,7 @@ if (!config.calculadoraCompletaHabilitada) {
           setIndiceSeleccionado={setIndiceSeleccionado}
           tareasFiltradas={tareasFiltradas}
           tareasPopulares={tareasPopulares}
+          todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}  // 👈 aquí
           agregarTarea={agregarTarea}
           setMostrarModalSugerencia={setMostrarModalSugerencia}
         />
@@ -445,6 +446,10 @@ if (!config.calculadoraCompletaHabilitada) {
           setIncluirVisita={setIncluirVisita}
           sonidoMonedas={sonidoMonedas}
           costoFinal={costoFinal}
+          // 👇 nuevas
+          tarifaHoraria={tarifaHoraria}
+          visitaSegura={visitaSegura}
+          tareasPredefinidas={tareasPredefinidas}
         />
 
       </div>

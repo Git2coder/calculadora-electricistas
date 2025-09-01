@@ -9,13 +9,11 @@ import { Noticias } from "./pages/Noticias";
 import { Reglamentacion } from "./pages/Reglamentacion";
 import { Comentarios } from "./components/Comentarios";
 import React, { useEffect, useState, useRef } from "react";
-
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import  UsuariosAdmin  from "./pages/admin/UsuariosAdmin";
 import AdminRoute from "./components/AdminRoute";
-
 import { Mantenimiento } from "./pages/Mantenimiento";
 import Gracias from "./pages/Gracias";
 import ErrorPago from "./pages/ErrorPago";
@@ -28,8 +26,11 @@ import { BotonRenovacion } from "./components/BotonRenovacion";
 import { Configuracion } from "./pages/admin/Configuracion";
 import { Jornales } from "./pages/admin/Jornales";
 import Estadisticas from "./pages/admin/Estadisticas"
+import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
+import ModalTerminos from "./components/ModalTerminos";
 
-import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
+// versión vigente de T&C → solo actualizás este string al modificar tus términos
+const TERMINOS_VERSION = "2025-09-01";
 
 export function ComentariosPage() {
   return (
@@ -39,17 +40,34 @@ export function ComentariosPage() {
   );
 }
 
-
 export default function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [menuUsuario, setMenuUsuario] = useState(false);
   const { usuario } = useAuth();
   const esAdmin = usuario?.rol === "admin";
-
   const [config, setConfig] = useState(null);
   const menuRef = useRef(null);
+  const [mostrarModalTerminos, setMostrarModalTerminos] = useState(false);
 
+  useEffect(() => {
+    const checkTerminos = async () => {
+      if (!usuario) return;
+      const db = getFirestore();
+      const snap = await getDoc(doc(db, "usuarios", usuario.uid));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (
+          !data.terminos ||
+          data.terminos.version !== TERMINOS_VERSION ||
+          !data.terminos.aceptado
+        ) {
+          setMostrarModalTerminos(true);
+        }
+      }
+    };
+    checkTerminos();
+  }, [usuario]);
 
 useEffect(() => {
   const db = getFirestore();
@@ -277,8 +295,32 @@ useEffect(() => {
       </div>
   
       {setModalAbierto && (
-<ModalAcceso isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
-)}
+      <ModalAcceso isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
+      )}
+
+      {/* Modal bloqueante de T&C */}
+      {mostrarModalTerminos && (
+        <ModalTerminos
+          usuario={usuario}   // 👉 le pasamos el usuario
+          onAceptar={async () => {
+            if (usuario) {
+              const db = getFirestore();
+              const userRef = doc(db, "usuarios", usuario.uid);
+              await updateDoc(userRef, {
+                terminos: {
+                  version: TERMINOS_VERSION,
+                  aceptadoEn: new Date().toISOString(),
+                  aceptado: true,
+                },
+              });
+            }
+            setMostrarModalTerminos(false);
+          }}
+          onVerTerminos={() => {
+            window.open("/terminos", "_blank");
+          }}
+        />
+      )}
 
     </Router>
   );

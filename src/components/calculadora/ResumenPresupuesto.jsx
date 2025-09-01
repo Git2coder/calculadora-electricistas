@@ -1,3 +1,4 @@
+// ResumenPresupuesto.jsx
 import React from "react";
 import ContadorAnimado from "../ContadorAnimado";
 import { exportarPresupuestoPDF } from "./pdf/exportarPresupuesto";
@@ -14,15 +15,24 @@ const ResumenPresupuesto = ({
   setIncluirVisita,
   sonidoMonedas,
   costoFinal,
+  // 👇 Asegurate de recibir esto desde el padre
+  tarifaHoraria,
+  visitaSegura,
+  tareasPredefinidas,
 }) => {
-  // 📝 Manejar descarga con confirmación
   const handleDescargarPDF = () => {
-    const confirmacion = window.confirm(
-      "¿Seguro que deseas descargar este presupuesto en PDF?"
-    );
-    if (confirmacion) {
-      exportarPresupuestoPDF(tareasSeleccionadas, costoFinal);
-    }
+    const confirmacion = window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?");
+    if (!confirmacion) return;
+
+    exportarPresupuestoPDF({
+      tareasSeleccionadas,
+      tarifaHoraria,
+      ajustePorcentaje,
+      incluirVisita,
+      costoVisita: visitaSegura,
+      tareasPredefinidas,
+      titulo: "Presupuesto Eléctrico",
+    });
   };
 
   return (
@@ -78,7 +88,7 @@ const ResumenPresupuesto = ({
 
           <button
             onClick={handleDescargarPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition shadow"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition shadow"
           >
             <FaFilePdf />
             Descargar PDF

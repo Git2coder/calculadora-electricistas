@@ -112,9 +112,11 @@ export const AuthProvider = ({ children }) => {
         cargando,
         logout,
         actualizarPerfil,
+        fechaExpiracion: usuario?.fechaExpiracion?.toDate ? usuario.fechaExpiracion.toDate() : usuario?.fechaExpiracion,
       }}
     >
       {!cargando && children}
     </AuthContext.Provider>
   );
+
 };
