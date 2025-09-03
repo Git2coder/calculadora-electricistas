@@ -230,28 +230,31 @@ export default function CalculadoraCompleta() {
     }
 
     // 🔹 OTRAS TAREAS
+    // Usa las opciones de ESTA tarea
     const varianteConfig =
-      tarea.variante && tarea.opciones?.[tarea.variante]
+      (tarea.variante && tarea.opciones?.[tarea.variante])
         ? tarea.opciones[tarea.variante]
-        : tarea;
+        : undefined;
 
     const nuevaTarea = {
       ...tarea,
       uid: Date.now() + Math.floor(Math.random() * 1000),
       cantidad: 1,
-      tiempo: varianteConfig.tiempo || tarea.tiempo || 0,
-      multiplicador: varianteConfig.multiplicador ?? tarea.multiplicador ?? 1,
+      // si hay variante elegida, tomar sus campos; si no, caer al de la tarea
+      tiempo: (varianteConfig?.tiempo ?? tarea.tiempo ?? 0),
+      multiplicador: (varianteConfig?.multiplicador ?? tarea.multiplicador ?? 1),
+      // valor queda en 0 al inicio para "calculada" hasta que el usuario ingrese valorUnidad
       valor:
         tarea.tipo === "administrativa"
-          ? (varianteConfig.valor ?? tarea.valor ?? 0)
+          ? (varianteConfig?.valor ?? tarea.valor ?? 0)
           : tarea.tipo === "calculada"
-            ? ((tarea.valorUnidad || 0) * (tarea.porcentaje || 0)) / 100 * (tarea.cantidad || 1)
-            : (varianteConfig.tiempo / 60) *
+            ? 0
+            : ((varianteConfig?.tiempo ?? tarea.tiempo ?? 0) / 60) *
               tarifaHoraria *
-              (varianteConfig.multiplicador ?? 1),
+              (varianteConfig?.multiplicador ?? tarea.multiplicador ?? 1),
       valorUnidad: tarea.valorUnidad ?? 0,
-      porcentaje: tarea.porcentaje ?? 0,
-      variante: tarea.variante || null,
+      porcentaje: (varianteConfig?.porcentaje ?? tarea.porcentaje ?? 0),
+      variante: tarea.variante ?? null,
     };
 
     setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
@@ -274,35 +277,30 @@ export default function CalculadoraCompleta() {
       if (!tareaOriginal) return tareas;
   
       if (campo === "variante") {
-        const base = tareasPredefinidas.find((t) => t.nombre === tareaOriginal.nombre);
-        const nuevaConfig = base?.opciones?.[valor];
+        // Usamos las opciones de la MISMA tarea que viene de Firestore
+        const nuevaConfig = tareaOriginal?.opciones?.[valor];
 
-        const nuevasInternas = (nuevaConfig?.incluye || []).map((sub) => {
-          const subBase = tareasPredefinidas.find((t) => t.uid === sub.id);
-          const subConfig = subBase.opciones?.[subBase.variante] || subBase;
-
-          return {
-            ...subBase,
-            id: Date.now() + Math.floor(Math.random() * 1000),
-            origen: id,
-            cantidad: sub.cantidad || 1,
-            tiempo: subConfig.tiempo,
-            multiplicador: subConfig.multiplicador ?? 1,
-          };
-        });
-
-        // reemplazar en lugar de eliminar y pushear
         return tareas.map((t) =>
           t.uid === id
             ? {
                 ...t,
                 variante: valor,
+                // Traemos todo de la variante elegida si existe
                 tiempo: nuevaConfig?.tiempo ?? t.tiempo,
                 multiplicador: nuevaConfig?.multiplicador ?? t.multiplicador,
-                valor: nuevaConfig?.valor ?? t.valor,
+                porcentaje: nuevaConfig?.porcentaje ?? t.porcentaje,
+                // Recalcular el valor si ya hay valorUnidad cargado
+                valor: t.valorUnidad
+        ? Math.round(
+            ((t.valorUnidad || 0) *
+              ((nuevaConfig?.porcentaje ?? (t.porcentaje || 0))) / 100) *
+            (t.cantidad || 1)
+          )
+        : t.valor,
+
               }
             : t
-        ).concat(nuevasInternas);
+        );
       }
 
       if (campo === "cantidad") {

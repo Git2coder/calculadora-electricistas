@@ -52,11 +52,8 @@ const TareasSeleccionadas = ({
                                 ? "bg-blue-600 text-white"
                                 : "bg-gray-200 text-gray-700"
                             }`}
-                            onClick={() => {
-                              modificarTarea(tarea.uid, "variante", clave);
-                              modificarTarea(tarea.uid, "tiempo", config.tiempo);
-                              modificarTarea(tarea.uid, "multiplicador", config.multiplicador ?? 1);
-                            }}
+                            onClick={() => modificarTarea(tarea.uid, "variante", clave)}
+
                           >
                             {clave
                               .replaceAll("-", " ")
