@@ -20,7 +20,7 @@ const TareasSeleccionadas = ({
         <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 relative">
           {tareasSeleccionadas.map((tarea) => (
             <div
-              key={tarea.id}
+              key={tarea.uid}
               className={`flex flex-wrap items-center justify-between border-b pb-2 gap-2 text-sm ${
                 tarea.origen ? "pl-6 italic" : ""
               } ${tarea.pausada ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -53,9 +53,9 @@ const TareasSeleccionadas = ({
                                 : "bg-gray-200 text-gray-700"
                             }`}
                             onClick={() => {
-                              modificarTarea(tarea.id, "variante", clave);
-                              modificarTarea(tarea.id, "tiempo", config.tiempo);
-                              modificarTarea(tarea.id, "multiplicador", config.multiplicador ?? 1);
+                              modificarTarea(tarea.uid, "variante", clave);
+                              modificarTarea(tarea.uid, "tiempo", config.tiempo);
+                              modificarTarea(tarea.uid, "multiplicador", config.multiplicador ?? 1);
                             }}
                           >
                             {clave
@@ -76,7 +76,7 @@ const TareasSeleccionadas = ({
                     </label>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => actualizarCantidad(tarea.id, tarea.cantidad - 1)}
+                        onClick={() => actualizarCantidad(tarea.uid, tarea.cantidad - 1)}
                         className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                       >
                         −
@@ -88,7 +88,7 @@ const TareasSeleccionadas = ({
                         onChange={(e) =>
                           setTareasSeleccionadas((prev) =>
                             prev.map((t) =>
-                              t.id === tarea.id
+                              t.uid === tarea.uid
                                 ? { ...t, cantidad: Math.max(1, Number(e.target.value)) }
                                 : t
                             )
@@ -97,7 +97,7 @@ const TareasSeleccionadas = ({
                         className="w-14 text-center border border-gray-300 rounded-md"
                       />
                       <button
-                        onClick={() => actualizarCantidad(tarea.id, tarea.cantidad + 1)}
+                        onClick={() => actualizarCantidad(tarea.uid, tarea.cantidad + 1)}
                         className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                       >
                         +
@@ -114,7 +114,7 @@ const TareasSeleccionadas = ({
                         className="w-24 p-1 border rounded"
                         value={tarea.valorUnidad || ""}
                         onChange={(e) =>
-                          modificarTarea(tarea.id, "valorUnidad", e.target.value)
+                          modificarTarea(tarea.uid, "valorUnidad", e.target.value)
                         }
                       />
                     </div>
@@ -128,7 +128,7 @@ const TareasSeleccionadas = ({
                         type="number"
                         className="w-24 p-1 border rounded"
                         value={tarea.valor}
-                        onChange={(e) => modificarTarea(tarea.id, "valor", e.target.value)}
+                        onChange={(e) => modificarTarea(tarea.uid, "valor", e.target.value)}
                       />
                     </div>
                   )}
@@ -136,7 +136,7 @@ const TareasSeleccionadas = ({
                   {/* Eliminar */}
                   <button
                     className="text-red-600 transition-transform duration-150 hover:scale-150 active:scale-95"
-                    onClick={() => eliminarTarea(tarea.id)}
+                    onClick={() => eliminarTarea(tarea.uid)}
                     title="Eliminar tarea"
                   >
                     <FaTrash />

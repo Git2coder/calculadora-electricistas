@@ -13,13 +13,13 @@ import ConfiguracionTarifas from "./calculadora/ConfiguracionTarifas";
 import TareasSeleccionadas from "./calculadora/TareasSeleccionadas";
 import ResumenPresupuesto from "./calculadora/ResumenPresupuesto";
 import BuscadorTareas from "./calculadora/BuscadorTareas";
-
+import { getAuth } from "firebase/auth";
 
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState([]);
-  const [tarifaHoraria, setTarifaHoraria] = useState(24300);
-  const [costoConsulta, setCostoConsulta] = useState(28000);
+  const [tarifaHoraria, setTarifaHoraria] = useState(null);
+  const [costoConsulta, setCostoConsulta] = useState(null);
   const [ajustePorcentaje, setAjustePorcentaje] = useState(0);
   const [mostrarModalTarifa, setMostrarModalTarifa] = useState(false);
   const [indiceSeleccionado, setIndiceSeleccionado] = useState(-1);
@@ -46,6 +46,34 @@ export default function CalculadoraCompleta() {
   };
 
     fetchConfig();
+  }, []);
+  
+  // 👇 nuevo: cargar tarifas personalizadas del usuario
+  useEffect(() => {
+    const fetchUserTarifas = async () => {
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (!user) return; // nadie logueado
+
+        const userRef = doc(db, "usuarios", user.uid);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          if (typeof data.tarifaHoraria === "number") {
+            setTarifaHoraria(data.tarifaHoraria);
+          }
+          if (typeof data.costoConsulta === "number") {
+            setCostoConsulta(data.costoConsulta);
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando tarifas del usuario:", error);
+      }
+    };
+
+    fetchUserTarifas();
   }, []);
 
   // 🔹 Estado para guardar las tareas desde Firestore
@@ -151,7 +179,7 @@ export default function CalculadoraCompleta() {
   const agregarTarea = async (tarea) => {
     if (tarea.tipo === "paquete") {
       const totalInterno = (tarea.incluye || []).reduce((subAcc, sub) => {
-        const base = tareasPredefinidas.find((t) => t.id === sub.id);
+        const base = tareasPredefinidas.find((t) => t.uid === sub.id);
         if (!base) return subAcc;
 
         const baseConfig =
@@ -172,7 +200,7 @@ export default function CalculadoraCompleta() {
         cantidad: 1,
         tiempo: tarea.incluye
           ? tarea.incluye.reduce((acc, sub) => {
-              const base = tareasPredefinidas.find((t) => t.id === sub.id);
+              const base = tareasPredefinidas.find((t) => t.uid === sub.id);
               const baseConfig = sub.variante
                 ? base?.opciones?.[sub.variante] || base
                 : base?.opciones?.[base.variante] || base;
@@ -242,7 +270,7 @@ export default function CalculadoraCompleta() {
   const modificarTarea = (id, campo, valor) => {
     setTareasSeleccionadas((tareas) => {
       // Si es cambio de variante, y es "instalacion" o "reemplazo"
-      const tareaOriginal = tareas.find((t) => t.id === id);
+      const tareaOriginal = tareas.find((t) => t.uid === id);
       if (!tareaOriginal) return tareas;
   
       if (campo === "variante") {
@@ -250,7 +278,7 @@ export default function CalculadoraCompleta() {
         const nuevaConfig = base?.opciones?.[valor];
 
         const nuevasInternas = (nuevaConfig?.incluye || []).map((sub) => {
-          const subBase = tareasPredefinidas.find((t) => t.id === sub.id);
+          const subBase = tareasPredefinidas.find((t) => t.uid === sub.id);
           const subConfig = subBase.opciones?.[subBase.variante] || subBase;
 
           return {
@@ -265,7 +293,7 @@ export default function CalculadoraCompleta() {
 
         // reemplazar en lugar de eliminar y pushear
         return tareas.map((t) =>
-          t.id === id
+          t.uid === id
             ? {
                 ...t,
                 variante: valor,
@@ -279,7 +307,7 @@ export default function CalculadoraCompleta() {
 
       if (campo === "cantidad") {
         return tareas.map((t) => {
-          if (t.id !== id) return t;
+          if (t.uid !== id) return t;
 
           const nuevaCantidad = parseInt(valor);
           const cantidadFinal = isNaN(nuevaCantidad) || nuevaCantidad < 1 ? 1 : nuevaCantidad;
@@ -299,7 +327,7 @@ export default function CalculadoraCompleta() {
       if (campo === "valorUnidad") {
         const nuevoValor = parseFloat(valor);
         return tareas.map((t) =>
-          t.id === id
+          t.uid === id
             ? {
                 ...t,
                 valorUnidad: nuevoValor,
@@ -310,9 +338,10 @@ export default function CalculadoraCompleta() {
             : t
         );
       }
+      
       // Otros campos como cantidad
       return tareas.map((t) =>
-        t.id === id
+        t.uid === id
           ? {
               ...t,
               [campo]: isNaN(parseFloat(valor)) ? 0 : parseFloat(valor),
@@ -323,7 +352,7 @@ export default function CalculadoraCompleta() {
   };
 
   const eliminarTarea = (id) => {
-    setTareasSeleccionadas(tareasSeleccionadas.filter((t) => t.id !== id));
+    setTareasSeleccionadas(tareasSeleccionadas.filter((t) => t.uid !== id));
   };
 
   const limpiarTareas = () => {
@@ -355,33 +384,39 @@ export default function CalculadoraCompleta() {
   }
 
   // --- Calcular subtotal de cada tarea seleccionada ---
-  const subtotalDeTarea = (tarea) => {
-    if (tarea.tipo === "base") {
-      return (tarea.tiempo / 60) * tarifaHoraria * (tarea.multiplicador ?? 1);
-    }
+const subtotalDeTarea = (tarea) => {
+  // 👇 caso especial para Boca
+  if (tarea.nombre === "Boca" && valorBoca !== null) {
+    return valorBoca * (tarea.cantidad || 1);
+  }
 
-    if (tarea.dependeDe === "Boca" && valorBoca !== null) {
-      let factor = tarea.factorBoca ?? 1;
-      if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-        factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
-      }
-      return valorBoca * factor * (tarea.cantidad || 1);
-    }
+  if (tarea.tipo === "base") {
+    return (tarea.tiempo / 60) * tarifaHoraria * (tarea.multiplicador ?? 1) * (tarea.cantidad || 1);
+  }
 
-    if (tarea.tipo === "administrativa") {
-      return (tarea.valor || 0) * (tarea.cantidad || 1);
+  if (tarea.dependeDe === "Boca" && valorBoca !== null) {
+    let factor = tarea.factorBoca ?? 1;
+    if (tarea.variante && tarea.opciones?.[tarea.variante]) {
+      factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
     }
+    return valorBoca * factor * (tarea.cantidad || 1);
+  }
 
-    if (tarea.tipo === "calculada") {
+  if (tarea.tipo === "administrativa") {
+    return (tarea.valor || 0) * (tarea.cantidad || 1);
+  }
+
+  if (tarea.tipo === "calculada") {
     const cantidad = tarea.cantidad || 1;
     const valorUnidad = tarea.valorUnidad || 0;
-    const porcentaje = tarea.porcentaje || 0; // 👈 usa el de Firestore
+    const porcentaje = tarea.porcentaje || 0;
     return ((valorUnidad * porcentaje) / 100) * cantidad;
   }
 
-    const factor = tarea.multiplicador ?? 1;
-    return (tarea.tiempo / 60) * tarifaHoraria * (tarea.cantidad || 1) * factor;
-  };
+  const factor = tarea.multiplicador ?? 1;
+  return (tarea.tiempo / 60) * tarifaHoraria * (tarea.cantidad || 1) * factor;
+};
+
 
 
     // --- Calcular costo base total ---
@@ -398,7 +433,7 @@ export default function CalculadoraCompleta() {
     const actualizarCantidad = (id, nuevaCantidad) => {
       setTareasSeleccionadas((prev) =>
         prev.map((t) =>
-          t.id === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
+          t.uid === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
         )
       );
     };
@@ -419,84 +454,91 @@ export default function CalculadoraCompleta() {
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-center text-bkack-700">💡 Calculadora de Presupuestos</h1>
+        
+        {/* 👇 chequeo si los datos de Firestore ya cargaron */}
+        {tarifaHoraria === null || costoConsulta === null ? (
+          <p className="text-center text-gray-500">Cargando configuración...</p>
+        ) : (
+          <>
+            <h1 className="text-4xl font-bold text-center text-bkack-700">💡 Calculadora de Presupuestos</h1>
 
-        {/* MODAL TARIFA */}
-        {mostrarModalTarifa && (
-          <ModalTarifa
-            tarifaHoraria={tarifaHoraria}
-            setTarifaHoraria={setTarifaHoraria}
-            costoConsulta={costoConsulta}
-            setCostoConsulta={setCostoConsulta}
-            onClose={() => setMostrarModalTarifa(false)}
-          />
+            {/* MODAL TARIFA */}
+            {mostrarModalTarifa && (
+              <ModalTarifa
+                tarifaHoraria={tarifaHoraria}
+                setTarifaHoraria={setTarifaHoraria}
+                costoConsulta={costoConsulta}
+                setCostoConsulta={setCostoConsulta}
+                onClose={() => setMostrarModalTarifa(false)}
+              />
+            )}
+
+            <ConfiguracionTarifas
+              tarifaHoraria={tarifaHoraria}
+              setTarifaHoraria={setTarifaHoraria}
+              costoConsulta={costoConsulta}
+              setCostoConsulta={setCostoConsulta}
+              onOpen={() => setMostrarModalTarifa(true)}
+            />
+
+            {/* MODAL SUGERENCIA */}
+            {mostrarModalSugerencia && (
+              <ModalSugerencia onClose={() => setMostrarModalSugerencia(false)} />
+            )}
+              
+            {/* BUSCADOR Y TAREAS POPULARES */}
+            <BuscadorTareas
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              indiceSeleccionado={indiceSeleccionado}
+              setIndiceSeleccionado={setIndiceSeleccionado}
+              tareasFiltradas={tareasFiltradas}
+              tareasPopulares={tareasPopulares}
+              todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}  // 👈 aquí
+              agregarTarea={agregarTarea}
+              setMostrarModalSugerencia={setMostrarModalSugerencia}
+            />
+
+            {/* Leyenda informativa sobre tiempos */}
+            <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
+              ℹ️ <strong>Los tiempos sobre las tarea son estimados</strong>.  
+              Aquellos con mayor experiencia podrán resolver las tareas más rápido o por el contrario a otros tomar mas tiempo.
+            </div>
+
+            {/* TAREAS SELECCIONADAS */}
+            <TareasSeleccionadas
+              tareasSeleccionadas={tareasSeleccionadas}
+              modificarTarea={modificarTarea}
+              actualizarCantidad={actualizarCantidad}
+              eliminarTarea={eliminarTarea}
+              limpiarTareas={limpiarTareas}
+              setTareasSeleccionadas={setTareasSeleccionadas}
+            />
+
+            {/* Leyenda informativa sobre desarrollo de la app */}
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow text-sm mb-6">
+              ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong> Si querés sugerir una mejora, podés dejarnos tu mensaje en la <Link to="/comentarios" className="underline text-blue-700 hover:text-blue-900">sección de comentarios</Link>.
+            </div>
+
+            {/* RESULTADO FINAL */}
+            <ResumenPresupuesto
+              tareasSeleccionadas={tareasSeleccionadas}
+              tiempoTotal={tiempoTotal}
+              horasMargen={horasMargen}
+              minutosMargen={minutosMargen}
+              ajustePorcentaje={ajustePorcentaje}
+              setAjustePorcentaje={setAjustePorcentaje}
+              incluirVisita={incluirVisita}
+              setIncluirVisita={setIncluirVisita}
+              sonidoMonedas={sonidoMonedas}
+              costoFinal={costoFinal}
+              // 👇 nuevas
+              tarifaHoraria={tarifaHoraria}
+              visitaSegura={visitaSegura}
+              tareasPredefinidas={tareasPredefinidas}
+            />
+          </>
         )}
-
-        <ConfiguracionTarifas
-          tarifaHoraria={tarifaHoraria}
-          setTarifaHoraria={setTarifaHoraria}
-          costoConsulta={costoConsulta}
-          setCostoConsulta={setCostoConsulta}
-          onOpen={() => setMostrarModalTarifa(true)}
-        />
-
-        {/* MODAL SUGERENCIA */}
-        {mostrarModalSugerencia && (
-          <ModalSugerencia onClose={() => setMostrarModalSugerencia(false)} />
-        )}
-          
-        {/* BUSCADOR Y TAREAS POPULARES */}
-        <BuscadorTareas
-          busqueda={busqueda}
-          setBusqueda={setBusqueda}
-          indiceSeleccionado={indiceSeleccionado}
-          setIndiceSeleccionado={setIndiceSeleccionado}
-          tareasFiltradas={tareasFiltradas}
-          tareasPopulares={tareasPopulares}
-          todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}  // 👈 aquí
-          agregarTarea={agregarTarea}
-          setMostrarModalSugerencia={setMostrarModalSugerencia}
-        />
-
-        {/* Leyenda informativa sobre tiempos */}
-        <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
-          ℹ️ <strong>Los tiempos sobre las tarea son estimados</strong>.  
-          Aquellos con mayor experiencia podrán resolver las tareas más rápido o por el contrario a otros tomar mas tiempo.
-        </div>
-
-        {/* TAREAS SELECCIONADAS */}
-        <TareasSeleccionadas
-          tareasSeleccionadas={tareasSeleccionadas}
-          modificarTarea={modificarTarea}
-          actualizarCantidad={actualizarCantidad}
-          eliminarTarea={eliminarTarea}
-          limpiarTareas={limpiarTareas}
-          setTareasSeleccionadas={setTareasSeleccionadas}
-        />
-
-        {/* Leyenda informativa sobre desarrollo de la app */}
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow text-sm mb-6">
-          ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong> Si querés sugerir una mejora, podés dejarnos tu mensaje en la <Link to="/comentarios" className="underline text-blue-700 hover:text-blue-900">sección de comentarios</Link>.
-        </div>
-
-        {/* RESULTADO FINAL */}
-        <ResumenPresupuesto
-          tareasSeleccionadas={tareasSeleccionadas}
-          tiempoTotal={tiempoTotal}
-          horasMargen={horasMargen}
-          minutosMargen={minutosMargen}
-          ajustePorcentaje={ajustePorcentaje}
-          setAjustePorcentaje={setAjustePorcentaje}
-          incluirVisita={incluirVisita}
-          setIncluirVisita={setIncluirVisita}
-          sonidoMonedas={sonidoMonedas}
-          costoFinal={costoFinal}
-          // 👇 nuevas
-          tarifaHoraria={tarifaHoraria}
-          visitaSegura={visitaSegura}
-          tareasPredefinidas={tareasPredefinidas}
-        />
-
       </div>
     </div>
   );
