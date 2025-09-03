@@ -1,8 +1,8 @@
-// ResumenPresupuesto.jsx
-import React from "react";
+import React, { useState } from "react"; // 👈 importamos useState
 import ContadorAnimado from "../ContadorAnimado";
 import { exportarPresupuestoPDF } from "./pdf/exportarPresupuesto";
 import { FaTicketAlt, FaFilePdf } from "react-icons/fa";
+import { FaRegCalendarAlt, FaEdit } from "react-icons/fa";
 
 const ResumenPresupuesto = ({
   tareasSeleccionadas,
@@ -15,11 +15,15 @@ const ResumenPresupuesto = ({
   setIncluirVisita,
   sonidoMonedas,
   costoFinal,
-  // 👇 Asegurate de recibir esto desde el padre
   tarifaHoraria,
   visitaSegura,
   tareasPredefinidas,
 }) => {
+  // 👇 nuevo estado para validez en días
+  const [validezDias, setValidezDias] = useState(15);
+  // 👇 estado para mostrar/ocultar edición
+  const [editandoValidez, setEditandoValidez] = useState(false);
+
   const handleDescargarPDF = () => {
     const confirmacion = window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?");
     if (!confirmacion) return;
@@ -32,6 +36,7 @@ const ResumenPresupuesto = ({
       costoVisita: visitaSegura,
       tareasPredefinidas,
       titulo: "Presupuesto Eléctrico",
+      validezDias, // 👈 ahora se pasa al PDF
     });
   };
 
@@ -67,6 +72,33 @@ const ResumenPresupuesto = ({
           className="w-full"
         />
         <p className="text-center mt-1 font-semibold">{ajustePorcentaje}%</p>
+      </div>
+
+      {/* Nuevo campo: Validez en días */}
+      <div className="bg-white border rounded-lg shadow-sm p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FaRegCalendarAlt className="text-blue-600" />
+          <span className="font-medium text-gray-700">Validez del presupuesto:</span>
+        </div>
+        {editandoValidez ? (
+          <input
+            type="number"
+            min="1"
+            value={validezDias}
+            onChange={(e) => setValidezDias(e.target.value)}
+            onBlur={() => setEditandoValidez(false)} // al salir, cierra edición
+            className="w-20 text-center border rounded-md p-1"
+            autoFocus
+          />
+        ) : (
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setEditandoValidez(true)}
+          >
+            <span className="font-semibold">{validezDias} días</span>
+            <FaEdit className="text-gray-500 hover:text-gray-700" />
+          </div>
+        )}
       </div>
 
       {/* Acciones y total */}

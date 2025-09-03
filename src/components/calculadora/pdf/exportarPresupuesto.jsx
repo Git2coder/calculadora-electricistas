@@ -2,19 +2,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { db } from "../../../firebaseConfig";
-import { doc, updateDoc, increment } from "firebase/firestore";
+import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-/**
- * Genera y descarga el PDF recalculando cada fila con la MISMA lógica
- * que usás en la calculadora, e incluye Visita y Ajuste % como renglones.
- *
- * Uso:
- * exportarPresupuestoPDF({
- *   tareasSeleccionadas, tarifaHoraria, ajustePorcentaje,
- *   incluirVisita, costoVisita, tareasPredefinidas, titulo
- * })
- */
 export const exportarPresupuestoPDF = async ({
   tareasSeleccionadas = [],
   tarifaHoraria = 0,
@@ -23,6 +13,7 @@ export const exportarPresupuestoPDF = async ({
   costoVisita = 0,
   tareasPredefinidas = [],
   titulo = "Presupuesto Eléctrico",
+  validezDias = 15,
 }) => {
   const $fmt = (n) =>
     `$${Number(n || 0).toLocaleString("es-AR", {
@@ -30,7 +21,29 @@ export const exportarPresupuestoPDF = async ({
       maximumFractionDigits: 2,
     })}`;
 
-  // --- helpers (mismas reglas que en la calculadora) ---
+  // --- Obtener datos del emisor desde Firebase ---
+  let datosEmisor = {
+    nombre: "Usuario",
+    telefono: "",
+    email: "",
+    matricula: "",
+  };
+
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        datosEmisor = { ...datosEmisor, ...userSnap.data() };
+      }
+    }
+  } catch (error) {
+    console.error("Error obteniendo datos del emisor:", error);
+  }
+
+  // --- helpers ---
   const calcularTareaConSubtareas = (subTarea) => {
     const base = tareasPredefinidas.find((t) => t.id === subTarea.id);
     if (!base) return 0;
@@ -54,7 +67,6 @@ export const exportarPresupuestoPDF = async ({
     return valorPropio + valorSubtareas;
   };
 
-  // Valor de "Boca" si existe en definiciones
   const baseBoca = tareasPredefinidas.find((t) => t.nombre === "Boca");
   const valorBoca =
     baseBoca != null
@@ -67,7 +79,7 @@ export const exportarPresupuestoPDF = async ({
       if (tarea.variante && tarea.opciones?.[tarea.variante]) {
         factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
       }
-      return (valorBoca * factor) * (tarea.cantidad || 1);
+      return valorBoca * factor * (tarea.cantidad || 1);
     }
 
     if (tarea.tipo === "administrativa") {
@@ -91,8 +103,10 @@ export const exportarPresupuestoPDF = async ({
       const costoTotal =
         horas *
         tarifaHoraria *
-        ((tarea.opciones?.["Diseño + armado"]?.porcentajeDiseno || 0) * multDiseno +
-          (tarea.opciones?.["Diseño + armado"]?.porcentajeArmado || 0) * multArmado);
+        ((tarea.opciones?.["Diseño + armado"]?.porcentajeDiseno || 0) *
+          multDiseno +
+          (tarea.opciones?.["Diseño + armado"]?.porcentajeArmado || 0) *
+            multArmado);
 
       const variante = tarea.opciones?.[tarea.variante] || {};
       const pDiseno = variante.porcentajeDiseno ?? 0;
@@ -118,14 +132,25 @@ export const exportarPresupuestoPDF = async ({
 
   // --- Armar PDF ---
   const docPDF = new jsPDF();
-  docPDF.setFontSize(18);
-  docPDF.text(titulo, 14, 22);
-  docPDF.setFontSize(12);
-  docPDF.text(`Fecha: ${new Date().toLocaleDateString("es-AR")}`, 14, 32);
 
+  // --- Encabezado ---
+  docPDF.setFont("helvetica", "bold");
+  docPDF.setFontSize(16);
+  docPDF.text(titulo.toUpperCase(), 14, 20);
+
+  const nroPresupuesto = `P-${Date.now()}`;
+  docPDF.setFont("helvetica", "normal");
+  docPDF.setFontSize(10);
+  docPDF.text(`Presupuesto Nº: ${nroPresupuesto}`, 200 - 14, 15, { align: "right" });
+  docPDF.text(`Fecha: ${new Date().toLocaleDateString("es-AR")}`, 200 - 14, 20, { align: "right" });
+
+  // Línea separadora
+  docPDF.setDrawColor(180);
+  docPDF.line(10, 25, 200, 25);
+
+  // --- Tabla de conceptos ---
   const filas = [];
   let costoBasePDF = 0;
-
   tareasSeleccionadas.forEach((t) => {
     const sub = subtotalDeTarea(t);
     costoBasePDF += sub;
@@ -134,28 +159,93 @@ export const exportarPresupuestoPDF = async ({
 
   const montoAjuste = (costoBasePDF * (ajustePorcentaje || 0)) / 100;
   if (ajustePorcentaje > 0) {
-    filas.push([`Ajuste ${ajustePorcentaje}%`, "", $fmt(montoAjuste)]);
+    filas.push([`Herramientas e Insumos`, "", $fmt(montoAjuste)]);
   }
 
-  if (incluirVisita && costoVisita > 0) {
-    filas.push(["Visita / Consulta", "", $fmt(costoVisita)]);
+  if (incluirVisita) {
+    const conceptoVisita =
+      costoVisita > 0 ? "Visita / Consulta" : "Visita / Consulta (BONIFICADA)";
+    const subtotalVisita = costoVisita > 0 ? $fmt(costoVisita) : "";
+    filas.push([conceptoVisita, "", subtotalVisita]);
   }
 
   autoTable(docPDF, {
-    head: [["Concepto", "Cantidad", "Subtotal"]],
+    head: [["Concepto", "Cantidad", { content: "Subtotal", styles: { halign: "right" } }]],
     body: filas,
-    startY: 40,
+    startY: 30,
+    theme: "striped",
+    styles: { fontSize: 10 },
+    columnStyles: {
+      0: { cellWidth: 100, halign: "left" },
+      1: { cellWidth: 30, halign: "center" },
+      2: { cellWidth: 50, halign: "right" }, // 👉 montos alineados a la derecha
+    },
+    didDrawPage: () => {
+      const pageSize = docPDF.internal.pageSize;
+      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+
+      // Línea separadora arriba del pie
+      docPDF.setDrawColor(180);
+      docPDF.line(10, pageHeight - 20, 200, pageHeight - 20);
+
+      // Datos de emisor
+      docPDF.setFontSize(8);
+      docPDF.setFont("helvetica", "normal");
+      docPDF.text(`Emitido por: ${datosEmisor.nombre || "Usuario"}`, 14, pageHeight - 15);
+      if (datosEmisor.telefono)
+        docPDF.text(`Tel: ${datosEmisor.telefono}`, 14, pageHeight - 10);
+      if (datosEmisor.email)
+        docPDF.text(`Email: ${datosEmisor.email}`, 80, pageHeight - 10);
+
+      // Numeración simple
+      const pageCurrent = docPDF.internal.getCurrentPageInfo().pageNumber;
+      docPDF.text(`Página ${pageCurrent}`, 200 - 20, pageHeight - 10);
+    },
   });
 
   const finalY = docPDF.lastAutoTable?.finalY || 40;
-  const totalPDF = costoBasePDF + montoAjuste + (incluirVisita ? (costoVisita || 0) : 0);
+  const totalPDF =
+    costoBasePDF + montoAjuste + (incluirVisita && costoVisita > 0 ? costoVisita : 0);
 
-  docPDF.setFontSize(14);
+  // --- Total + Validez ---
+  docPDF.setFont("helvetica", "bold");
+  docPDF.setFontSize(13);
   docPDF.text(`TOTAL: ${$fmt(totalPDF)}`, 14, finalY + 10);
 
+  docPDF.setFont("helvetica", "italic");
+  docPDF.setFontSize(10);
+  docPDF.text(`Validez: ${validezDias} días`, 200 - 14, finalY + 10, { align: "right" });
+
+  // Línea separadora
+  docPDF.setDrawColor(180);
+  docPDF.line(10, finalY + 15, 200, finalY + 15);
+
+  // --- Condiciones generales ---
+  docPDF.setFont("helvetica", "bold");
+  docPDF.setFontSize(12);
+  docPDF.text("CONDICIONES GENERALES", 14, finalY + 25);
+
+  docPDF.setFont("times", "italic");
+  docPDF.setFontSize(10);
+
+  const condiciones = [
+    `Este presupuesto está expresado en pesos argentinos y mantiene su validez por ${validezDias} días a partir de la fecha de emisión.`,
+    "Si durante ese período surgieran cambios económicos importantes (impuestos, cargos o medidas que afecten materiales o servicios), el monto podrá ser ajustado en caso de que el trabajo no haya sido abonado en su totalidad.",
+    "El precio final puede variar si durante la ejecución se realizan cambios de diseño, ampliaciones o surgen imprevistos. Cualquier modificación será informada previamente al cliente.",
+    "Los impuestos y tasas aplicables se calcularán según la normativa vigente al momento de la facturación.",
+  ];
+
+  let yCondiciones = finalY + 35;
+  condiciones.forEach((linea) => {
+    const splitText = docPDF.splitTextToSize(`• ${linea}`, 180);
+    docPDF.text(splitText, 14, yCondiciones);
+    yCondiciones += splitText.length * 6;
+  });
+
+  // --- Guardar PDF ---
   docPDF.save(`presupuesto-${Date.now()}.pdf`);
 
-  // Estadísticas del usuario (opcional)
+  // --- Actualizar estadísticas ---
   try {
     const auth = getAuth();
     const user = auth.currentUser;
@@ -167,6 +257,6 @@ export const exportarPresupuestoPDF = async ({
       });
     }
   } catch (error) {
-    console.error("Error actualizando estadísticas de usuario:", error);
+    console.error("Error actualizando estadísticas:", error);
   }
 };
