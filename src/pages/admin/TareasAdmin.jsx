@@ -12,6 +12,7 @@ export function TareasAdmin() {
   const [busqueda, setBusqueda] = useState("");
   const [formData, setFormData] = useState({});
   const [selectedVariante, setSelectedVariante] = useState("");
+  const [tab, setTab] = useState("todas"); // "administrativas", "calculadas", "todas"
 
   // Campos que no quiero mostrar en el modal
   const HIDDEN_KEYS = ["id", "idOriginal", "pausada", "dependeDe", "variante", "opciones", "tipo"];
@@ -186,9 +187,14 @@ export function TareasAdmin() {
     return { ...t, idOriginal: t.id };
   });
 
-  const tareasFiltradas = tareasExpandida.filter((t) =>
-    t.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const tareasFiltradas = tareasExpandida
+    .filter((t) => t.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+    .filter((t) => {
+      if (tab === "administrativas") return t.tipo === "administrativa";
+      if (tab === "calculadas") return t.tipo === "calculada";
+      if (tab === "todas") return t.tipo !== "administrativa" && t.tipo !== "calculada";
+      return true;
+    });
 
   return (
     <div className="p-6">
@@ -219,6 +225,28 @@ export function TareasAdmin() {
       />
 
       {/* Tabla */}
+      <div className="flex gap-4 mb-4">
+
+        <button
+          className={`px-4 py-2 rounded ${tab === "todas" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+          onClick={() => setTab("todas")}
+        >
+          Dependientes
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${tab === "administrativas" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+          onClick={() => setTab("administrativas")}
+        >
+          Administrativas
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${tab === "calculadas" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+          onClick={() => setTab("calculadas")}
+        >
+          Calculadas
+        </button>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-gray-300 text-sm">
           <thead>
@@ -232,30 +260,100 @@ export function TareasAdmin() {
             </tr>
           </thead>
           <tbody>
-            {tareasFiltradas.map((tarea) => (
-              <tr 
-                key={tarea.id + tarea.nombre}
-                className={`transition-colors ${tarea.pausada ? "opacity-50" : ""} hover:bg-green-200`}
-              >
-                <td className="border px-2 py-1">{tarea.nombre}</td>
-                <td className="border px-2 py-1">{tarea.tiempo}</td>
-                <td className="border px-2 py-1">{tarea.factorBoca}</td>
-                <td className="border px-2 py-1">{tarea.tipo}</td>
-                <td className="border px-2 py-1">{tarea.pausada ? "En pausa" : "Activa"}</td>
-                <td className="border px-2 py-1 flex justify-center gap-2">
-                  <button onClick={() => abrirModal(tarea)} className="text-blue-600 hover:text-blue-400">
-                    <FaEdit />
-                  </button>
-                  <button onClick={() => eliminarTarea(tarea.idOriginal)} className="text-red-600 hover:text-red-400">
-                    <FaTrash />
-                  </button>
-                  <button onClick={() => togglePausa(tarea.id, tarea.pausada)} className={`text-green-700 hover:text-yellow-400 ${tarea.pausada ? "opacity-50" : ""}`} title={tarea.pausada ? "Reactivar" : "Pausar"}>
-                    {tarea.pausada ? <FaPlay /> : <FaPause />}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+  {tareasFiltradas.map((tarea) => (
+    <tr
+      key={tarea.id + tarea.nombre}
+      className={`transition-colors ${tarea.pausada ? "opacity-50" : ""} hover:bg-green-200`}
+    >
+      {/* Nombre (solo lectura) */}
+      <td className="border px-2 py-1">{tarea.nombre}</td>
+
+      {/* Tiempo (editable en "todas") */}
+      <td className="border px-2 py-1">
+        {tab === "todas" ? (
+          <input
+            type="number"
+            className="w-20 border px-1"
+            value={tarea.tiempo || 0}
+            onChange={(e) =>
+              setTareas((prev) =>
+                prev.map((t) =>
+                  t.id === tarea.id ? { ...t, tiempo: Number(e.target.value) } : t
+                )
+              )
+            }
+            onBlur={async () => {
+              await updateDoc(doc(db, "tareas", String(tarea.id)), {
+                tiempo: tarea.tiempo,
+              });
+            }}
+          />
+        ) : (
+          tarea.tiempo
+        )}
+      </td>
+
+      {/* Factor Boca */}
+      <td className="border px-2 py-1">
+        {tab === "todas" ? (
+          <input
+            type="number"
+            className="w-20 border px-1"
+            value={tarea.factorBoca || 0}
+            onChange={(e) =>
+              setTareas((prev) =>
+                prev.map((t) =>
+                  t.id === tarea.id ? { ...t, factorBoca: Number(e.target.value) } : t
+                )
+              )
+            }
+            onBlur={async () => {
+              await updateDoc(doc(db, "tareas", String(tarea.id)), {
+                factorBoca: tarea.factorBoca,
+              });
+            }}
+          />
+        ) : (
+          tarea.factorBoca
+        )}
+      </td>
+
+      {/* Tipo (solo lectura) */}
+      <td className="border px-2 py-1">{tarea.tipo}</td>
+
+      {/* Estado */}
+      <td className="border px-2 py-1">
+        {tarea.pausada ? "En pausa" : "Activa"}
+      </td>
+
+      {/* Acciones */}
+      <td className="border px-2 py-1 flex justify-center gap-2">
+        <button
+          onClick={() => abrirModal(tarea)}
+          className="text-blue-600 hover:text-blue-400"
+        >
+          <FaEdit />
+        </button>
+        <button
+          onClick={() => eliminarTarea(tarea.idOriginal)}
+          className="text-red-600 hover:text-red-400"
+        >
+          <FaTrash />
+        </button>
+        <button
+          onClick={() => togglePausa(tarea.id, tarea.pausada)}
+          className={`text-green-700 hover:text-yellow-400 ${
+            tarea.pausada ? "opacity-50" : ""
+          }`}
+          title={tarea.pausada ? "Reactivar" : "Pausar"}
+        >
+          {tarea.pausada ? <FaPlay /> : <FaPause />}
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
         </table>
       </div>
 
