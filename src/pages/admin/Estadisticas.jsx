@@ -1,19 +1,8 @@
 // src/components/Estadisticas.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { collection, getDocs, writeBatch, Timestamp, addDoc  } from "firebase/firestore";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 // Paleta pastel consistente
 const PALETTE = ["#60a5fa", "#34d399", "#fbbf24", "#f472b6", "#a78bfa", "#22d3ee", "#f87171", "#f59e0b"];
@@ -45,6 +34,37 @@ const Estadisticas = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [presupuestos, setPresupuestos] = useState([]);
 
+  const resetRanking = async () => {
+    try {
+      // 1) Traer todas las tareas
+      const snap = await getDocs(collection(db, "tareas"));
+      const tareas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // 2) Guardar snapshot en "estadisticas"
+      const estadisticasRef = collection(db, "estadisticas");
+      await addDoc(estadisticasRef, {
+        fecha: Timestamp.now(),
+        topAnterior: tareas.map(t => ({
+          id: t.id,
+          nombre: t.nombre,
+          usos: t.usos || 0,
+        })),
+      });
+
+      // 3) Resetear usos con batch
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => {
+        batch.update(d.ref, { usos: 0 });
+      });
+      await batch.commit();
+
+      alert("✅ Ranking reseteado y guardado en estadísticas");
+    } catch (e) {
+      console.error("Error reseteando ranking:", e);
+      alert("❌ Hubo un error, revisá la consola");
+    }
+  };
+  
   useEffect(() => {
     const fetchData = async () => {
       // Usuarios
@@ -175,6 +195,13 @@ const Estadisticas = () => {
         <h1 className="text-4xl font-bold text-center text-blue-700">
           📊 Dashboard de Estadísticas
         </h1>
+          
+          <button
+            onClick={resetRanking}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          >
+            🔄 Reestablecer Ranking de Tareas
+          </button>
 
         {/* === Tarjetas superiores (4 / 2 en móvil) === */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

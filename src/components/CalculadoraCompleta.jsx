@@ -154,10 +154,14 @@ export default function CalculadoraCompleta() {
               !boca ||
               (t.idFirestore !== boca.idFirestore &&
                 (t.nombre || "").toLowerCase() !== "boca")
-          )
-          .slice(0, Math.max(faltan, 0));
+          );
 
-        const lista = [...final, ...resto];
+        // 🔹 Mezclar aleatoriamente con sort + Math.random
+        const mezclados = resto.sort(() => Math.random() - 0.5);
+
+        // 🔹 Tomar solo los que faltan para completar 7
+        const lista = [...final, ...mezclados.slice(0, Math.max(faltan, 0))];
+
 
         // 4) (Opcional) Sellar orden por si el render vuelve a ordenar
         const conRank = lista.map((t, i) => ({ ...t, __rank_popular: i }));
