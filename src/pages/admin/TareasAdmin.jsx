@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, setDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { FaEdit, FaTrash, FaPause, FaPlay } from "react-icons/fa";
 import { tareasPredefinidas } from "../../utils/tareas";
+import { getAuth } from "firebase/auth";
 
 export function TareasAdmin() {
   const [tareas, setTareas] = useState([]);
@@ -13,6 +14,7 @@ export function TareasAdmin() {
   const [formData, setFormData] = useState({});
   const [selectedVariante, setSelectedVariante] = useState("");
   const [tab, setTab] = useState("todas"); // "administrativas", "calculadas", "todas"
+const [tarifaHoraria, setTarifaHoraria] = useState(0);
 
   // Campos que no quiero mostrar en el modal
   const HIDDEN_KEYS = ["id", "idOriginal", "pausada", "dependeDe", "variante", "opciones", "tipo"];
@@ -70,6 +72,26 @@ export function TareasAdmin() {
     fetchTareas();
   }, []);
 
+  useEffect(() => {
+    const fetchTarifa = async () => {
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const userRef = doc(db, "usuarios", user.uid);
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.tarifaHoraria) setTarifaHoraria(data.tarifaHoraria);
+        }
+      } catch (err) {
+        console.error("Error cargando tarifaHoraria:", err);
+      }
+    };
+
+  fetchTarifa();
+}, []);
   const abrirModal = (tarea = null) => {
   if (tarea) {
     console.log("🟢 Abriendo modal para:", tarea);
@@ -196,6 +218,8 @@ export function TareasAdmin() {
       return true;
     });
 
+
+
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
@@ -254,105 +278,91 @@ export function TareasAdmin() {
               <th className="border px-2 py-1">Nombre</th>
               <th className="border px-2 py-1">Tiempo (min)</th>
               <th className="border px-2 py-1">% Boca</th>
+              <th className="border px-2 py-1">Precio ($)</th>   {/* 👈 nueva columna */}
               <th className="border px-2 py-1">Tipo</th>
               <th className="border px-2 py-1">Estado</th>
               <th className="border px-2 py-1">Acciones</th>
             </tr>
           </thead>
           <tbody>
-  {tareasFiltradas.map((tarea) => (
-    <tr
-      key={tarea.id + tarea.nombre}
-      className={`transition-colors ${tarea.pausada ? "opacity-50" : ""} hover:bg-green-200`}
-    >
-      {/* Nombre (solo lectura) */}
-      <td className="border px-2 py-1">{tarea.nombre}</td>
+            {tareasFiltradas.map((tarea) => {
+              // 👇 Lógica de cálculo según tipo
+            let precio = 0;
+          if (tarea.tipo === "administrativa") {
+            precio = tarea.valor || 0;
+          } else if (tarea.tipo === "calculada") {
+            precio = ((tarea.valorUnidad || 0) * (tarea.porcentaje || 0)) / 100;
+          } else if (tarea.dependeDe === "Boca") {
+            const baseBoca = tareas.find((t) => t.nombre === "Boca");
+            const valorBoca =
+              baseBoca && baseBoca.tiempo
+                ? (baseBoca.tiempo / 60) *
+                  (baseBoca.multiplicador ?? 1) *
+                  tarifaHoraria
+                : 0;
+            precio = valorBoca * (tarea.factorBoca || 1);
+          } else {
+            precio =
+              ((tarea.tiempo || 0) / 60) *
+              (tarea.multiplicador ?? 1) *
+              tarifaHoraria;
+          }
+              return (
+                <tr
+                  key={tarea.id + tarea.nombre}
+                  className={`transition-colors ${
+                    tarea.pausada ? "opacity-50" : ""
+                  } hover:bg-green-200`}
+                >
+                  {/* Nombre */}
+                  <td className="border px-2 py-1">{tarea.nombre}</td>
 
-      {/* Tiempo (editable en "todas") */}
-      <td className="border px-2 py-1">
-        {tab === "todas" ? (
-          <input
-            type="number"
-            className="w-20 border px-1"
-            value={tarea.tiempo || 0}
-            onChange={(e) =>
-              setTareas((prev) =>
-                prev.map((t) =>
-                  t.id === tarea.id ? { ...t, tiempo: Number(e.target.value) } : t
-                )
-              )
-            }
-            onBlur={async () => {
-              await updateDoc(doc(db, "tareas", String(tarea.id)), {
-                tiempo: tarea.tiempo,
-              });
-            }}
-          />
-        ) : (
-          tarea.tiempo
-        )}
-      </td>
+                  {/* Tiempo */}
+                  <td className="border px-2 py-1">{tarea.tiempo}</td>
 
-      {/* Factor Boca */}
-      <td className="border px-2 py-1">
-        {tab === "todas" ? (
-          <input
-            type="number"
-            className="w-20 border px-1"
-            value={tarea.factorBoca || 0}
-            onChange={(e) =>
-              setTareas((prev) =>
-                prev.map((t) =>
-                  t.id === tarea.id ? { ...t, factorBoca: Number(e.target.value) } : t
-                )
-              )
-            }
-            onBlur={async () => {
-              await updateDoc(doc(db, "tareas", String(tarea.id)), {
-                factorBoca: tarea.factorBoca,
-              });
-            }}
-          />
-        ) : (
-          tarea.factorBoca
-        )}
-      </td>
+                  {/* Factor Boca */}
+                  <td className="border px-2 py-1">{tarea.factorBoca || 0}</td>
 
-      {/* Tipo (solo lectura) */}
-      <td className="border px-2 py-1">{tarea.tipo}</td>
+                  {/* Precio calculado */}
+                  <td className="border px-2 py-1">${precio.toFixed(0)}</td>
 
-      {/* Estado */}
-      <td className="border px-2 py-1">
-        {tarea.pausada ? "En pausa" : "Activa"}
-      </td>
+                  {/* Tipo */}
+                  <td className="border px-2 py-1">{tarea.tipo}</td>
 
-      {/* Acciones */}
-      <td className="border px-2 py-1 flex justify-center gap-2">
-        <button
-          onClick={() => abrirModal(tarea)}
-          className="text-blue-600 hover:text-blue-400"
-        >
-          <FaEdit />
-        </button>
-        <button
-          onClick={() => eliminarTarea(tarea.idOriginal)}
-          className="text-red-600 hover:text-red-400"
-        >
-          <FaTrash />
-        </button>
-        <button
-          onClick={() => togglePausa(tarea.id, tarea.pausada)}
-          className={`text-green-700 hover:text-yellow-400 ${
-            tarea.pausada ? "opacity-50" : ""
-          }`}
-          title={tarea.pausada ? "Reactivar" : "Pausar"}
-        >
-          {tarea.pausada ? <FaPlay /> : <FaPause />}
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
+                  {/* Estado */}
+                  <td className="border px-2 py-1">
+                    {tarea.pausada ? "En pausa" : "Activa"}
+                  </td>
+
+                  {/* Acciones */}
+                  <td className="border px-2 py-1 flex justify-center gap-2">
+                    <button
+                      onClick={() => abrirModal(tarea)}
+                      className="text-blue-600 hover:text-blue-400"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => eliminarTarea(tarea.idOriginal)}
+                      className="text-red-600 hover:text-red-400"
+                    >
+                      <FaTrash />
+                    </button>
+                    <button
+                      onClick={() => togglePausa(tarea.id, tarea.pausada)}
+                      className={`text-green-700 hover:text-yellow-400 ${
+                        tarea.pausada ? "opacity-50" : ""
+                      }`}
+                      title={tarea.pausada ? "Reactivar" : "Pausar"}
+                    >
+                      {tarea.pausada ? <FaPlay /> : <FaPause />}
+                    </button>
+                  </td>
+                </tr>
+            );
+          })}
+        </tbody>
+
 
         </table>
       </div>
