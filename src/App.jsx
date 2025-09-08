@@ -28,6 +28,8 @@ import { Jornales } from "./pages/admin/Jornales";
 import Estadisticas from "./pages/admin/Estadisticas"
 import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import ModalTerminos from "./components/ModalTerminos";
+import VotacionTareas from "./pages/VotacionTareas";
+import ResultadosVotacion from "./pages/admin/ResultadosVotacion"
 
 // versión vigente de T&C → solo actualizás este string al modificar tus términos
 const TERMINOS_VERSION = "2025-09-01";
@@ -173,6 +175,14 @@ useEffect(() => {
                           🛠 Panel de control
                         </Link>
                       )}
+                      <Link
+                        to="/votacion"
+                        onClick={() => setMenuUsuario(false)}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        🗳️ Votar las tareas
+                      </Link>
+
                       <button
                         onClick={() => alert("Abrir perfil")}
                         className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -263,19 +273,16 @@ useEffect(() => {
             <Route path="/novedades/noticias" element={<Noticias />} />
             <Route path="/reglamentacion" element={<Reglamentacion />} />
             <Route path="/comentarios" element={<ComentariosPage />} />
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <DashboardLayout />
-                </AdminRoute>
-              }
-            >
+            <Route path="/votacion" element={<ProtectedRoute><VotacionTareas /></ProtectedRoute>} />
+            
+            <Route path="/admin" element={<AdminRoute><DashboardLayout /></AdminRoute>} >
               <Route path="usuarios" element={<UsuariosAdmin />} />
               <Route path="tareas" element={<TareasAdmin />} /> 
               <Route path="Configuracion" element={<Configuracion />} />
               <Route path="Jornales" element={<Jornales />} />
               <Route path="Estadisticas" element={<Estadisticas />} />
+              <Route path="votacion-resultados" element={<ResultadosVotacion />} />
+
               {/* Rutas adicionales se agregarán aquí */}
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>

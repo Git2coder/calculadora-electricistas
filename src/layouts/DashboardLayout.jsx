@@ -6,11 +6,10 @@ const secciones = [
   { path: "/admin/estadisticas", label: "Estadísticas" },
   { path: "/admin/tareas", label: "Tareas" },
   { path: "/admin/jornales", label: "Jornales" },
-  { path: "/admin/actividad", label: "Actividad" },
+  { path: "/admin/votacion-resultados", label: "Votacion" },
   { path: "/admin/notificaciones", label: "Notificaciones" },
   { path: "/admin/permisos", label: "Permisos" },
  
-
 ];
 
 export default function DashboardLayout() {
