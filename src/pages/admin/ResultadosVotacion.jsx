@@ -5,20 +5,28 @@ import { db } from "../../firebaseConfig";
 export default function ResultadosVotacion() {
   const [resumen, setResumen] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalUsuarios, setTotalUsuarios] = useState(0);
 
   useEffect(() => {
-    const cargarVotos = async () => {
+    const cargarDatos = async () => {
       try {
-        const [snapVotos, snapTareas] = await Promise.all([
+        // Traer votos y usuarios en paralelo
+        const [snapVotos, snapTareas, snapUsuarios] = await Promise.all([
           getDocs(collection(db, "votos")),
           getDocs(collection(db, "tareas")),
+          getDocs(collection(db, "usuarios")),
         ]);
 
         const votos = snapVotos.docs.map((d) => d.data());
+
+        // Mapeo de tareas id → nombre
         const tareas = {};
         snapTareas.docs.forEach((d) => {
           tareas[d.id] = d.data().nombre;
         });
+
+        // Total de usuarios registrados
+        setTotalUsuarios(snapUsuarios.size);
 
         // Agrupar por tarea + opcion
         const agrupados = {};
@@ -28,7 +36,7 @@ export default function ResultadosVotacion() {
             agrupados[key] = {
               tareaId: v.tareaId,
               opcion: v.opcion || null,
-              nombre: tareas[v.tareaId] || v.tareaId, // 👈 usar nombre si existe
+              nombre: tareas[v.tareaId] || v.tareaId,
               positivos: 0,
               negativos: 0,
               diferencias: [],
@@ -46,6 +54,7 @@ export default function ResultadosVotacion() {
           }
         });
 
+        // Convertir a array con promedio de diferencias
         const resultado = Object.values(agrupados).map((t) => ({
           ...t,
           promedioDiferencia:
@@ -65,7 +74,7 @@ export default function ResultadosVotacion() {
       }
     };
 
-    cargarVotos();
+    cargarDatos();
   }, []);
 
   if (loading) {
@@ -77,6 +86,9 @@ export default function ResultadosVotacion() {
       <h1 className="text-2xl font-bold mb-4">
         📊 Resultados de Votación de Tareas
       </h1>
+      <p className="mb-4 text-sm text-gray-600">
+        Total de usuarios registrados: <strong>{totalUsuarios}</strong>
+      </p>
       <table className="w-full border-collapse border border-gray-300 text-sm">
         <thead>
           <tr className="bg-gray-100">
@@ -89,23 +101,36 @@ export default function ResultadosVotacion() {
           </tr>
         </thead>
         <tbody>
-          {resumen.map((t) => (
-            <tr key={`${t.tareaId}_${t.opcion || "default"}`}>
-              <td className="border border-gray-300 px-3 py-2">
-                {t.nombre}
-                {t.opcion ? ` - ${t.opcion}` : ""}
-              </td>
-              <td className="border border-gray-300 px-3 py-2 text-green-600">
-                {t.positivos}
-              </td>
-              <td className="border border-gray-300 px-3 py-2 text-red-600">
-                {t.negativos}
-              </td>
-              <td className="border border-gray-300 px-3 py-2">
-                {t.promedioDiferencia}%
-              </td>
-            </tr>
-          ))}
+          {resumen.map((t) => {
+            const positivosPct =
+              totalUsuarios > 0
+                ? ((t.positivos / totalUsuarios) * 100).toFixed(1)
+                : "-";
+            const negativosPct =
+              totalUsuarios > 0
+                ? ((t.negativos / totalUsuarios) * 100).toFixed(1)
+                : "-";
+
+            return (
+              <tr key={`${t.tareaId}_${t.opcion || "default"}`}>
+                <td className="border border-gray-300 px-3 py-2">
+                  {t.nombre}
+                  {t.opcion ? ` - ${t.opcion}` : ""}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-green-600">
+                  {t.positivos}{" "}
+                  {positivosPct !== "-" && `(${positivosPct}%)`}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-red-600">
+                  {t.negativos}{" "}
+                  {negativosPct !== "-" && `(${negativosPct}%)`}
+                </td>
+                <td className="border border-gray-300 px-3 py-2">
+                  {t.promedioDiferencia}%
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
