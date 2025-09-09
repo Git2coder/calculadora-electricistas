@@ -1,5 +1,5 @@
 // src/pages/VotacionTareas.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import {
   collection,
@@ -12,27 +12,13 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-/**
- * Página: Votación de Tareas
- *
- * - Carga tareas desde Firestore (colección "tareas")
- * - Carga tarifaHoraria del usuario logueado (usuarios/{uid}.tarifaHoraria)
- * - Calcula precio de cada tarea con la misma lógica que la calculadora
- * - Permite votar (correcto / incorrecto + sentido + sugerencia)
- * - Guarda votos en colecc. "votos" con id `${tareaId}_${user.uid}`
- *
- * Nota: esta versión invalida localmente (y muestra como "sin votar")
- * los votos negativos cuya tarifaBase difiera de la tarifaHoraria actual.
- * Si preferís eliminar esos docs de Firestore, te lo adapto.
- */
-
 export default function VotacionTareas({ usuario: usuarioProp }) {
   const auth = getAuth();
   const currentUser = usuarioProp || auth.currentUser;
 
   const [tareas, setTareas] = useState([]);
   const [tareasExpandida, setTareasExpandida] = useState([]);
-  const [votos, setVotos] = useState({}); // { [tareaId]: votoObj | null }
+  const [votos, setVotos] = useState({});
   const [loading, setLoading] = useState(true);
   const [tarifaHoraria, setTarifaHoraria] = useState(0);
   const [sugerenciaTemp, setSugerenciaTemp] = useState("");
@@ -40,52 +26,99 @@ export default function VotacionTareas({ usuario: usuarioProp }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [tareaParaVotar, setTareaParaVotar] = useState(null);
   const [argumentoTemp, setArgumentoTemp] = useState("");
-const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
+  const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
 
   // -----------------------
   // Cargas iniciales
   // -----------------------
   useEffect(() => {
     const fetchAll = async () => {
-      setLoading(true);
-      try {
-        // 1) Tareas
-        const tarefasSnap = await getDocs(collection(db, "tareas"));
-        const lista = tarefasSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setTareas(lista);
+      if (!currentUser) return;
 
-        // 2) Tarifas del usuario
-        if (currentUser) {
-          try {
-            const userRef = doc(db, "usuarios", currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-              const data = userSnap.data();
-              if (typeof data.tarifaHoraria === "number") setTarifaHoraria(data.tarifaHoraria);
-            }
-          } catch (e) {
-            console.error("Error cargando tarifas del usuario:", e);
+      try {
+        let tarifa = 0;
+
+        // 0) Traer tarifaHoraria del usuario
+        const userRef = doc(db, "usuarios", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          tarifa = userSnap.data().tarifaHoraria || 0;
+          setTarifaHoraria(tarifa);
+        }
+
+        // 1) Traer tareas_votables activas
+        const votablesSnap = await getDocs(
+          query(collection(db, "tareas_votables"), where("activa", "==", true))
+        );
+        const votables = votablesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // 2) Traer todas las tareas
+        const tareasSnap = await getDocs(collection(db, "tareas"));
+        const todas = tareasSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // 3) Filtrar solo las que están en votables (respetando la 'opcion' si existe)
+        const filtradas = [];
+        for (const v of votables) {
+          const tareaId = v.tareaId;
+          const opcion = v.opcion ?? null;
+          const t = todas.find((x) => String(x.id) === String(tareaId) || String(x.id) === String(tareaId));
+          if (!t) continue;
+
+          if (opcion && t.opciones?.[opcion]) {
+            // Variante puntual: construyo objeto variante y elimino `opciones` para evitar doble-expansión
+            const base = { ...t };
+            delete base.opciones;
+            filtradas.push({
+              ...base,
+              id: `${base.id}__${opcion}`,
+              idOriginal: base.id,
+              variante: opcion,
+              nombre: `${base.nombre} - ${opcion}`,
+              ...t.opciones[opcion],
+            });
+          } else {
+            // Solo la tarea base (si tiene opciones, NO la expandimos aquí para que no aparezcan todas)
+            const base = { ...t };
+            delete base.opciones; // importante: evitamos que el effect de "expand" la rompa en variantes
+            filtradas.push({ ...base, idOriginal: base.id });
           }
         }
 
-        // 3) Votos del usuario (traemos solo sus votos)
-        if (currentUser) {
-          // mejor consultar por userId si hay muchos votos
-          const votosQuery = query(collection(db, "votos"), where("userId", "==", currentUser.uid));
-          const votosSnap = await getDocs(votosQuery);
-          const votosUsuario = {};
-          votosSnap.docs.forEach((d) => {
-            const v = d.data();
-            const key = v.opcion ? `${v.tareaId}_${v.opcion}` : `${v.tareaId}_default`;
-            votosUsuario[key] = v;
-          });
-
-          setVotos(votosUsuario);
-        } else {
-          setVotos({});
+        // deduplicar por idOriginal + variante (por si hay duplicados en la colección votables)
+        const seen = new Set();
+        const unique = [];
+        for (const f of filtradas) {
+          const key = `${f.idOriginal || f.id}::${f.variante || "default"}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(f);
+          }
         }
+
+        // 4) Traer votos del usuario logueado
+        const votosSnap = await getDocs(
+          query(collection(db, "votos"), where("userId", "==", currentUser.uid))
+        );
+        const votosUsuario = {};
+        votosSnap.docs.forEach((d) => {
+          const v = d.data();
+          const key = `${v.tareaId}_${v.opcion || "default"}`;
+          votosUsuario[key] = v;
+        });
+        setVotos(votosUsuario);
+
+        // 🔥 Asegurar que Boca siempre esté disponible como referencia (solo en memoria)
+        const boca = todas.find((x) => x.nombre === "Boca" || String(x.id) === "Boca");
+        if (boca) {
+          const bocaKey = `${boca.id}::default`;
+          if (!unique.some((f) => (f.idOriginal || f.id) === boca.id)) {
+            unique.push({ ...boca, soloReferencia: true });
+          }
+        }
+
+        setTareas(unique);
       } catch (err) {
-        console.error("Error cargando datos de votación:", err);
+        console.error("Error en fetchAll VotacionTareas:", err);
       } finally {
         setLoading(false);
       }
@@ -95,11 +128,18 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
   }, [currentUser]);
 
   // -----------------------
-  // Expandir variantes (igual que hacemos en Admin / Calculadora)
+  // Expandir variantes (solo para los items que tengan opciones y no fueron intencionalmente "pruned")
   // -----------------------
   useEffect(() => {
     const expand = [];
     for (const t of tareas) {
+      // Si es solo referencia (e.j. Boca) o fue añadido sin opciones, respetamos tal cual
+      if (t.soloReferencia) {
+        expand.push({ ...t, idOriginal: t.id, soloReferencia: true });
+        continue;
+      }
+
+      // Si el objeto tiene 'opciones' (no debería si lo pruned arriba), lo expandimos.
       if (t.opciones && typeof t.opciones === "object") {
         Object.entries(t.opciones).forEach(([variante, datos]) => {
           expand.push({
@@ -114,14 +154,15 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
             valor: datos.valor ?? t.valor,
             porcentaje: datos.porcentaje ?? t.porcentaje,
             valorUnidad: datos.valorUnidad ?? t.valorUnidad,
+            soloReferencia: t.soloReferencia || false,
           });
         });
       } else {
-        expand.push({ ...t, idOriginal: t.id });
+        expand.push({ ...t, idOriginal: t.id, soloReferencia: t.soloReferencia || false });
       }
     }
     setTareasExpandida(expand);
-  }, [tareas]);
+  }, [tareas, tarifaHoraria]);
 
   // -----------------------
   // Util: formateo precio
@@ -130,106 +171,85 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
     typeof n === "number" ? n.toLocaleString("es-AR", { maximumFractionDigits: 0 }) : "-";
 
   // -----------------------
-  // Lógica de cálculo: replicando la calculadora
+  // Lógica de cálculo
   // -----------------------
   const calcularPrecioTarea = (tarea, todasLasTareas = []) => {
-  if (!tarea) return 0;
+    if (!tarea) return 0;
 
-  // 1) Administrativa => monto fijo
-  if (tarea.tipo === "administrativa") {
-    if (typeof tarea.valor === "number") return tarea.valor || 0;
-    return 0;
-  }
+    if (tarea.tipo === "administrativa") {
+      if (typeof tarea.valor === "number") return tarea.valor || 0;
+      return 0;
+    }
 
-  // 2) Calculada => tarifaHoraria * (porcentaje / 100)
-  if (tarea.tipo === "calculada") {
-    const porcentaje =
-      tarea.porcentaje ??
-      (tarea.opciones && tarea.variante && tarea.opciones[tarea.variante]
-        ? tarea.opciones[tarea.variante].porcentaje
-        : 0);
-    return (tarifaHoraria * porcentaje) / 100;
-  }
+    if (tarea.tipo === "calculada") {
+      const porcentaje =
+        tarea.porcentaje ??
+        (tarea.opciones && tarea.variante && tarea.opciones[tarea.variante]
+          ? tarea.opciones[tarea.variante].porcentaje
+          : 0);
+      return (tarifaHoraria * porcentaje) / 100;
+    }
 
-  // 3) Boca (la madre)
-  if (tarea.nombre === "Boca" || tarea.idOriginal === "Boca") {
-    return ((tarea.tiempo || 0) / 60) * tarifaHoraria * (tarea.multiplicador ?? 1);
-  }
+    if (tarea.nombre === "Boca" || tarea.idOriginal === "Boca" || tarea.id === "Boca") {
+      return ((tarea.tiempo || 0) / 60) * tarifaHoraria * (tarea.multiplicador ?? 1);
+    }
 
-  // 4) Depende de Boca
-  if (tarea.dependeDe === "Boca") {
-    // Buscar la tarea Boca
-    const baseBoca = todasLasTareas.find(
-      (t) => t.nombre === "Boca" || t.idOriginal === "Boca"
-    );
-    if (!baseBoca) return 0;
+    if (tarea.dependeDe === "Boca") {
+      const baseBoca = todasLasTareas.find(
+        (t) => t.nombre === "Boca" || t.idOriginal === "Boca" || t.id === "Boca"
+      );
+      if (!baseBoca) return 0;
 
-    // Valor de Boca
-    const valorBoca =
-      ((baseBoca.tiempo || 0) / 60) *
-      tarifaHoraria *
-      (baseBoca.multiplicador ?? 1);
+      const valorBoca =
+        ((baseBoca.tiempo || 0) / 60) * tarifaHoraria * (baseBoca.multiplicador ?? 1);
 
-    // Factor propio de la tarea
-    const factor =
-      tarea.factorBoca ??
-      (tarea.opciones && tarea.variante && tarea.opciones[tarea.variante]
-        ? tarea.opciones[tarea.variante].factorBoca ?? 1
-        : 1);
+      const factor = tarea.factorBoca ?? 1;
+      return valorBoca * factor;
+    }
 
-    return valorBoca * (factor || 1);
-  }
-
-  // 5) Base genérica: tiempo × multiplicador × tarifaHoraria
-  return (
-    ((tarea.tiempo || 0) / 60) *
-    (tarea.multiplicador ?? 1) *
-    tarifaHoraria
-  );
-};
+    return ((tarea.tiempo || 0) / 60) * (tarea.multiplicador ?? 1) * tarifaHoraria;
+  };
 
   // -----------------------
   // Acciones de voto
   // -----------------------
   const abrirModalVoto = (tarea) => {
-  setTareaParaVotar(tarea);
-  setSugerenciaTemp("");
-  setSentidoTemp("");
-  setArgumentoTemp("");
-  // si la tarea expandida ya tiene variante, la usamos como opción por defecto
-  setOpcionSeleccionada(tarea?.variante ?? null);
-  setModalOpen(true);
-};
+    setTareaParaVotar(tarea);
+    setSugerenciaTemp("");
+    setSentidoTemp("");
+    setArgumentoTemp("");
+    setOpcionSeleccionada(tarea?.variante ?? null);
+    setModalOpen(true);
+  };
 
   const cerrarModal = () => {
-  setModalOpen(false);
-  setTareaParaVotar(null);
-  setSugerenciaTemp("");
-  setSentidoTemp("");
-  setArgumentoTemp("");
-  setOpcionSeleccionada(null);
-};
+    setModalOpen(false);
+    setTareaParaVotar(null);
+    setSugerenciaTemp("");
+    setSentidoTemp("");
+    setArgumentoTemp("");
+    setOpcionSeleccionada(null);
+  };
 
-  const guardarVoto = async (tareaId, voto, sentido = null, sugerencia = null) => {
+  // opcionOverride: por ejemplo para votos positivos llamamos con t.variante
+  const guardarVoto = async (tareaId, voto, sentido = null, sugerencia = null, opcionOverride = null) => {
     try {
       if (!currentUser) {
         alert("Debes iniciar sesión para votar.");
         return;
       }
 
-      // Determinar opción: prioridad -> opcionSeleccionada (UI) -> "default"
-      const opcionKey = opcionSeleccionada ?? "default";
+      // Determinar opción: prioridad -> opcionOverride -> opcionSeleccionada (UI) -> "default"
+      const opcionKey = opcionOverride ?? opcionSeleccionada ?? "default";
 
       // Buscar la tarea correcta (id + variante)
       const tareaSeleccionada = tareasExpandida.find(
         (t) =>
-          (t.id === tareaId || t.idOriginal === tareaId) &&
+          (String(t.id) === String(tareaId) || String(t.idOriginal) === String(tareaId)) &&
           (t.variante === opcionKey || (!t.variante && opcionKey === "default"))
       );
 
-      const precioCalculadora = tareaSeleccionada
-        ? calcularPrecioTarea(tareaSeleccionada, tareasExpandida)
-        : 0;
+      const precioCalculadora = tareaSeleccionada ? calcularPrecioTarea(tareaSeleccionada, tareasExpandida) : 0;
 
       const precioSugerido =
         sugerencia !== null &&
@@ -243,7 +263,6 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
         return;
       }
 
-      // 👇 ACA es donde se define el votoRef (se te había perdido)
       const docId = `${tareaId}_${opcionKey}_${currentUser.uid}`;
       const votoRef = doc(db, "votos", docId);
 
@@ -259,9 +278,7 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
         precioSugerido,
         diferenciaPorcentaje:
           voto === -1 && precioSugerido !== null && precioCalculadora > 0
-            ? Number(
-                (((precioSugerido - precioCalculadora) / precioCalculadora) * 100).toFixed(1)
-              )
+            ? Number((((precioSugerido - precioCalculadora) / precioCalculadora) * 100).toFixed(1))
             : null,
         tarifaBase: tarifaHoraria,
         fecha: new Date().toISOString(),
@@ -269,6 +286,7 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
 
       await setDoc(votoRef, nuevo);
 
+      // clave local idéntica a la que usamos para render
       const localKey = `${tareaId}_${opcionKey}`;
       setVotos((prev) => ({ ...prev, [localKey]: nuevo }));
 
@@ -290,68 +308,68 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
         <h1 className="text-2xl font-bold mb-4">🗳️ Votación de Tareas</h1>
         <p className="mb-4 text-sm text-gray-600">
           Aquí podés revisar los montos que genera la calculadora según tu tarifa.
-          Votá si el monto te parece está en zona o si consideras que se encuentra fuera de ella. Si lo marcás como inadecuado tú podras
-          sugerír un valor para que lo tengamos en cuenta.
+          Votá si el monto te parece correcto o inadecuado. Si lo marcás como inadecuado,
+          podés sugerir un valor para que lo tengamos en cuenta.
         </p>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border px-2 py-1 text-left">Tarea</th>
-                <th className="border px-2 py-1 text-right">Precio actual</th>
-                <th className="border px-2 py-1 text-center">Tu voto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tareasExpandida.map((t) => {
+          <div className="grid gap-4 md:grid-cols-2">
+            {tareasExpandida
+              .filter((t) => !t.soloReferencia)
+              .map((t) => {
                 const precio = calcularPrecioTarea(t, tareasExpandida) || 0;
                 const voteKey = `${t.idOriginal || t.id}_${t.variante || "default"}`;
-                const voto = votos[voteKey] || votos[t.idOriginal] || votos[t.id];
-                // intentos de compatibilidad
-                // Si existe voto negativo y tarifaBase difiere de la actual -> lo mostramos como "sin votar"
+                const voto = votos[voteKey];
                 const votoValido =
-                  voto && !(voto.voto === -1 && voto.tarifaBase !== undefined && voto.tarifaBase !== tarifaHoraria)
+                  voto &&
+                  !(
+                    voto.voto === -1 &&
+                    voto.tarifaBase !== undefined &&
+                    voto.tarifaBase !== tarifaHoraria
+                  )
                     ? voto
                     : null;
 
                 return (
-                  <tr key={t.id} className="odd:bg-white even:bg-gray-50">
-                    <td className="border px-2 py-2">{t.nombre}</td>
-                    <td className="border px-2 py-2 text-right">${fmtPesos(precio)}</td>
-                    <td className="border px-2 py-2 text-center">
-                      {votoValido?.voto === 1 ? (
-                        <span className="text-green-600 font-medium">✅ Aceptada</span>
-                      ) : votoValido?.voto === -1 ? (
-                        <div className="text-sm text-red-600">
-                          ❌ Incorrecta
-                          <div className="text-xs text-gray-600">
-                            {votoValido.sentido ? `(${votoValido.sentido})` : ""}{" "}
-                            {votoValido.sugerencia ? `- sugirió $${fmtPesos(votoValido.sugerencia)}` : ""}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => guardarVoto(t.idOriginal || t.id, 1)}
-                            className="px-2 py-1 bg-green-500 text-white rounded text-sm"
-                          >
-                            Correcto
-                          </button>
-                          <button
-                            onClick={() => abrirModalVoto(t)}
-                            className="px-2 py-1 bg-red-500 text-white rounded text-sm"
-                          >
-                            Inadecuado
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
+                  <div
+                    key={t.id}
+                    className={`p-4 rounded-2xl shadow-md transition ${
+                      votoValido?.voto === 1
+                        ? "bg-green-50 border-green-200"
+                        : votoValido?.voto === -1
+                        ? "bg-red-50 border-red-200"
+                        : "bg-white border"
+                    }`}
+                  >
+                    <h3 className="text-lg font-semibold mb-2">{t.nombre}</h3>
+                    <p className="text-gray-700 mb-3">
+                      💰 Precio actual: <span className="font-bold">${fmtPesos(precio)}</span>
+                    </p>
+
+                    {votoValido?.voto === 1 ? (
+                      <p className="text-green-600 font-medium">👍 ¡Aceptada!</p>
+                    ) : votoValido?.voto === -1 ? (
+                      <p className="text-red-600 font-medium">🤔 Marcada como inadecuada</p>
+                    ) : (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => guardarVoto(t.idOriginal || t.id, 1, null, null, t.variante)}
+                          className="flex-1 px-4 py-2 rounded-xl bg-green-500 text-white font-medium text-lg transform transition hover:scale-105"
+                        >
+                          👍 Está bien
+                        </button>
+                        <button
+                          onClick={() => abrirModalVoto(t)}
+                          className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white font-medium text-lg transform transition hover:scale-105"
+                        >
+                          🤔 Yo lo ajustaría
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+          </div>
         </div>
       </div>
 
@@ -360,7 +378,9 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded p-5 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-3">Marcar como inadecuado</h3>
-            <p className="text-sm mb-3">Tarea: <strong>{tareaParaVotar.nombre}</strong></p>
+            <p className="text-sm mb-3">
+              Tarea: <strong>{tareaParaVotar.nombre}</strong>
+            </p>
 
             <label className="block text-sm mb-2">¿Es muy alto o muy bajo?</label>
             <select
@@ -382,27 +402,29 @@ const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
             />
 
             <div className="mb-3">
-            <label className="block text-sm font-medium">Argumento</label>
-            <textarea
+              <label className="block text-sm font-medium">Argumento</label>
+              <textarea
                 value={argumentoTemp}
                 onChange={(e) => setArgumentoTemp(e.target.value)}
                 className="w-full border px-3 py-2 rounded"
                 rows={3}
                 placeholder="Contanos por qué te parece inadecuado el precio."
-            />
+              />
             </div>
 
             <div className="flex justify-end gap-2">
-              <button onClick={cerrarModal} className="px-3 py-1 rounded border">Cancelar</button>
+              <button onClick={cerrarModal} className="px-3 py-1 rounded border">
+                Cancelar
+              </button>
               <button
-                onClick={() => {
+                onClick={() =>
                   guardarVoto(
                     tareaParaVotar.idOriginal || tareaParaVotar.id,
                     -1,
                     sentidoTemp || "Sin especificar",
                     sugerenciaTemp || null
-                  );
-                }}
+                  )
+                }
                 className="px-3 py-1 rounded bg-red-500 text-white"
               >
                 Enviar voto

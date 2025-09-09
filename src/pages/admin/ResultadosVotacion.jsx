@@ -1,5 +1,6 @@
+// src/pages/ResultadosVotacion.jsx
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
 export default function ResultadosVotacion() {
@@ -10,33 +11,57 @@ export default function ResultadosVotacion() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // Traer votos y usuarios en paralelo
-        const [snapVotos, snapTareas, snapUsuarios] = await Promise.all([
-          getDocs(collection(db, "votos")),
-          getDocs(collection(db, "tareas")),
-          getDocs(collection(db, "usuarios")),
-        ]);
+        const [snapVotos, snapTareas, snapUsuarios, snapVotables] =
+          await Promise.all([
+            getDocs(collection(db, "votos")),
+            getDocs(collection(db, "tareas")),
+            getDocs(collection(db, "usuarios")),
+            getDocs(
+              query(collection(db, "tareas_votables"), where("activa", "==", true))
+            ),
+          ]);
 
         const votos = snapVotos.docs.map((d) => d.data());
 
-        // Mapeo de tareas id → nombre
         const tareas = {};
         snapTareas.docs.forEach((d) => {
-          tareas[d.id] = d.data().nombre;
+          tareas[String(d.id)] = d.data().nombre;
         });
 
-        // Total de usuarios registrados
         setTotalUsuarios(snapUsuarios.size);
 
-        // Agrupar por tarea + opcion
+        const idsPermitidos = snapVotables.docs.map((d) => {
+          const data = d.data();
+          return `${String(data.tareaId)}_${data.opcion || "default"}`;
+        });
+
         const agrupados = {};
         votos.forEach((v) => {
-          const key = v.opcion ? `${v.tareaId}_${v.opcion}` : v.tareaId;
+          let tareaBase = String(v.tareaId);
+          let opcionReal = v.opcion || "default";
+
+          if (tareaBase.includes("__")) {
+            const [idBase, variante] = tareaBase.split("__");
+            tareaBase = idBase;
+            if (!v.opcion && variante) {
+              opcionReal = variante;
+            }
+          }
+
+          const key = `${tareaBase}_${opcionReal}`;
+          if (!idsPermitidos.includes(key)) return;
+
           if (!agrupados[key]) {
             agrupados[key] = {
-              tareaId: v.tareaId,
-              opcion: v.opcion || null,
-              nombre: tareas[v.tareaId] || v.tareaId,
+              tareaId: tareaBase,
+              opcion: opcionReal !== "default" ? opcionReal : null,
+              nombre: tareas[tareaBase]
+                ? `${tareas[tareaBase]}${
+                    opcionReal !== "default" ? " - " + opcionReal : ""
+                  }`
+                : `${tareaBase}${
+                    opcionReal !== "default" ? " - " + opcionReal : ""
+                  }`,
               positivos: 0,
               negativos: 0,
               diferencias: [],
@@ -54,14 +79,12 @@ export default function ResultadosVotacion() {
           }
         });
 
-        // Convertir a array con promedio de diferencias
         const resultado = Object.values(agrupados).map((t) => ({
           ...t,
           promedioDiferencia:
             t.diferencias.length > 0
               ? (
-                  t.diferencias.reduce((a, b) => a + b, 0) /
-                  t.diferencias.length
+                  t.diferencias.reduce((a, b) => a + b, 0) / t.diferencias.length
                 ).toFixed(1)
               : "-",
         }));
@@ -81,58 +104,105 @@ export default function ResultadosVotacion() {
     return <div className="p-4">Cargando resultados...</div>;
   }
 
+  // === Calcular global ===
+  const totalPos = resumen.reduce((acc, t) => acc + t.positivos, 0);
+  const totalNeg = resumen.reduce((acc, t) => acc + t.negativos, 0);
+
+  const porcPos =
+    totalUsuarios > 0 ? ((totalPos / totalUsuarios) * 100).toFixed(1) : 0;
+  const porcNeg =
+    totalUsuarios > 0 ? ((totalNeg / totalUsuarios) * 100).toFixed(1) : 0;
+
+  const todasDifs = resumen
+    .map((t) => (t.promedioDiferencia !== "-" ? Number(t.promedioDiferencia) : null))
+    .filter((n) => n !== null);
+
+  const promedioGlobalDif =
+    todasDifs.length > 0
+      ? (todasDifs.reduce((a, b) => a + b, 0) / todasDifs.length).toFixed(1)
+      : "-";
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        📊 Resultados de Votación de Tareas
-      </h1>
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">📊 Resultados de Votación</h1>
       <p className="mb-4 text-sm text-gray-600">
         Total de usuarios registrados: <strong>{totalUsuarios}</strong>
       </p>
-      <table className="w-full border-collapse border border-gray-300 text-sm">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-3 py-2">Tarea</th>
-            <th className="border border-gray-300 px-3 py-2">👍 Positivos</th>
-            <th className="border border-gray-300 px-3 py-2">👎 Negativos</th>
-            <th className="border border-gray-300 px-3 py-2">
-              Diferencia Promedio (%)
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {resumen.map((t) => {
-            const positivosPct =
-              totalUsuarios > 0
-                ? ((t.positivos / totalUsuarios) * 100).toFixed(1)
-                : "-";
-            const negativosPct =
-              totalUsuarios > 0
-                ? ((t.negativos / totalUsuarios) * 100).toFixed(1)
-                : "-";
 
-            return (
-              <tr key={`${t.tareaId}_${t.opcion || "default"}`}>
-                <td className="border border-gray-300 px-3 py-2">
-                  {t.nombre}
-                  {t.opcion ? ` - ${t.opcion}` : ""}
-                </td>
-                <td className="border border-gray-300 px-3 py-2 text-green-600">
-                  {t.positivos}{" "}
-                  {positivosPct !== "-" && `(${positivosPct}%)`}
-                </td>
-                <td className="border border-gray-300 px-3 py-2 text-red-600">
-                  {t.negativos}{" "}
-                  {negativosPct !== "-" && `(${negativosPct}%)`}
-                </td>
-                <td className="border border-gray-300 px-3 py-2">
-                  {t.promedioDiferencia}%
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-3 py-2 text-left">Tarea</th>
+              <th className="border border-gray-300 px-3 py-2 text-center">
+                👍 A favor
+              </th>
+              <th className="border border-gray-300 px-3 py-2 text-center">
+                👎 En contra
+              </th>
+              <th className="border border-gray-300 px-3 py-2 text-center">
+                Δ Promedio (%)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {resumen.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center py-4 text-gray-500">
+                  No hay votos registrados todavía.
                 </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            ) : (
+              <>
+                {resumen.map((t) => {
+                  const porcPosT =
+                    totalUsuarios > 0
+                      ? ((t.positivos / totalUsuarios) * 100).toFixed(1)
+                      : 0;
+                  const porcNegT =
+                    totalUsuarios > 0
+                      ? ((t.negativos / totalUsuarios) * 100).toFixed(1)
+                      : 0;
+
+                  return (
+                    <tr
+                      key={`${t.tareaId}_${t.opcion || "default"}`}
+                      className="odd:bg-white even:bg-gray-50"
+                    >
+                      <td className="border border-gray-300 px-3 py-2">
+                        {t.nombre}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-center">
+                        {t.positivos} ({porcPosT}%)
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-center">
+                        {t.negativos} ({porcNegT}%)
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-center">
+                        {t.promedioDiferencia}%
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {/* === Fila global === */}
+                <tr className="bg-gray-200 font-semibold">
+                  <td className="border border-gray-300 px-3 py-2">TOTAL</td>
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    {totalPos} ({porcPos}%)
+                  </td>
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    {totalNeg} ({porcNeg}%)
+                  </td>
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    {promedioGlobalDif}%
+                  </td>
+                </tr>
+              </>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
