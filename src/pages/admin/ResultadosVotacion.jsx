@@ -141,7 +141,7 @@ export default function ResultadosVotacion() {
                 👎 En contra
               </th>
               <th className="border border-gray-300 px-3 py-2 text-center">
-                Δ Promedio (%)
+                ⚖️ Promedio (%)
               </th>
             </tr>
           </thead>

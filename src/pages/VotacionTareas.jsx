@@ -307,56 +307,50 @@ export default function VotacionTareas({ usuario: usuarioProp }) {
       <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-4">🗳️ Votación de Tareas</h1>
         <p className="mb-4 text-sm text-gray-600">
-          Aquí podés revisar los montos que genera la calculadora según tu tarifa.
-          Votá si el monto te parece correcto o inadecuado. Si lo marcás como inadecuado,
-          podés sugerir un valor para que lo tengamos en cuenta.
+          En esta sección podes opinar sobre los valores que propone la calculadora según tu tarifa. Cada voto cuenta con el fin de afinar los precios para que la herramienta sea más útil y justa para vos y toda la comunidad.
         </p>
 
-        <div className="overflow-x-auto">
-          <div className="grid gap-4 md:grid-cols-2">
-            {tareasExpandida
-              .filter((t) => !t.soloReferencia)
-              .map((t) => {
-                const precio = calcularPrecioTarea(t, tareasExpandida) || 0;
-                const voteKey = `${t.idOriginal || t.id}_${t.variante || "default"}`;
-                const voto = votos[voteKey];
-                const votoValido =
-                  voto &&
-                  !(
-                    voto.voto === -1 &&
-                    voto.tarifaBase !== undefined &&
-                    voto.tarifaBase !== tarifaHoraria
-                  )
-                    ? voto
-                    : null;
+        <div className="grid gap-4 md:grid-cols-2">
+          {tareasExpandida
+            .filter((t) => !t.soloReferencia)
+            .map((t) => {
+              const precio = calcularPrecioTarea(t, tareasExpandida) || 0;
+              const voteKey = `${t.idOriginal || t.id}_${t.variante || "default"}`;
+              const voto = votos[voteKey];
+              const votoValido =
+                voto &&
+                !(
+                  voto.voto === -1 &&
+                  voto.tarifaBase !== undefined &&
+                  voto.tarifaBase !== tarifaHoraria
+                )
+                  ? voto
+                  : null;
 
-                return (
+              const yaVotado = Boolean(votoValido);
+
+              return (
+                <div key={t.id} className="relative [perspective:1000px] min-h-[180px]">
                   <div
-                    key={t.id}
-                    className={`p-4 rounded-2xl shadow-md transition ${
-                      votoValido?.voto === 1
-                        ? "bg-green-50 border-green-200"
-                        : votoValido?.voto === -1
-                        ? "bg-red-50 border-red-200"
-                        : "bg-white border"
+                    className={`relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] ${
+                      yaVotado ? "[transform:rotateY(180deg)]" : ""
                     }`}
                   >
-                    <h3 className="text-lg font-semibold mb-2">{t.nombre}</h3>
-                    <p className="text-gray-700 mb-3">
-                      💰 Precio actual: <span className="font-bold">${fmtPesos(precio)}</span>
-                    </p>
-
-                    {votoValido?.voto === 1 ? (
-                      <p className="text-green-600 font-medium">👍 ¡Aceptada!</p>
-                    ) : votoValido?.voto === -1 ? (
-                      <p className="text-red-600 font-medium">🤔 Marcada como inadecuada</p>
-                    ) : (
+                    {/* Frente */}
+                    <div className="absolute inset-0 bg-white border rounded-2xl p-4 shadow-md [backface-visibility:hidden]">
+                      <h3 className="text-lg font-semibold mb-2">{t.nombre}</h3>
+                      <p className="text-gray-700 mb-3">
+                        💰 Precio actual:{" "}
+                        <span className="font-bold">${fmtPesos(precio)}</span>
+                      </p>
                       <div className="flex gap-3">
                         <button
-                          onClick={() => guardarVoto(t.idOriginal || t.id, 1, null, null, t.variante)}
+                          onClick={() =>
+                            guardarVoto(t.idOriginal || t.id, 1, null, null, t.variante)
+                          }
                           className="flex-1 px-4 py-2 rounded-xl bg-green-500 text-white font-medium text-lg transform transition hover:scale-105"
                         >
-                          👍 Está bien
+                          👍 Razonable
                         </button>
                         <button
                           onClick={() => abrirModalVoto(t)}
@@ -365,11 +359,18 @@ export default function VotacionTareas({ usuario: usuarioProp }) {
                           🤔 Yo lo ajustaría
                         </button>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Dorso */}
+                    <div className="absolute inset-0 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center p-4 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                      <p className="text-blue-600 font-semibold text-center text-lg">
+                        🚀 Tu voto fue enviado.<br />¡Gracias por participar!
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
-          </div>
+                </div>
+              );
+            })}
         </div>
       </div>
 

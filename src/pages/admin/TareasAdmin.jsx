@@ -358,28 +358,27 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
                       {tarea.pausada ? <FaPlay /> : <FaPause />}
                     </button>
                     <button
-  onClick={async () => {
-    try {
-      const docId = `${tarea.idOriginal || tarea.id}_${tarea.variante || "default"}`;
-      const ref = doc(db, "tareas_votables", docId);
-      await setDoc(ref, {
-        tareaId: tarea.idOriginal || tarea.id,
-        opcion: tarea.variante || null,
-        activa: true,
-        desde: new Date().toISOString(),
-        hasta: null,
-      });
-      alert("Tarea habilitada para votación ✅");
-    } catch (err) {
-      console.error("Error habilitando tarea:", err);
-      alert("Error al habilitar tarea (ver consola).");
-    }
-  }}
-  className="text-purple-600 hover:text-purple-400"
->
-  🗳️
-</button>
-
+                      onClick={async () => {
+                        try {
+                          const docId = `${tarea.idOriginal || tarea.id}_${tarea.variante || "default"}`;
+                          const ref = doc(db, "tareas_votables", docId);
+                          await setDoc(ref, {
+                            tareaId: tarea.idOriginal || tarea.id,
+                            opcion: tarea.variante || null,
+                            activa: true,
+                            desde: new Date().toISOString(),
+                            hasta: null,
+                          });
+                          alert("Tarea habilitada para votación ✅");
+                        } catch (err) {
+                          console.error("Error habilitando tarea:", err);
+                          alert("Error al habilitar tarea (ver consola).");
+                        }
+                      }}
+                      className="text-purple-600 hover:text-purple-400"
+                    >
+                      🗳️
+                    </button>
                   </td>
                 </tr>
             );
