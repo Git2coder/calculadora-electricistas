@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, setDoc, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { FaEdit, FaTrash, FaPause, FaPlay } from "react-icons/fa";
 import { tareasPredefinidas } from "../../utils/tareas";
@@ -8,19 +17,40 @@ import { getAuth } from "firebase/auth";
 export function TareasAdmin() {
   const [tareas, setTareas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [formData, setFormData] = useState({});
   const [selectedVariante, setSelectedVariante] = useState("");
   const [tab, setTab] = useState("todas"); // "administrativas", "calculadas", "todas"
-const [tarifaHoraria, setTarifaHoraria] = useState(0);
+  const [tarifaHoraria, setTarifaHoraria] = useState(0);
+  const [votables, setVotables] = useState([]);
+  const [selected, setSelected] = useState([]);
 
   // Campos que no quiero mostrar en el modal
-  const HIDDEN_KEYS = ["id", "idOriginal", "pausada", "dependeDe", "variante", "opciones", "tipo"];
+  const HIDDEN_KEYS = [
+    "id",
+    "idOriginal",
+    "pausada",
+    "dependeDe",
+    "variante",
+    "opciones",
+    "tipo",
+  ];
 
   // Orden fijo de campos según el tipo de tarea
-  const FIELD_ORDER = ["nombre", "tiempo", "multiplicador", "factorBoca", "valor", "tipo", "unidad", "porcentaje", "descripcion"];
+  const FIELD_ORDER = [
+    "nombre",
+    "tiempo",
+    "multiplicador",
+    "factorBoca",
+    "valor",
+    "tipo",
+    "unidad",
+    "porcentaje",
+    "descripcion",
+  ];
 
   // Nombres lindos para mostrar en el label
   const LABELS = {
@@ -34,6 +64,36 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
     descripcion: "Descripción",
   };
 
+  // =======================
+  // Utils
+  // =======================
+
+  const fmtPesos = (n) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(n || 0));
+
+  const sortTareas = (arr) => {
+    if (!sortConfig.key) return arr;
+    return [...arr].sort((a, b) => {
+      const x = a[sortConfig.key] ?? 0;
+      const y = b[sortConfig.key] ?? 0;
+      // for strings we want locale compare
+      if (typeof x === "string" && typeof y === "string") {
+        return sortConfig.direction === "asc"
+          ? x.localeCompare(y)
+          : y.localeCompare(x);
+      }
+      return sortConfig.direction === "asc" ? x - y : y - x;
+    });
+  };
+
+  // =======================
+  // Cargar tareas + votables
+  // =======================
   const cargarTareas = async () => {
     try {
       const ref = collection(db, "tareas");
@@ -62,11 +122,33 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
   // Cargar tareas desde Firestore
   const fetchTareas = async () => {
     setLoading(true);
-    const querySnapshot = await getDocs(collection(db, "tareas"));
-    const data = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    const [snapTareas, snapVotables] = await Promise.all([
+      getDocs(collection(db, "tareas")),
+      getDocs(collection(db, "tareas_votables")),
+    ]);
+
+    // guardamos los IDs de tareas en votación
+    const votables = snapVotables.docs
+      .filter((d) => d.data().activa)
+      .map((d) => {
+        const v = d.data();
+        return `${String(v.tareaId)}_${v.opcion || "default"}`;
+      });
+
+    // solo los datos de tareas, sin marcar enVotacion todavía
+    const data = snapTareas.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+
     setTareas(data);
+    // 👉 guardá votables en estado para usar después en tareasExpandida
+    setVotables(votables);
+
     setLoading(false);
   };
+
 
   useEffect(() => {
     fetchTareas();
@@ -90,41 +172,41 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
       }
     };
 
-  fetchTarifa();
-}, []);
-  const abrirModal = (tarea = null) => {
-  if (tarea) {
-    console.log("🟢 Abriendo modal para:", tarea);
+    fetchTarifa();
+  }, []);
 
-    // Si la tarea viene expandida (con idOriginal)
-    if (tarea.idOriginal) {
-      const original = tareas.find((x) => x.id === tarea.idOriginal) || tarea;
-      setFormData(original);
-      setEditando(original.id); // 👈 este SIEMPRE es el id de Firestore
-      setSelectedVariante(tarea.variante || "");
+  const abrirModal = (tarea = null) => {
+    if (tarea) {
+      console.log("🟢 Abriendo modal para:", tarea);
+
+      // Si la tarea viene expandida (con idOriginal)
+      if (tarea.idOriginal) {
+        const original = tareas.find((x) => x.id === tarea.idOriginal) || tarea;
+        setFormData(original);
+        setEditando(original.id); // 👈 este SIEMPRE es el id de Firestore
+        setSelectedVariante(tarea.variante || "");
+      } else {
+        // tarea normal (ejemplo Boca)
+        const original = tareas.find((x) => x.id === tarea.id) || tarea;
+        setFormData(original);
+        setEditando(original.id); // 👈 aseguramos que quede seteado
+        setSelectedVariante("");
+      }
     } else {
-      // tarea normal (ejemplo Boca)
-      const original = tareas.find((x) => x.id === tarea.id) || tarea;
-      setFormData(original);
-      setEditando(original.id); // 👈 aseguramos que quede seteado
+      // Nueva tarea
+      setFormData({
+        nombre: "",
+        tiempo: 0,
+        multiplicador: 1,
+        factorBoca: 1,
+        pausada: false,
+      });
+      setEditando(null);
       setSelectedVariante("");
     }
-  } else {
-    // Nueva tarea
-    setFormData({
-      nombre: "",
-      tiempo: 0,
-      multiplicador: 1,
-      factorBoca: 1,
-      pausada: false,
-    });
-    setEditando(null);
-    setSelectedVariante("");
-  }
 
-  setModalOpen(true);
-};
-
+    setModalOpen(true);
+  };
 
   const cerrarModal = () => {
     setModalOpen(false);
@@ -140,8 +222,8 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
   };
 
   const guardarTarea = async () => {
-  try {
-    const idString = String(editando); // 👈 convierte incluso 0 en "0"
+    try {
+      const idString = String(editando); // 👈 convierte incluso 0 en "0"
       console.log("💾 Guardar tarea:", { editando, idString, formData });
 
       if (!idString || idString === "undefined" || idString === "null") {
@@ -149,22 +231,20 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
         return;
       }
 
+      let dataToSave = { ...formData };
+      delete dataToSave.id;
+      delete dataToSave.idOriginal;
 
-    let dataToSave = { ...formData };
-    delete dataToSave.id;
-    delete dataToSave.idOriginal;
+      const ref = doc(db, "tareas", idString);
+      await updateDoc(ref, { ...dataToSave, updatedAt: new Date().toISOString() });
 
-    const ref = doc(db, "tareas", idString);
-    await updateDoc(ref, dataToSave);
-
-    cerrarModal();
-    await fetchTareas();
-    console.log("✅ Guardado exitoso:", idString, dataToSave);
-  } catch (error) {
-    console.error("❌ Error guardando tarea:", error);
-  }
-};
-
+      cerrarModal();
+      await fetchTareas();
+      console.log("✅ Guardado exitoso:", idString, dataToSave);
+    } catch (error) {
+      console.error("❌ Error guardando tarea:", error);
+    }
+  };
 
   const eliminarTarea = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar esta tarea?")) return;
@@ -189,6 +269,91 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
     }
   };
 
+  // ✅ Habilitar tarea en votación
+  const habilitarVotacion = async (tarea, variante = null) => {
+    try {
+      const idDoc = `${tarea.id}_${variante || "default"}`;
+      const ahora = new Date();
+      const hasta = new Date();
+      hasta.setDate(ahora.getDate() + 7);
+
+      await setDoc(doc(db, "tareas_votables", idDoc), {
+        tareaId: tarea.id,
+        opcion: variante,
+        activa: true,
+        desde: ahora.toISOString(),
+        hasta: hasta.toISOString(),
+      });
+
+      await fetchTareas();
+    } catch (e) {
+      console.error("Error habilitando tarea:", e);
+    }
+  };
+
+  // ✅ Quitar tarea de votación
+  const quitarDeVotacion = async (tarea, variante = null) => {
+    try {
+      const idDoc = `${tarea.id}_${variante || "default"}`;
+      await deleteDoc(doc(db, "tareas_votables", idDoc));
+      await fetchTareas();
+    } catch (e) {
+      console.error("Error quitando tarea:", e);
+    }
+  };
+
+
+  // ✅ Checkbox de selección
+  const toggleSelect = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    // 🔹 Generar TODOS los ids (una por cada variante si existen)
+    const allIds = tareas.flatMap((t) => {
+      if (t.opciones) {
+        return Object.keys(t.opciones).map((variante) => `${t.id}_${variante}`);
+      } else {
+        return [`${t.id}_default`];
+      }
+    });
+
+    // 🔹 Si ya están todos seleccionados → limpiar
+    if (selected.length === allIds.length) {
+      setSelected([]);
+    } else {
+      setSelected(allIds);
+    }
+  };
+
+  // ✅ Acciones masivas
+  const ejecutarAccionMasiva = async (accion) => {
+    const promises = selected.map(async (key) => {
+      const [id, variante] = key.split("_");
+      const tarea = tareas.find((t) => String(t.id) === id);
+      if (!tarea) return;
+
+      if (accion === "votar") {
+        return habilitarVotacion(tarea, variante === "default" ? null : variante);
+      }
+      if (accion === "quitar") {
+        return quitarDeVotacion(tarea, variante === "default" ? null : variante);
+      }
+      if (accion === "eliminar") {
+        return eliminarTarea(tarea.idOriginal || tarea.id);
+      }
+      if (accion === "pausar") {
+        return togglePausa(tarea.id, tarea.pausada);
+      }
+    });
+
+    await Promise.all(promises); // 👈 ejecuta todo en paralelo
+    await fetchTareas(); // 👈 refresca solo 1 vez
+    setSelected([]);
+  };
+  
   if (loading) return <p className="p-4">Cargando tareas...</p>;
 
   const totalTareas = tareas.length;
@@ -196,18 +361,29 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
 
   // Expandir variantes como filas independientes (para la tabla) y guardar la 'variante'
   const tareasExpandida = tareas.flatMap((t) => {
-    if (t.opciones) {
-      return Object.entries(t.opciones).map(([variante, datos]) => ({
+  if (t.opciones) {
+    return Object.entries(t.opciones).map(([variante, datos]) => {
+      const docId = `${t.id}_${variante}`;
+      const enVotacion = votables.includes(docId);
+      return {
         ...t,
         idOriginal: t.id,
         variante,
         nombre: `${t.nombre} - ${variante}`,
         tiempo: datos.tiempo ?? t.tiempo,
         factorBoca: datos.factorBoca ?? t.factorBoca,
-      }));
-    }
-    return { ...t, idOriginal: t.id };
-  });
+        valor: datos.valor ?? t.valor,
+        porcentaje: datos.porcentaje ?? t.porcentaje,
+        dependeDe: datos.dependeDe ?? t.dependeDe,
+        enVotacion,
+      };
+    });
+  }
+  const docId = `${t.id}_default`;
+  const enVotacion = votables.includes(docId);
+  return { ...t, idOriginal: t.id, enVotacion };
+});
+
 
   const tareasFiltradas = tareasExpandida
     .filter((t) => t.nombre.toLowerCase().includes(busqueda.toLowerCase()))
@@ -218,176 +394,288 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
       return true;
     });
 
+  // Ahora sí ordenamos las tareas filtradas
+  const sortedTareas = sortTareas(tareasFiltradas);
 
+  const handleSortHeader = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
-        <h1 className="text-2xl font-bold">Administrador de Tareas</h1>
-        <button 
-          onClick={cargarTareas}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
-        >
-          Cargar tareas
-        </button>
+  <div className="p-6">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+      <h1 className="text-2xl font-bold">Administrador de Tareas</h1>
+      <button
+        onClick={cargarTareas}
+        className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
+      >
+        Cargar tareas
+      </button>
+    </div>
 
-      </div>
+    {/* Contadores */}
+    <div className="mb-4 text-sm text-gray-700">
+      <p>
+        Total de tareas: <strong>{totalTareas}</strong>
+      </p>
+      <p>
+        Tareas activas: <strong>{totalActivas}</strong>
+      </p>
+    </div>
 
-      {/* Contadores */}
-      <div className="mb-4 text-sm text-gray-700">
-        <p>Total de tareas: <strong>{totalTareas}</strong></p>
-        <p>Tareas activas: <strong>{totalActivas}</strong></p>
-      </div>
+    {/* Buscador */}
+    <input
+      type="text"
+      placeholder="Buscar tarea..."
+      value={busqueda}
+      onChange={(e) => setBusqueda(e.target.value)}
+      className="mb-4 w-full border px-3 py-2 rounded"
+    />
 
-      {/* Buscador */}
-      <input
-        type="text"
-        placeholder="Buscar tarea..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        className="mb-4 w-full border px-3 py-2 rounded"
-      />
+    {/* Tabs */}
+    <div className="flex gap-4 mb-4">
+      <button
+        className={`px-4 py-2 rounded ${
+          tab === "todas" ? "bg-blue-600 text-white" : "bg-gray-200"
+        }`}
+        onClick={() => setTab("todas")}
+      >
+        Dependientes
+      </button>
+      <button
+        className={`px-4 py-2 rounded ${
+          tab === "administrativas" ? "bg-blue-600 text-white" : "bg-gray-200"
+        }`}
+        onClick={() => setTab("administrativas")}
+      >
+        Administrativas
+      </button>
+      <button
+        className={`px-4 py-2 rounded ${
+          tab === "calculadas" ? "bg-blue-600 text-white" : "bg-gray-200"
+        }`}
+        onClick={() => setTab("calculadas")}
+      >
+        Calculadas
+      </button>
+    </div>
 
-      {/* Tabla */}
-      <div className="flex gap-4 mb-4">
-
+    {/* Botón de acción masiva */}
+    {selected.length > 0 && (
+      <div className="mb-3 flex gap-2">
         <button
-          className={`px-4 py-2 rounded ${tab === "todas" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => setTab("todas")}
+          onClick={() => ejecutarAccionMasiva("votar")}
+          className="px-4 py-2 bg-indigo-600 text-white rounded"
         >
-          Dependientes
+          🗳️ Mandar seleccionados a votación
         </button>
         <button
-          className={`px-4 py-2 rounded ${tab === "administrativas" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => setTab("administrativas")}
+          onClick={() => ejecutarAccionMasiva("quitar")}
+          className="px-4 py-2 bg-gray-500 text-white rounded"
         >
-          Administrativas
+          ❌ Quitar de votación
         </button>
         <button
-          className={`px-4 py-2 rounded ${tab === "calculadas" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => setTab("calculadas")}
+          onClick={() => ejecutarAccionMasiva("pausar")}
+          className="px-4 py-2 bg-yellow-500 text-white rounded"
         >
-          Calculadas
+          ⏸️ Pausar/Reactivar
+        </button>
+        <button
+          onClick={() => ejecutarAccionMasiva("eliminar")}
+          className="px-4 py-2 bg-red-600 text-white rounded"
+        >
+          🗑️ Eliminar
         </button>
       </div>
+    )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-2 py-1">Nombre</th>
-              <th className="border px-2 py-1">Tiempo (min)</th>
-              <th className="border px-2 py-1">% Boca</th>
-              <th className="border px-2 py-1">Precio ($)</th>   {/* 👈 nueva columna */}
-              <th className="border px-2 py-1">Tipo</th>
-              <th className="border px-2 py-1">Estado</th>
-              <th className="border px-2 py-1">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tareasFiltradas.map((tarea) => {
-              // 👇 Lógica de cálculo según tipo
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse border border-gray-300 text-sm">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border px-2 py-1">
+              <input
+                type="checkbox"
+                checked={selected.length === sortedTareas.length}
+                onChange={toggleSelectAll}
+              />
+            </th>
+            <th className="border px-2 py-1">Nombre</th>
+            <th
+              className="border px-2 py-1 cursor-pointer"
+              onClick={() => handleSortHeader("tiempo")}
+            >
+              Tiempo (min)
+            </th>
+            <th
+              className="border px-2 py-1 cursor-pointer"
+              onClick={() => handleSortHeader("factorBoca")}
+            >
+              % Boca
+            </th>
+            <th
+              className="border px-2 py-1 cursor-pointer"
+              onClick={() => handleSortHeader("precio")}
+            >
+              Precio ($)
+            </th>
+            <th className="border px-2 py-1">Estado</th>
+            <th className="border px-2 py-1">Actualización</th>
+            <th className="border px-2 py-1">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedTareas.map((tarea) => {
+            const tareaKey = `${tarea.id}_${tarea.variante || "default"}`; // 👈 clave única
+            // 👇 Lógica de cálculo según tipo
             let precio = 0;
-          if (tarea.tipo === "administrativa") {
-            precio = tarea.valor || 0;
-          } else if (tarea.tipo === "calculada") {
-            precio = ((tarea.valorUnidad || 0) * (tarea.porcentaje || 0)) / 100;
-          } else if (tarea.dependeDe === "Boca") {
-            const baseBoca = tareas.find((t) => t.nombre === "Boca");
-            const valorBoca =
-              baseBoca && baseBoca.tiempo
-                ? (baseBoca.tiempo / 60) *
-                  (baseBoca.multiplicador ?? 1) *
-                  tarifaHoraria
-                : 0;
-            precio = valorBoca * (tarea.factorBoca || 1);
-          } else {
-            precio =
-              ((tarea.tiempo || 0) / 60) *
-              (tarea.multiplicador ?? 1) *
-              tarifaHoraria;
-          }
-              return (
-                <tr
-                  key={tarea.id + tarea.nombre}
-                  className={`transition-colors ${
-                    tarea.pausada ? "opacity-50" : ""
-                  } hover:bg-green-200`}
-                >
-                  {/* Nombre */}
-                  <td className="border px-2 py-1">{tarea.nombre}</td>
+            if (tarea.tipo === "administrativa") {
+              precio = tarea.valor || 0;
+            } else if (tarea.tipo === "calculada") {
+              precio =
+                ((tarea.valorUnidad || 0) * (tarea.porcentaje || 0)) / 100;
+            } else if (tarea.dependeDe === "Boca") {
+              const baseBoca = tareas.find(
+                (x) =>
+                  x.nombre === "Boca" ||
+                  x.id === "Boca" ||
+                  x.idOriginal === "Boca"
+              );
+              const valorBoca =
+                baseBoca && baseBoca.tiempo
+                  ? (baseBoca.tiempo / 60) *
+                    (baseBoca.multiplicador ?? 1) *
+                    tarifaHoraria
+                  : 0;
+              precio = valorBoca * (tarea.factorBoca || 1);
+            } else {
+              precio =
+                ((tarea.tiempo || 0) / 60) *
+                (tarea.multiplicador ?? 1) *
+                tarifaHoraria;
+            }
 
-                  {/* Tiempo */}
-                  <td className="border px-2 py-1">{tarea.tiempo}</td>
+            return (
+              // Lo que sombrea el renglon y pone en gris tarea pausada
+              <tr key={tareaKey} className={`hover:bg-indigo-200 transition-colors ${tarea.pausada ? "bg-gray-200 text-gray-500" : ""
+                }`}
+              >
 
-                  {/* Factor Boca */}
-                  <td className="border px-2 py-1">{tarea.factorBoca || 0}</td>
+                {/* Checkbox */}
+              <td className="border px-2 py-1 text-center">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(tareaKey)}
+                  onChange={() => toggleSelect(tareaKey)}
+                />
+              </td>
 
-                  {/* Precio calculado */}
-                  <td className="border px-2 py-1">${precio.toFixed(0)}</td>
+                {/* Nombre */}
+                <td className="border px-2 py-1">{tarea.nombre}</td>
 
-                  {/* Tipo */}
-                  <td className="border px-2 py-1">{tarea.tipo}</td>
+                {/* Tiempo */}
+                <td className="border px-2 py-1 text-center">
+                  {tarea.tiempo ?? "-"}
+                </td>
 
-                  {/* Estado */}
-                  <td className="border px-2 py-1">
-                    {tarea.pausada ? "En pausa" : "Activa"}
-                  </td>
+                {/* Factor Boca */}
+                <td className="border px-2 py-1 text-center">
+                  {tarea.factorBoca ?? "-"}
+                </td>
 
-                  {/* Acciones */}
-                  <td className="border px-2 py-1 flex justify-center gap-2">
+                {/* Precio calculado */}
+                <td className="border px-2 py-1 text-right">
+                  {tarea.tipo === "administrativa" ? (
+                    tarea.valor ? fmtPesos(tarea.valor) : <span className="text-gray-400">—</span>
+                  ) : tarea.tipo === "calculada" ? (
+                    tarea.porcentaje && tarea.dependeDe ? (
+                      <span title={tarifaHoraria ? "≈ " + fmtPesos(((tarea.porcentaje/100) * tarifaHoraria)) : ""}>
+                        {tarea.porcentaje}% de {tarea.dependeDe}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )
+                  ) : (
+                    fmtPesos(precio)
+                  )}
+                </td>
+
+                {/* Estado */}
+                <td className="border px-2 py-1">
+                  {tarea.enVotacion ? (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">
+                      🎭 En votación
+                    </span>
+                  ) : tarea.pausada ? (
+                    "En pausa"
+                  ) : (
+                    "Activa"
+                  )}
+                </td>
+
+                {/* Actualizacion */}
+                <td className="border px-2 py-1">
+                  {tarea.updatedAt
+                    ? new Date(tarea.updatedAt).toLocaleDateString()
+                    : "-"}
+                </td>
+
+                {/* Acciones */}
+                <td className="border px-2 py-1 flex justify-center gap-2">
+                  <button
+                    onClick={() => abrirModal(tarea)}
+                    className="text-blue-600 hover:text-blue-400"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() =>
+                      eliminarTarea(tarea.idOriginal || tarea.id)
+                    }
+                    className="text-red-600 hover:text-red-400"
+                  >
+                    <FaTrash />
+                  </button>
+                  <button
+                    onClick={() => togglePausa(tarea.id, tarea.pausada)}
+                    className={`text-green-700 hover:text-yellow-400 ${
+                      tarea.pausada ? "opacity-50" : ""
+                    }`}
+                    title={tarea.pausada ? "Reactivar" : "Pausar"}
+                  >
+                    {tarea.pausada ? <FaPlay /> : <FaPause />}
+                  </button>
+
+                  {tarea.enVotacion ? (
                     <button
-                      onClick={() => abrirModal(tarea)}
-                      className="text-blue-600 hover:text-blue-400"
+                      onClick={() => quitarDeVotacion(tarea)}
+                      className="text-gray-600 hover:text-gray-400"
                     >
-                      <FaEdit />
+                      ❌
                     </button>
+                  ) : (
                     <button
-                      onClick={() => eliminarTarea(tarea.idOriginal)}
-                      className="text-red-600 hover:text-red-400"
-                    >
-                      <FaTrash />
-                    </button>
-                    <button
-                      onClick={() => togglePausa(tarea.id, tarea.pausada)}
-                      className={`text-green-700 hover:text-yellow-400 ${
-                        tarea.pausada ? "opacity-50" : ""
-                      }`}
-                      title={tarea.pausada ? "Reactivar" : "Pausar"}
-                    >
-                      {tarea.pausada ? <FaPlay /> : <FaPause />}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        try {
-                          const docId = `${tarea.idOriginal || tarea.id}_${tarea.variante || "default"}`;
-                          const ref = doc(db, "tareas_votables", docId);
-                          await setDoc(ref, {
-                            tareaId: tarea.idOriginal || tarea.id,
-                            opcion: tarea.variante || null,
-                            activa: true,
-                            desde: new Date().toISOString(),
-                            hasta: null,
-                          });
-                          alert("Tarea habilitada para votación ✅");
-                        } catch (err) {
-                          console.error("Error habilitando tarea:", err);
-                          alert("Error al habilitar tarea (ver consola).");
-                        }
-                      }}
+                      onClick={() =>
+                        habilitarVotacion(tarea, tarea.variante || null)
+                      }
                       className="text-purple-600 hover:text-purple-400"
                     >
                       🗳️
                     </button>
-                  </td>
-                </tr>
+                  )}
+                </td>
+              </tr>
             );
           })}
         </tbody>
+      </table>
+    </div>
+  
 
-
-        </table>
-      </div>
 
       {/* Modal */}
       {modalOpen && (
@@ -395,7 +683,7 @@ const [tarifaHoraria, setTarifaHoraria] = useState(0);
           <div className="bg-white rounded-lg shadow-lg p-6 w-96 relative">
             <button onClick={cerrarModal} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
             <h2 className="text-xl font-semibold mb-4">{editando ? "Editar tarea" : "Nueva tarea"}</h2>
-      
+
             {/* Mostrar nombre global solo como referencia */}
             {formData.nombre && (
               <div className="mb-4">
