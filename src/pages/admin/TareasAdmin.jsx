@@ -511,23 +511,39 @@ export function TareasAdmin() {
             >
               Tiempo (min)
             </th>
-            <th
-              className="border px-2 py-1 cursor-pointer"
-              onClick={() => handleSortHeader("factorBoca")}
-            >
-              % Boca
-            </th>
-            <th
-              className="border px-2 py-1 cursor-pointer"
-              onClick={() => handleSortHeader("precio")}
-            >
-              Precio ($)
-            </th>
+
+            {tab === "todas" && (
+              <th
+                className="border px-2 py-1 cursor-pointer"
+                onClick={() => handleSortHeader("factorBoca")}
+              >
+                % Boca
+              </th>
+            )}
+
+            {tab === "todas" && (
+              <th
+                className="border px-2 py-1 cursor-pointer"
+                onClick={() => handleSortHeader("precio")}
+              >
+                Precio ($)
+              </th>
+            )}
+
+            {tab === "administrativas" && (
+              <th className="border px-2 py-1">Precio ($)</th>
+            )}
+
+            {tab === "calculadas" && (
+              <th className="border px-2 py-1">Porcentaje (%)</th>
+            )}
+
             <th className="border px-2 py-1">Estado</th>
             <th className="border px-2 py-1">Actualización</th>
             <th className="border px-2 py-1">Acciones</th>
           </tr>
         </thead>
+
         <tbody>
           {sortedTareas.map((tarea) => {
             const tareaKey = `${tarea.id}_${tarea.variante || "default"}`; // 👈 clave única
@@ -582,27 +598,31 @@ export function TareasAdmin() {
                   {tarea.tiempo ?? "-"}
                 </td>
 
-                {/* Factor Boca */}
-                <td className="border px-2 py-1 text-center">
-                  {tarea.factorBoca ?? "-"}
-                </td>
+                {/* Dependientes → % Boca y Precio */}
+                {tab === "todas" && (
+                  <>
+                    <td className="border px-2 py-1 text-center">
+                      {tarea.factorBoca ?? "-"}
+                    </td>
+                    <td className="border px-2 py-1 text-right">
+                      {fmtPesos(precio)}
+                    </td>
+                  </>
+                )}
 
-                {/* Precio calculado */}
-                <td className="border px-2 py-1 text-right">
-                  {tarea.tipo === "administrativa" ? (
-                    tarea.valor ? fmtPesos(tarea.valor) : <span className="text-gray-400">—</span>
-                  ) : tarea.tipo === "calculada" ? (
-                    tarea.porcentaje && tarea.dependeDe ? (
-                      <span title={tarifaHoraria ? "≈ " + fmtPesos(((tarea.porcentaje/100) * tarifaHoraria)) : ""}>
-                        {tarea.porcentaje}% de {tarea.dependeDe}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )
-                  ) : (
-                    fmtPesos(precio)
-                  )}
-                </td>
+                {/* Administrativas → solo Precio */}
+                {tab === "administrativas" && (
+                  <td className="border px-2 py-1 text-right">
+                    {tarea.valor ? fmtPesos(tarea.valor) : "—"}
+                  </td>
+                )}
+
+                {/* Calculadas → solo Porcentaje */}
+                {tab === "calculadas" && (
+                  <td className="border px-2 py-1 text-center">
+                    {tarea.porcentaje ? `${tarea.porcentaje}%` : "—"}
+                  </td>
+                )}
 
                 {/* Estado */}
                 <td className="border px-2 py-1">
