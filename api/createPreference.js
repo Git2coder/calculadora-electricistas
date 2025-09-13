@@ -13,13 +13,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  const { uid } = req.body;
-  if (!uid) {
-    return res.status(400).json({ error: "Falta el uid" });
+  const { uid, plan } = req.body;
+
+  if (!uid || !plan) {
+    return res.status(400).json({ error: "Faltan datos (uid o plan)" });
   }
 
   try {
-    // 🔒 Leer el precio desde Firestore (usando Admin SDK)
+    // 🔒 Leer el precio base desde Firestore
     const snap = await admin.firestore().doc("config/app").get();
     if (!snap.exists) {
       return res.status(500).json({ error: "Config no encontrada en Firestore" });
@@ -36,7 +37,23 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Falta MERCADO_PAGO_TOKEN" });
     }
 
-    // 📤 Crear preferencia en MP
+    // 💰 Calcular precio según plan
+    let precio = 0;
+    let titulo = "Suscripción";
+
+    if (plan === "profesional") {
+      precio = suscripcionPrecio;
+      titulo = "Suscripción Profesional";
+    } else if (plan === "basico") {
+      precio = suscripcionPrecio * 0.6;
+      titulo = "Suscripción Básico";
+    } else if (plan === "gratis") {
+      return res.status(400).json({ error: "El plan gratis no requiere pago" });
+    } else {
+      return res.status(400).json({ error: "Plan inválido" });
+    }
+
+    // 📤 Crear preferencia en MercadoPago
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
@@ -46,10 +63,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         items: [
           {
-            title: "Suscripción Electricista+",
+            title: titulo,
             quantity: 1,
             currency_id: "ARS",
-            unit_price: Number(suscripcionPrecio),
+            unit_price: Number(precio),
           },
         ],
         back_urls: {
@@ -58,7 +75,7 @@ export default async function handler(req, res) {
           pending: "https://calculadora-electricistas.vercel.app/espera",
         },
         auto_return: "approved",
-        metadata: { uid },
+        metadata: { uid, plan }, // ✅ guardamos ambos
       }),
     });
 
