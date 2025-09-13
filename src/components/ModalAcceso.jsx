@@ -76,11 +76,32 @@ export default function ModalAcceso({ isOpen, onClose, plan }) {
     onClose();
   };
 
-  const iniciarPago = (uid, plan) => {
-    // 🚧 Integrar aquí MercadoPago
-    // Por ejemplo: crear preferencia según el plan y redirigir
-    console.log("Iniciar pago para", plan, "usuario", uid);
-    navigate("/checkout"); // placeholder
+  // INICIAR PAGO
+  const iniciarPago = async (plan) => {
+    try {
+      // Llamada a tu backend para crear la preferencia
+      const resp = await fetch("/api/crear-preferencia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }), // le pasamos el plan elegido
+      });
+
+      if (!resp.ok) {
+        throw new Error("No se pudo iniciar el pago");
+      }
+
+      const data = await resp.json();
+
+      if (data.init_point) {
+        // Redirige a la página de pago de MercadoPago
+        window.location.href = data.init_point;
+      } else {
+        throw new Error("init_point no encontrado en la respuesta");
+      }
+    } catch (err) {
+      console.error("Error iniciando pago:", err);
+      alert("Hubo un problema al iniciar el pago. Intentalo nuevamente.");
+    }
   };
 
   // === Acciones ===
@@ -88,9 +109,10 @@ export default function ModalAcceso({ isOpen, onClose, plan }) {
     if (plan === "gratis") {
       await activarPlanGratis(uid);
     } else {
-      iniciarPago(uid, plan);
+      await iniciarPago(plan); // 🚀 ahora abre MercadoPago real
     }
   };
+
 
   const handleLogin = async () => {
     setError("");
