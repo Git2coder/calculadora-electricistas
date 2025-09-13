@@ -80,7 +80,7 @@ export default function ModalAcceso({ isOpen, onClose, plan }) {
   const iniciarPago = async (plan) => {
     try {
       // Llamada a tu backend para crear la preferencia
-      const resp = await fetch("/api/crear-preferencia", {
+      const resp = await fetch("/api/create-preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }), // le pasamos el plan elegido
