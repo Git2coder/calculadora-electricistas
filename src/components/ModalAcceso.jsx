@@ -4,16 +4,25 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth } from "../firebaseConfig"; // ajusta la ruta si corresponde
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
+import { auth } from "../firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
-export default function ModalAcceso({ isOpen, onClose }) {
+export default function ModalAcceso({ isOpen, onClose, plan }) {
   if (!isOpen) return null;
 
   const db = getFirestore();
+  const navigate = useNavigate();
 
   // --- UI state ---
-  const [modo, setModo] = useState("login"); // "login" | "registro"
+  const [modo, setModo] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -23,32 +32,28 @@ export default function ModalAcceso({ isOpen, onClose }) {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // --- Registro: paso a paso ---
+  // --- Registro por pasos ---
   const totalSteps = 4;
   const [step, setStep] = useState(1);
 
-  // Paso 1
+  // Datos registro
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Contraseñas visibles y coincidentes
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
-  // Paso 2
   const [tipoTrabajo, setTipoTrabajo] = useState("Doméstico");
   const [experiencia, setExperiencia] = useState("0-1");
   const [grado, setGrado] = useState("Idóneo");
   const [especialidad, setEspecialidad] = useState("");
   const [modalidadTrabajo, setModalidadTrabajo] = useState("Independiente");
 
-  // Paso 3
   const [provincia, setProvincia] = useState("");
   const [ciudad, setCiudad] = useState("");
 
-  // Paso 4
-  const [sabeTarifa, setSabeTarifa] = useState("No"); // "Si" | "No"
+  const [sabeTarifa, setSabeTarifa] = useState("No");
   const [valorBoca, setValorBoca] = useState("");
 
   // Cerrar con ESC
@@ -58,14 +63,46 @@ export default function ModalAcceso({ isOpen, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // --- Acciones ---
+  // === Helpers ===
+  const activarPlanGratis = async (uid) => {
+    const userRef = doc(db, "usuarios", uid);
+    await updateDoc(userRef, {
+      suscripcionActiva: true,
+      fechaExpiracion: Timestamp.fromDate(
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      ),
+    });
+    navigate("/calculadora");
+    onClose();
+  };
+
+  const iniciarPago = (uid, plan) => {
+    // 🚧 Integrar aquí MercadoPago
+    // Por ejemplo: crear preferencia según el plan y redirigir
+    console.log("Iniciar pago para", plan, "usuario", uid);
+    navigate("/checkout"); // placeholder
+  };
+
+  // === Acciones ===
+  const postLoginAccion = async (uid) => {
+    if (plan === "gratis") {
+      await activarPlanGratis(uid);
+    } else {
+      iniciarPago(uid, plan);
+    }
+  };
+
   const handleLogin = async () => {
     setError("");
     setMensaje("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-      onClose();
+      const cred = await signInWithEmailAndPassword(
+        auth,
+        loginEmail,
+        loginPassword
+      );
+      await postLoginAccion(cred.user.uid);
     } catch (err) {
       console.error(err);
       setError("No se pudo iniciar sesión. Verificá tu email/contraseña.");
@@ -113,15 +150,15 @@ export default function ModalAcceso({ isOpen, onClose }) {
         presupuestosGenerados: 0,
         creadoEn: serverTimestamp(),
         estado: "activo",
-        rol: "usuario"
+        rol: "usuario",
       });
 
-      // ✅ Mostrar animación y cerrar luego
+      // Registro exitoso + post-accion según plan
       setRegistroExitoso(true);
-      setTimeout(() => {
+      setTimeout(async () => {
         setRegistroExitoso(false);
-        onClose();
-      }, 4000);
+        await postLoginAccion(uid);
+      }, 2000);
     } catch (err) {
       console.error(err);
       setError("Error al crear la cuenta. Intentá nuevamente.");
@@ -129,6 +166,55 @@ export default function ModalAcceso({ isOpen, onClose }) {
       setLoading(false);
     }
   };
+
+  // === UI ===
+  const VistaLogin = () => (
+    <>
+      <h2 className="text-xl font-bold mb-4">Iniciar sesión</h2>
+      <input
+        type="email"
+        placeholder="Email"
+        value={loginEmail}
+        onChange={(e) => setLoginEmail(e.target.value)}
+        className="w-full border p-2 mb-2 rounded"
+        autoFocus
+      />
+      <div className="relative mb-2">
+        <input
+          type={passwordVisible ? "text" : "password"}
+          placeholder="Contraseña"
+          value={loginPassword}
+          onChange={(e) => setLoginPassword(e.target.value)}
+          className="w-full border p-2 mb-2 rounded"
+        />
+        <button
+          type="button"
+          onClick={() => setPasswordVisible(!passwordVisible)}
+          className="absolute right-2 top-2 text-gray-500"
+        >
+          {passwordVisible ? "🙈" : "👁️"}
+        </button>
+      </div>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+      {mensaje && <p className="text-green-600 text-sm mt-2">{mensaje}</p>}
+
+      <button
+        className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        onClick={handleLogin}
+        disabled={loading}
+      >
+        {loading ? "Ingresando..." : "Ingresar"}
+      </button>
+
+      <button
+        type="button"
+        className="mt-2 text-sm text-blue-600 underline"
+        onClick={handlePasswordReset}
+      >
+        ¿Olvidaste tu contraseña?
+      </button>
+    </>
+  );
 
   // --- "Subcomponentes" como funciones (no JSX de componente) ---
   const PasoRegistro = () => (
@@ -391,55 +477,7 @@ export default function ModalAcceso({ isOpen, onClose }) {
     </>
   );
 
-  const VistaLogin = () => (
-    <>
-      <h2 className="text-xl font-bold mb-4">Iniciar sesión</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={loginEmail}
-        onChange={(e) => setLoginEmail(e.target.value)}
-        className="w-full border p-2 mb-2 rounded"
-        autoFocus
-      />
-      <div className="relative mb-2">
-        <input
-          type={passwordVisible ? "text" : "password"}
-          placeholder="Contraseña"
-          value={loginPassword}
-          onChange={(e) => setLoginPassword(e.target.value)}
-          className="w-full border p-2 mb-2 rounded"
-        />
-        <button
-           type="button"
-           onClick={() => setPasswordVisible(!passwordVisible)}
-           className="absolute right-2 top-2 text-gray-500"
-        >
-           {passwordVisible ? "🙈" : "👁️"}
-        </button>
-      </div>
-      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-      {mensaje && <p className="text-green-600 text-sm mt-2">{mensaje}</p>}
-
-      <button
-        className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        onClick={handleLogin}
-        disabled={loading}
-      >
-        {loading ? "Ingresando..." : "Ingresar"}
-      </button>
-
-      <button
-        type="button"
-        className="mt-2 text-sm text-blue-600 underline"
-        onClick={handlePasswordReset}
-      >
-        ¿Olvidaste tu contraseña?
-      </button>
-    </>
-  );
-
-  return (
+   return (
     <div
       className="fixed inset-0 z-[1000] bg-black/50 flex items-center justify-center p-4"
       onClick={onClose}
@@ -448,16 +486,13 @@ export default function ModalAcceso({ isOpen, onClose }) {
         className="bg-white w-full max-w-md rounded-xl shadow-xl p-5 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Cerrar */}
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           onClick={onClose}
-          aria-label="Cerrar"
         >
           ✕
         </button>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-4">
           <button
             className={`flex-1 py-2 rounded ${
@@ -477,40 +512,19 @@ export default function ModalAcceso({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Render como funciones, no como componentes */}
         {modo === "login" ? VistaLogin() : PasoRegistro()}
 
         {registroExitoso && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-50 animate-fadeIn">
-            <div className="text-center animate-pop">
-              <svg
-                className="w-20 h-20 mx-auto mb-3"
-                viewBox="0 0 52 52"
-              >
-                <circle
-                  cx="26"
-                  cy="26"
-                  r="25"
-                  fill="none"
-                  stroke="#4CAF50"
-                  strokeWidth="2"
-                />
-                <path
-                  fill="none"
-                  stroke="#4CAF50"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray="100"
-                  strokeDashoffset="100"
-                  d="M14 27l7 7 16-16"
-                  style={{ animation: "draw 0.8s ease forwards" }}
-                />
-              </svg>
+          <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-50">
+            <div className="text-center">
               <p className="text-green-700 font-bold text-lg">
                 ¡Registro exitoso!
               </p>
-              <p className="text-gray-600 text-sm">Acceso gratis por 7 días habilitado 🎉</p>
+              <p className="text-gray-600 text-sm">
+                {plan === "gratis"
+                  ? "Acceso gratis por 7 días habilitado 🎉"
+                  : "Redirigiendo a pago..."}
+              </p>
             </div>
           </div>
         )}

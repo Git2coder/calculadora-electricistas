@@ -3,15 +3,17 @@ import { useEffect, useState } from "react";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaCalculator, FaBook, FaNewspaper } from "react-icons/fa";
+import { FaCalculator, FaBook, FaNewspaper, FaCheck } from "react-icons/fa";
 import { FaUserCircle, FaClock, FaClipboardCheck, FaChartLine, FaBolt } from "react-icons/fa";
 import { BotonSuscripcion } from "../components/BotonSuscripcion";
 import EscalaRemuneracion from "../components/EscalaRemuneracion";
-
+import  ModalAcceso  from "../components/ModalAcceso";
 
 export function Home() {
   const [config, setConfig] = useState(null);
-
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [planSeleccionado, setPlanSeleccionado] = useState(null); // ✅ nuevo estado
+  
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -27,22 +29,21 @@ export function Home() {
     };
     fetchConfig();
   }, []);
+
   if (!config) {
     return <p className="text-center mt-10 text-gray-600">Cargando configuración...</p>;
   }
 
   return (
     <div className="space-y-0">
-
-      {/* Hero con fondo para profesionales */}
+   
+      {/* Hero */}
       <section
         className="bg-cover bg-center text-white py-28 px-6 relative"
         style={{ backgroundImage: "url('/fondo-electricistas.webp')" }}
       >
         <div className="relative max-w-4xl mx-auto text-center z-10">
-          {/* Fondo oscuro solo en el contenido */}
           <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl -z-10" />
-
           <div className="relative p-8 md:p-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               La calculadora de presupuestos
@@ -51,13 +52,17 @@ export function Home() {
               Una herramienta esencial si queres ganar tiempo y presupuestar con criterio.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link
-                to="/calculadora"
+              <button
+                onClick={() =>
+                  document.getElementById("planes")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  })
+                }
                 className="bg-green-600 hover:bg-green-500 px-5 py-3 rounded-xl text-white font-semibold"
               >
-                ¡Empeza ahora!
-              </Link>
-              
+                ¡Empezá ahora!
+              </button>
             </div>
           </div>
         </div>
@@ -246,101 +251,126 @@ export function Home() {
         </section>
         
    
-      {config?.suscripcionHabilitada ? (
-        // ✅ Suscripción habilitada → venta normal
-        <section className="bg-white py-6 px-4">
-          <div className="max-w-4xl mx-auto text-center bg-blue-50 p-8 rounded-2xl shadow-lg border border-blue-200 relative overflow-hidden">
-            <div className="absolute -top-4 -right-4 rotate-12 bg-green-500 text-white font-bold px-6 py-1 rounded-bl-lg shadow-md">
-              💎 Suscripción 
-            </div>
-            <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
-              🔥 50% OFF oferta de lanzamiento
-            </div>
+      {/* Planes de suscripción */}
+      <section id="planes" className="bg-white py-6 px-6 scroll-mt-20">
+        <div className="max-w-6xl mx-auto text-center mb-12">
+          <h2 className="text-3xl font-bold text-blue-800">Elegí tu plan</h2>
+          <p className="text-gray-600 mt-2">
+            Accedé a la calculadora y otros recursos según tu plan
+          </p>
+        </div>
 
-            <h2 className="text-3xl font-bold text-blue-800 mb-4">Suscripción Profesional</h2>
-            <p className="text-lg text-gray-700 mb-6">Accedé al máximo potencial de tu trabajo</p>
-
-            <ul className="text-left max-w-md mx-auto text-gray-700 mb-6 space-y-4">
-              <li className="flex items-start gap-3">
-                <FaClock className="text-green-600 mt-1" />
-                <span>Ahorrás <strong>tiempo valioso</strong> al presupuestar</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <FaClipboardCheck className="text-green-600 mt-1" />
-                <span>Cotizás con <strong>criterio técnico y económico</strong></span>
-              </li>
-              <li className="flex items-start gap-3">
-                <FaChartLine className="text-green-600 mt-1" />
-                <span>Aumentás tus <strong>posibilidades de cerrar trabajos</strong></span>
-              </li>
-              <li className="flex items-start gap-3">
-                <FaBolt className="text-green-600 mt-1" />
-                <span>Sistema especializado <strong>100% en electricistas</strong></span>
-              </li>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Plan Gratis */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="bg-white border rounded-2xl shadow p-8 flex flex-col"
+          >
+            <h3 className="text-xl font-bold mb-4">Gratis</h3>
+            <p className="text-gray-600 mb-6">Probá la herramienta sin costo durante 7 días.</p>
+            <ul className="space-y-3 flex-1 text-left">
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso limitado</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> 7 días de prueba</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaCheck /> Sin extras</li>
             </ul>
-
-            <div className="text-4xl font-extrabold text-green-600 mb-4">
-              ${config?.suscripcionPrecio?.toLocaleString("es-AR")} 
-              <span className="text-lg text-gray-600 font-normal">/mes</span>
+            <div className="mt-6">
+              <span className="text-3xl font-bold text-gray-700">$0</span>
+              <span className="text-sm text-gray-500"> / una vez</span>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
-              <strong>1 presupuesto te llevaba ≈30 min</strong>. Podés hacer 5 veces o más en el mismo tiempo.
-            </p>
+            <button
+              onClick={() => {
+                setPlanSeleccionado("gratis"); // ✅ define plan
+                setModalAbierto(true);
+              }}
+              className="mt-6 block w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-3 rounded-xl"
+            >
+              Empezar gratis
+            </button>
+          </motion.div>
 
-            <div className="flex justify-center items-center mt-6">
-              <BotonSuscripcion precio={config?.suscripcionPrecio} />
+          {/* Plan Profesional (destacado) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="bg-white border-2 border-yellow-500 rounded-2xl shadow-xl p-10 flex flex-col relative transform scale-105"
+          >
+            <div className="absolute -top-3 right-6 bg-black text-white text-xs px-3 py-1 rounded-full">
+              ⭐ Recomendado
             </div>
-
-            <p className="text-xs text-gray-500 mt-2">
-              ¡Con menos de 1 trabajo extra al mes, <strong>ya recuperás la inversión</strong>!
-            </p>
-          </div>
-        </section>
-      ) : (
-        // ❌ Suscripción deshabilitada → mostrar como AGOTADA
-        <section className="bg-white py-6 px-4">
-          <div className="max-w-4xl mx-auto text-center bg-gray-100 p-8 rounded-2xl shadow-lg border border-gray-300 relative overflow-hidden opacity-80">
-            <h2 className="text-3xl font-bold text-gray-500 mb-4">Suscripción Profesional</h2>
-            <p className="text-lg text-gray-500 mb-6">Actualmente no disponible</p>
-
-            {/* Cinta diagonal */}
-            <div className="absolute top-10 -right-16 w-64 bg-red-600 text-white text-center font-bold transform rotate-45 shadow-lg">
-              ¡PROXIMAMENTE!
-            </div>
-
-            <ul className="text-left max-w-md mx-auto text-gray-500 mb-6 space-y-4">
-              <li className="flex items-start gap-3">
-                <FaClock className="text-gray-400 mt-1" />
-                <span>Ahorrás tiempo al presupuestar</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <FaClipboardCheck className="text-gray-400 mt-1" />
-                <span>Cotizás con criterio técnico</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <FaChartLine className="text-gray-400 mt-1" />
-                <span>Aumentás tus posibilidades de cerrar trabajos</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <FaBolt className="text-gray-400 mt-1" />
-                <span>Sistema especializado en electricistas</span>
-              </li>
+            <h3 className="text-xl font-bold mb-4">Profesional</h3>
+            <p className="text-gray-600 mb-6">Accedé al máximo potencial de esta herramienta.</p>
+            <ul className="space-y-3 flex-1 text-left">
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora completa</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Soporte prioritario</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso a votaciones</li>
             </ul>
-
-            <div className="text-4xl font-extrabold text-green-600 mb-4">
-              ${config?.suscripcionPrecio?.toLocaleString("es-AR")} 
-              <span className="text-lg text-gray-600 font-normal">/mes</span>
+            <div className="mt-6">
+              <span className="text-3xl font-bold text-black-600">
+                ${config?.suscripcionPrecio.toLocaleString("es-AR")}
+              </span>
+              <span className="text-sm text-gray-500"> / mes</span>
             </div>
+            <button
+              onClick={() => {
+                setPlanSeleccionado("profesional"); // ✅ define plan
+                setModalAbierto(true);
+              }}
+              className="mt-6 block w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 rounded-xl"
+            >
+              Suscribirme
+            </button>
+          </motion.div>
 
-            <p className="text-sm text-gray-400 mb-4">
-              La suscripción no está disponible en este momento.
-            </p>
-          </div>
-        </section>
-      )}
+          {/* Plan Básico */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="bg-white border-2 border-blue-500 rounded-2xl shadow-lg p-8 flex flex-col relative"
+          >
+            {/*<div className="absolute -top-3 right-6 bg-green-600 text-white text-xs px-3 py-1 rounded-full">
+              Popular
+            </div>*/}
+            <h3 className="text-xl font-bold mb-4">Básico</h3>
+            <p className="text-gray-600 mb-6">Ideal para quienes inician y quieren gestionar sus presupuestos.</p>
+            <ul className="space-y-3 flex-1 text-left">
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora limitada</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Noticias e Índice</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaCheck /> Sin funciones avanzadas</li>
+            </ul>
+            <div className="mt-6">
+              <span className="text-3xl font-bold text-black-600">
+                ${(config?.suscripcionPrecio * 0.6).toLocaleString("es-AR")}
+              </span>
+              <span className="text-sm text-gray-500"> / mes</span>
+            </div>
+            <button
+              onClick={() => {
+                setPlanSeleccionado("basico"); // ✅ define plan
+                setModalAbierto(true);
+              }}
+              className="mt-6 block w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl"
+            >
+              Suscribirme
+            </button>
+          </motion.div>
+        </div>
 
-
-     </div>
-    
+        {/* Modal acceso */}
+        {modalAbierto && (
+          <ModalAcceso
+            isOpen={modalAbierto}             // ✅ importante
+            plan={planSeleccionado}           // ✅ llega el plan correcto
+            onClose={() => setModalAbierto(false)}
+          />
+        )}
+      </section>
+    </div>
   );
 }
