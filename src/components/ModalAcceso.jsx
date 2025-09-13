@@ -15,7 +15,7 @@ import {
 import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
-export default function ModalAcceso({ isOpen, onClose, plan }) {
+export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
   if (!isOpen) return null;
 
   const db = getFirestore();
@@ -104,8 +104,13 @@ export default function ModalAcceso({ isOpen, onClose, plan }) {
   const postLoginAccion = async (uid) => {
     if (plan === "gratis") {
       await activarPlanGratis(uid);
+    } else if (origen === "suscripcion") {
+      // Solo inicia el pago si vino desde los planes pagos
+      await iniciarPago(uid, plan);
     } else {
-      await iniciarPago(uid, plan); // ✅ ahora pasa uid y plan
+      // Caso login normal → entra a calculadora sin error
+      navigate("/calculadora");
+      onClose();
     }
   };
 
