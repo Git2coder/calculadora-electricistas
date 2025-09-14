@@ -1,60 +1,83 @@
-// pages/admin/Configuracion.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
-export function Configuracion() {
-  const [config, setConfig] = useState({
-    habilitado: true,
-    calculadoraHabilitada: true,
-    jornalesHabilitados: true,
-    suscripcionPrecio: 950, // 👈 nuevo campo
-  });
-  const [cargando, setCargando] = useState(true);
+
+export default function Configuracion() {
   const db = getFirestore();
-  const docRef = doc(db, "config", "app");
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
-  // Cargar config actual
   useEffect(() => {
-  const fetchConfig = async () => {
-    try {
-      const snap = await getDoc(docRef);
-      console.log("CONFIG snapshot:", snap.exists(), snap.data());
-      if (snap.exists()) {
-        setConfig(snap.data());
+    const cargarConfig = async () => {
+      try {
+        const configRef = doc(db, "config", "app");
+        const snap = await getDoc(configRef);
+        if (snap.exists()) {
+          setConfig(snap.data());
+        } else {
+          // Inicializamos con valores por defecto
+          const defaults = {
+            habilitado: true,
+            calculadoraHabilitada: true,
+            jornalesHabilitado: true,
+
+            // Precios
+            precioProfesional: 0,
+            precioBasico: 0,
+
+            // Habilitación de planes
+            gratisHabilitado: true,
+            basicoHabilitado: true,
+            profesionalHabilitado: true,
+          };
+          await setDoc(configRef, defaults);
+          setConfig(defaults);
+        }
+      } catch (err) {
+        console.error("Error cargando config:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("❌ Error al leer config:", error);
-    }
-    setCargando(false);
-  };
-  fetchConfig();
-}, []);
+    };
+    cargarConfig();
+  }, [db]);
 
-  // Guardar cambios
   const actualizarConfig = async (nuevaConfig) => {
-    setConfig(nuevaConfig);
-    await setDoc(docRef, nuevaConfig, { merge: true });
+    setGuardando(true);
+    try {
+      const configRef = doc(db, "config", "app");
+      await setDoc(configRef, nuevaConfig);
+      setConfig(nuevaConfig);
+      setMensaje("✅ Configuración guardada correctamente");
+      setTimeout(() => setMensaje(""), 3000);
+    } catch (err) {
+      console.error("Error guardando config:", err);
+      setMensaje("❌ Error al guardar la configuración");
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  if (cargando) return <p className="text-center">Cargando configuración...</p>;
+  if (loading) return <p className="p-4">Cargando configuración...</p>;
+  if (!config) return <p className="p-4 text-red-600">Error cargando configuración</p>;
 
   return (
-    <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h1 className="text-xl font-bold mb-4 text-blue-800">Configuración de la app</h1>
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-md">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">⚙️ Configuración general</h1>
 
+      {/* Switches generales */}
       {[
-        { key: "habilitado", label: "Sitio Web General" },
-      //{ key: "calculadoraHabilitada", label: "Sección Calculadora" },
-        { key: "calculadoraCompletaHabilitada", label: "Sección Calculadora" },
-        { key: "suscripcionHabilitada", label: "Sección Suscripcion" },
-        { key: "jornalesHabilitados", label: "Sección Jornales" },
-      
+        { key: "habilitado", label: "Sitio habilitado" },
+        { key: "calculadoraHabilitada", label: "Calculadora habilitada" },
+        { key: "jornalesHabilitado", label: "Jornales habilitados" },
       ].map((item) => (
         <div key={item.key} className="flex items-center justify-between mb-4">
           <span>{item.label}</span>
           <input
             type="checkbox"
-            checked={config[item.key]}
+            checked={config[item.key] ?? true}
             onChange={(e) =>
               actualizarConfig({ ...config, [item.key]: e.target.checked })
             }
@@ -62,17 +85,61 @@ export function Configuracion() {
           />
         </div>
       ))}
-      <div className="mt-6">
-        <label className="block font-medium mb-2">💎 Precio de Suscripción (ARS)</label>
+
+      <hr className="my-6" />
+
+      <h2 className="text-xl font-semibold mb-4 text-gray-700">💳 Planes de suscripción</h2>
+
+      {/* Switches planes */}
+      {[
+        { key: "gratisHabilitado", label: "Plan Gratis" },
+        { key: "basicoHabilitado", label: "Plan Básico" },
+        { key: "profesionalHabilitado", label: "Plan Profesional" },
+      ].map((item) => (
+        <div key={item.key} className="flex items-center justify-between mb-4">
+          <span>{item.label}</span>
+          <input
+            type="checkbox"
+            checked={config[item.key] ?? true}
+            onChange={(e) =>
+              actualizarConfig({ ...config, [item.key]: e.target.checked })
+            }
+            className="w-5 h-5"
+          />
+        </div>
+      ))}
+
+      {/* Precios */}
+      <div className="mt-6 space-y-4">
+        <label className="block font-medium">💎 Precio Profesional (ARS)</label>
         <input
           type="number"
-          value={config.suscripcionPrecio || ""}
+          value={config.precioProfesional || ""}
           onChange={(e) =>
-            actualizarConfig({ ...config, suscripcionPrecio: Number(e.target.value) })
+            actualizarConfig({
+              ...config,
+              precioProfesional: Number(e.target.value),
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
+
+        <label className="block font-medium">📘 Precio Básico (ARS)</label>
+        <input
+          type="number"
+          value={config.precioBasico || ""}
+          onChange={(e) =>
+            actualizarConfig({
+              ...config,
+              precioBasico: Number(e.target.value),
+            })
           }
           className="w-full border rounded px-3 py-2"
         />
       </div>
+
+      {guardando && <p className="mt-4 text-blue-600">Guardando cambios...</p>}
+      {mensaje && <p className="mt-4">{mensaje}</p>}
     </div>
   );
 }

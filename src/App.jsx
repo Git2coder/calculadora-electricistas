@@ -23,7 +23,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { TareasAdmin } from "./pages/admin/TareasAdmin";
 import CargarTareasManual from "./CargarTareasManual";
 import { BotonRenovacion } from "./components/BotonRenovacion";
-import { Configuracion } from "./pages/admin/Configuracion";
+import  Configuracion  from "./pages/admin/Configuracion";
 import { Jornales } from "./pages/admin/Jornales";
 import Estadisticas from "./pages/admin/Estadisticas"
 import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
