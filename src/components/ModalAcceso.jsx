@@ -172,6 +172,9 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
         creadoEn: serverTimestamp(),
         estado: "activo",
         rol: "usuario",
+        // 👇 Campos necesarios para la calculadora
+        tarifaHoraria: 0,     // valor inicial editable por el usuario
+        costoConsulta: 0,     // valor inicial editable
       });
 
       setRegistroExitoso(true);

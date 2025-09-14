@@ -310,7 +310,7 @@ export function Home() {
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Presupuestos PDF ilimitados</li>
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Participación en votaciones</li>
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Sugerencia de precios al votar</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Soporte prioritario por chat</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Soporte a consultas</li>
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso a futuras actualizaciones</li>
             </ul>
             <div className="mt-6">
@@ -354,7 +354,7 @@ export function Home() {
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Presupuestos PDF limitados</li>
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Escala de remuneraciones</li>
               <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Votaciones de precios</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Soporte prioritario</li>
+              
             </ul>
             <div className="mt-6">
               <span className="text-3xl font-bold text-black-600">
