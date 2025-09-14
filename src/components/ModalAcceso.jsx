@@ -31,6 +31,7 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
   // --- Login state ---
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   // --- Registro por pasos ---
   const totalSteps = 4;
@@ -40,7 +41,6 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
@@ -55,6 +55,8 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
 
   const [sabeTarifa, setSabeTarifa] = useState("No");
   const [valorBoca, setValorBoca] = useState("");
+
+  const [estado, setEstado] = useState(null); // null | redirigiendo | error
 
   // Cerrar con ESC
   useEffect(() => {
@@ -76,19 +78,17 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
     onClose();
   };
 
-  // INICIAR PAGO
   const iniciarPago = async (uid, plan) => {
     try {
       const resp = await fetch("/api/createPreference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, plan }), // ✅ mandamos los dos
+        body: JSON.stringify({ uid, plan }),
       });
 
       if (!resp.ok) throw new Error("No se pudo iniciar el pago");
 
       const data = await resp.json();
-
       if (data.init_point) {
         window.location.href = data.init_point;
       } else {
@@ -96,7 +96,7 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
       }
     } catch (err) {
       console.error("Error iniciando pago:", err);
-      alert("Hubo un problema al iniciar el pago. Intentalo nuevamente.");
+      setEstado("error");
     }
   };
 
@@ -105,10 +105,9 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
     if (plan === "gratis") {
       await activarPlanGratis(uid);
     } else if (origen === "suscripcion") {
-      // Solo inicia el pago si vino desde los planes pagos
+      setEstado("redirigiendo");
       await iniciarPago(uid, plan);
     } else {
-      // Caso login normal → entra a calculadora sin error
       navigate("/calculadora");
       onClose();
     }
@@ -175,7 +174,6 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
         rol: "usuario",
       });
 
-      // Registro exitoso + post-accion según plan
       setRegistroExitoso(true);
       setTimeout(async () => {
         setRegistroExitoso(false);
@@ -189,17 +187,16 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
     }
   };
 
-  // === UI ===
+  // === Vistas ===
   const VistaLogin = () => (
     <>
-      <h2 className="text-xl font-bold mb-4">Iniciar sesión</h2>
       <input
         type="email"
-        placeholder="Email"
+        placeholder="Correo electrónico"
         value={loginEmail}
         onChange={(e) => setLoginEmail(e.target.value)}
+        autoComplete="off"
         className="w-full border p-2 mb-2 rounded"
-        autoFocus
       />
       <div className="relative mb-2">
         <input
@@ -207,7 +204,8 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
           placeholder="Contraseña"
           value={loginPassword}
           onChange={(e) => setLoginPassword(e.target.value)}
-          className="w-full border p-2 mb-2 rounded"
+          autoComplete="new-password"
+          className="w-full border p-2 rounded"
         />
         <button
           type="button"
@@ -238,7 +236,6 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
     </>
   );
 
-  // --- "Subcomponentes" como funciones (no JSX de componente) ---
   const PasoRegistro = () => (
     <>
       {/* Progreso */}
@@ -260,42 +257,34 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
             placeholder="Nombre"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
+            autoComplete="off"
             className="w-full border p-2 mb-2 rounded"
-            autoFocus
           />
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="off"
             className="w-full border p-2 mb-2 rounded"
           />
-
-          {/* Contraseña */}
           <div className="relative mb-2">
             <input
-              type={passwordVisible ? "text" : "password"}
+              type="password"
               placeholder="Contraseña (mín. 6)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               className="w-full border p-2 rounded"
             />
-            <button
-              type="button"
-              onClick={() => setPasswordVisible(!passwordVisible)}
-              className="absolute right-2 top-2 text-gray-500"
-            >
-              {passwordVisible ? "🙈" : "👁️"}
-            </button>
           </div>
-
-          {/* Confirmar contraseña */}
           <div className="relative">
             <input
               type={confirmPasswordVisible ? "text" : "password"}
               placeholder="Confirmar contraseña"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
               className="w-full border p-2 rounded"
             />
             <button
@@ -318,7 +307,7 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
             value={tipoTrabajo}
             onChange={(e) => setTipoTrabajo(e.target.value)}
             className="w-full border p-2 mb-2 rounded"
-            autoFocus
+            
           >
             <option>Doméstico</option>
             <option>Comercial</option>
@@ -379,7 +368,7 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
             value={provincia}
             onChange={(e) => setProvincia(e.target.value)}
             className="w-full border p-2 mb-2 rounded"
-            autoFocus
+            
           >
             <option value="">Seleccionar provincia...</option>
             <option>Buenos Aires</option>
@@ -410,7 +399,7 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
             value={sabeTarifa}
             onChange={(e) => setSabeTarifa(e.target.value)}
             className="w-full border p-2 mb-2 rounded"
-            autoFocus
+            
           >
             <option>Si</option>
             <option>No</option>
@@ -499,57 +488,56 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
     </>
   );
 
-   return (
-    <div
-      className="fixed inset-0 z-[1000] bg-black/50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white w-full max-w-md rounded-xl shadow-xl p-5 relative"
-        onClick={(e) => e.stopPropagation()}
-      >
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-60 px-4">
+      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 relative">
         <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
         >
           ✕
         </button>
 
-        <div className="flex gap-2 mb-4">
-          <button
-            className={`flex-1 py-2 rounded ${
-              modo === "login" ? "bg-blue-600 text-white" : "bg-gray-100"
-            }`}
-            onClick={() => setModo("login")}
-          >
-            Iniciar sesión
-          </button>
-          <button
-            className={`flex-1 py-2 rounded ${
-              modo === "registro" ? "bg-blue-600 text-white" : "bg-gray-100"
-            }`}
-            onClick={() => setModo("registro")}
-          >
-            Crear cuenta
-          </button>
+        {/* Título dinámico */}
+        <h2 className="text-xl font-bold mb-4 text-center">
+          {origen === "suscripcion"
+            ? modo === "login"
+              ? "Iniciar sesión para suscribirte"
+              : "Crear cuenta para suscribirte"
+            : modo === "login"
+            ? "Iniciar sesión"
+            : "Crear cuenta"}
+        </h2>
+
+        {/* Contenido */}
+        <div className={modo === "login" ? "block" : "hidden"}>{VistaLogin()}</div>
+        <div className={modo === "registro" ? "block" : "hidden"}>
+          {PasoRegistro()}
         </div>
 
-        {modo === "login" ? VistaLogin() : PasoRegistro()}
-
-        {registroExitoso && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-50">
-            <div className="text-center">
-              <p className="text-green-700 font-bold text-lg">
-                ¡Registro exitoso!
-              </p>
-              <p className="text-gray-600 text-sm">
-                {plan === "gratis"
-                  ? "Acceso gratis por 7 días habilitado 🎉"
-                  : "Redirigiendo a pago..."}
-              </p>
-            </div>
-          </div>
+        {/* Estado */}
+        {estado === "redirigiendo" && (
+          <p className="text-green-600 font-medium mt-3 text-center animate-pulse">
+            ✔ Acceso correcto. Ahora te llevamos al pago de tu suscripción...
+          </p>
         )}
+        {estado === "error" && (
+          <p className="text-red-600 font-medium mt-3 text-center">
+            Ocurrió un problema. Intentalo nuevamente.
+          </p>
+        )}
+
+        {/* Link para cambiar modo */}
+        <p className="mt-4 text-center text-sm text-gray-600">
+          {modo === "login" ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}{" "}
+          <button
+            onClick={() => setModo(modo === "login" ? "registro" : "login")}
+            className="text-blue-600 hover:underline font-medium"
+          >
+            {modo === "login" ? "Registrate" : "Accedé"}
+          </button>
+        </p>
       </div>
     </div>
   );

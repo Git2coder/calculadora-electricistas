@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaCalculator, FaBook, FaNewspaper, FaCheck } from "react-icons/fa";
+import { FaCalculator, FaBook, FaNewspaper, FaCheck, FaTimes } from "react-icons/fa";
 import { FaUserCircle } from "react-icons/fa";
 import EscalaRemuneracion from "../components/EscalaRemuneracion";
 import ModalAcceso from "../components/ModalAcceso";
@@ -246,25 +246,38 @@ export function Home() {
       </section>
 
       {/* Planes de suscripción */}
-      <section id="planes" className="bg-white py-6 px-6 scroll-mt-20">
+      <section id="planes" className="bg-white py-12 px-6 scroll-mt-20">
         <div className="max-w-6xl mx-auto text-center mb-12">
           <h2 className="text-3xl font-bold text-blue-800">Elegí tu plan</h2>
-          <p className="text-gray-600 mt-2">Accedé a la calculadora y otros recursos según tu plan</p>
+          <p className="text-gray-600 mt-2">
+            Accedé a la calculadora y recursos exclusivos según tu suscripción
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Plan Gratis */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }} className="bg-white border rounded-2xl shadow p-8 flex flex-col">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="bg-white border rounded-2xl shadow p-8 flex flex-col hover:shadow-lg transition"
+          >
             <h3 className="text-xl font-bold mb-4">Gratis</h3>
-            <p className="text-gray-600 mb-6">Probá la herramienta sin costo durante 7 días.</p>
+            <p className="text-gray-600 mb-6">
+              Probá la herramienta sin costo durante 7 días.
+            </p>
             <ul className="space-y-3 flex-1 text-left">
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso limitado</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora limitada</li>
               <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> 7 días de prueba</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaCheck /> Sin extras</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Escala de remuneraciones</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Noticias e índice</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Presupuestos PDF</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Votaciones o soporte</li>
             </ul>
             <div className="mt-6">
               <span className="text-3xl font-bold text-gray-700">$0</span>
-              <span className="text-sm text-gray-500"> / una vez</span>
+              <span className="text-sm text-gray-500"> / prueba</span>
             </div>
             <button
               onClick={() => {
@@ -279,20 +292,33 @@ export function Home() {
           </motion.div>
 
           {/* Plan Profesional (destacado) */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} viewport={{ once: true }} className="bg-white border-2 border-yellow-500 rounded-2xl shadow-xl p-10 flex flex-col relative transform scale-105">
-            <div className="absolute -top-3 right-6 bg-black text-white text-xs px-3 py-1 rounded-full">⭐ Recomendado</div>
-            <h3 className="text-xl font-bold mb-4">Profesional</h3>
-            <p className="text-gray-600 mb-6">Accedé al máximo potencial de esta herramienta.</p>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="bg-white border-2 border-yellow-500 rounded-2xl shadow-xl p-10 flex flex-col relative transform scale-105 hover:shadow-2xl transition"
+          >
+            <div className="absolute -top-3 right-6 bg-black text-white text-xs px-3 py-1 rounded-full">⚡ Profesional</div>
+            <h3 className="text-xl font-bold mb-4">Completo</h3>
+            <p className="text-gray-600 mb-6">
+              Accedé al máximo potencial de la herramienta y todas sus funciones.
+            </p>
             <ul className="space-y-3 flex-1 text-left">
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora completa</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Soporte prioritario</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso a votaciones</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora completa y actualizada</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Noticias e índice</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Presupuestos PDF ilimitados</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Participación en votaciones</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Sugerencia de precios al votar</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Soporte prioritario por chat</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso a futuras actualizaciones</li>
             </ul>
             <div className="mt-6">
-              <span className="text-3xl font-bold text-black-600">${config?.suscripcionPrecio.toLocaleString("es-AR")}</span>
+              <span className="text-3xl font-bold text-black-600">
+                ${config?.suscripcionPrecio.toLocaleString("es-AR")}
+              </span>
               <span className="text-sm text-gray-500"> / mes</span>
             </div>
-
             <button
               onClick={() => {
                 if (usuario) {
@@ -311,19 +337,31 @@ export function Home() {
           </motion.div>
 
           {/* Plan Básico */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} viewport={{ once: true }} className="bg-white border-2 border-blue-500 rounded-2xl shadow-lg p-8 flex flex-col relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="bg-white border-2 border-blue-500 rounded-2xl shadow-lg p-8 flex flex-col hover:shadow-xl transition"
+          >
             <h3 className="text-xl font-bold mb-4">Básico</h3>
-            <p className="text-gray-600 mb-6">Ideal para quienes inician y quieren gestionar sus presupuestos.</p>
+            <p className="text-gray-600 mb-6">
+              Ideal para quienes recién comienzan y quieren gestionar presupuestos.
+            </p>
             <ul className="space-y-3 flex-1 text-left">
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora limitada</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Noticias e Índice</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaCheck /> Sin funciones avanzadas</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora parcial</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Noticias e índice</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Presupuestos PDF limitados</li>
+              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Escala de remuneraciones</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Votaciones de precios</li>
+              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Soporte prioritario</li>
             </ul>
             <div className="mt-6">
-              <span className="text-3xl font-bold text-black-600">${(config?.suscripcionPrecio * 0.6).toLocaleString("es-AR")}</span>
+              <span className="text-3xl font-bold text-black-600">
+                ${(config?.suscripcionPrecio * 0.6).toLocaleString("es-AR")}
+              </span>
               <span className="text-sm text-gray-500"> / mes</span>
             </div>
-
             <button
               onClick={() => {
                 if (usuario) {
@@ -341,12 +379,16 @@ export function Home() {
             </button>
           </motion.div>
         </div>
+      </section>
 
         {/* Modal acceso */}
         {modalAbierto && (
-          <ModalAcceso isOpen={modalAbierto} plan={planSeleccionado} origen={origen} onClose={() => setModalAbierto(false)} />
-        )}
-      </section>
+          <ModalAcceso 
+          isOpen={modalAbierto} 
+          plan={planSeleccionado} 
+          origen={origen} 
+          onClose={() => setModalAbierto(false)} />
+        )}      
     </div>
   );
 }
