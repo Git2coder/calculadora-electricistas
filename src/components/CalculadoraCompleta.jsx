@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ModalTarifa from "./ModalTarifa";
 import ModalSugerencia from "./ModalSugerencia";
-import { FaPlus, FaTrash, FaWrench, FaBroom } from "react-icons/fa";
+import { ImUsers } from "react-icons/im";
+import { FaPlus, FaTrash, FaWrench, FaBroom, FaHardHat, FaBolt, FaClock } from "react-icons/fa";
+import { RiExpandHeightFill } from "react-icons/ri";
 import { useRef } from "react";
 import { TooltipInfo } from "./TooltipInfo";
 import { tareasPredefinidas } from "../utils/tareas";
@@ -26,10 +28,16 @@ import { getAuth } from "firebase/auth";
 - Instalación en servicio (sin corte) → +40% (maniobra con tensión, riesgo eléctrico).*/}
 
 const extrasDisponibles = [
-  { id: "altura", nombre: "Altura complicada", multiplicador: 1.5 },
-  { id: "urgencia", nombre: "Trabajo nocturno / fuera de horario", multiplicador: 1.3 },
-  { id: "riesgo", nombre: "Instalación en servicio", multiplicador: 1.4 },
-  { id: "doble", nombre: "Dos operarios", multiplicador: 1.3 },
+  { id: "altura", nombre: "Trabajo en altura", multiplicador: 1.25 },
+  { id: "doble", nombre: "Dos operarios", multiplicador: 1.2 },
+  { id: "riesgo", nombre: "Instalación en servicio", multiplicador: 1.3 },
+  { id: "urgencia", nombre: "Trabajo urgente / fuera de horario", multiplicador: 1.5 },
+];
+const extrasGlobales = [
+  { id: "altura", label: "Trabajo en altura", multiplicador: 1.25, icon: <RiExpandHeightFill /> },
+  { id: "dosOperarios", label: "Dos operarios", multiplicador: 1.2, icon: <ImUsers /> },
+  { id: "riesgo", label: "Instalación en servicio", multiplicador: 1.3, icon: <FaBolt /> },
+  { id: "urgencia", label: "Trabajo urgente / fuera de horario", multiplicador: 1.5, icon: <FaClock /> },
 ];
 
 export default function CalculadoraCompleta() {
@@ -44,6 +52,7 @@ export default function CalculadoraCompleta() {
   const [incluirVisita, setIncluirVisita] = useState(true);
   const [config, setConfig] = useState(null);
   const sonidoMonedas = useRef(new Audio("/sounds/coin.mp3"));
+  const [extrasSeleccionadosGlobal, setExtrasSeleccionadosGlobal] = useState([]);
 
 
   useEffect(() => {
@@ -466,9 +475,21 @@ export default function CalculadoraCompleta() {
     0
   );
 
-  const costoFinal = isNaN(costoBase)
+  let total = costoBase;  // 👈 corregido
+
+  // Aplicar multiplicadores globales
+  extrasSeleccionadosGlobal.forEach((id) => {
+    const extra = extrasGlobales.find((e) => e.id === id);
+    if (extra) {
+      total *= extra.multiplicador;
+    }
+  });
+
+  // Sumar visita + ajustes
+  const costoFinal = isNaN(total)
     ? 0
-    : (costoBase + (incluirVisita ? visitaSegura : 0)) + (costoBase * ajustePorcentaje) / 100;
+    : (total + (incluirVisita ? visitaSegura : 0)) + (total * ajustePorcentaje) / 100;
+
 
   // Botones + y - adiciona o disminuyen la cantidad de la tarea
   const actualizarCantidad = (id, nuevaCantidad) => {
@@ -578,6 +599,9 @@ export default function CalculadoraCompleta() {
               tarifaHoraria={tarifaHoraria}
               visitaSegura={visitaSegura}
               tareasPredefinidas={tareasPredefinidas}
+              extrasGlobales={extrasGlobales}
+              extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}  
+              setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
             />
           </>
         )}
