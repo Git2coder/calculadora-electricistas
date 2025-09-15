@@ -1,6 +1,8 @@
-import React from "react";
+// TareasSeleccionadas.jsx
+import React, { useState } from "react";
 import { FaTrash, FaBroom } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import ReactDOM from "react-dom";
 
 const TareasSeleccionadas = ({
   tareasSeleccionadas,
@@ -9,7 +11,23 @@ const TareasSeleccionadas = ({
   eliminarTarea,
   limpiarTareas,
   setTareasSeleccionadas,
+  extrasDisponibles,
+  toggleExtra
 }) => {
+  
+  // Estado para menú de extras
+  const [extraMenuAbierto, setExtraMenuAbierto] = useState(null);
+  const [posicionMenu, setPosicionMenu] = useState({ top: 0, left: 0 });
+
+  const abrirMenu = (tareaUid, e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPosicionMenu({
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    });
+    setExtraMenuAbierto(tareaUid);
+  };
+    
   return (
     <div className="bg-white p-6 rounded-xl shadow">
       <h2 className="text-xl font-semibold mb-4">🛠️ Tareas Seleccionadas</h2>
@@ -25,7 +43,7 @@ const TareasSeleccionadas = ({
                 tarea.origen ? "pl-6 italic" : ""
               } ${tarea.pausada ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {/* Nombre y etiqueta de pausada */}
+              {/* Nombre y extras */}
               <span className="flex-1 flex items-center gap-1 relative">
                 {tarea.origen && <span className="text-xs text-blue-400">↳</span>}
                 {tarea.nombre}
@@ -34,7 +52,51 @@ const TareasSeleccionadas = ({
                     Pausada
                   </span>
                 )}
-              </span>
+
+                {/* ⚙️ Extras SOLO si no es administrativa */}
+                {tarea.tipo !== "administrativa" && (
+                  <div className="relative">
+                    <button
+                      onClick={(e) =>
+                        extraMenuAbierto === tarea.uid
+                          ? setExtraMenuAbierto(null)
+                          : abrirMenu(tarea.uid, e)
+                      }
+                      className="ml-2 text-xs text-gray-500 hover:text-blue-600"
+                      title="Agregar condiciones especiales"
+                    >
+                      ⚙️
+                    </button>
+
+                    {/* Renderizo portal solo cuando el menú de esa tarea está abierto */}
+                    {extraMenuAbierto === tarea.uid &&
+                      ReactDOM.createPortal(
+                        <div
+                          className="absolute bg-white border rounded shadow p-2 z-50"
+                          style={{
+                            top: posicionMenu.top,
+                            left: posicionMenu.left,
+                          }}
+                        >
+                          {extrasDisponibles.map((extra) => (
+                            <label
+                              key={extra.id}
+                              className="flex items-center gap-2 text-sm cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={(tarea.extras || []).includes(extra.id)}
+                                onChange={() => toggleExtra(tarea.uid, extra.id)}
+                              />
+                              {extra.nombre}
+                            </label>
+                          ))}
+                        </div>,
+                        document.body
+                      )}
+                  </div>
+                )}
+              </span>    
 
               {/* 👉 Si está pausada, no muestro controles */}
               {!tarea.pausada && (
@@ -53,7 +115,6 @@ const TareasSeleccionadas = ({
                                 : "bg-gray-200 text-gray-700"
                             }`}
                             onClick={() => modificarTarea(tarea.uid, "variante", clave)}
-
                           >
                             {clave
                               .replaceAll("-", " ")
@@ -101,7 +162,7 @@ const TareasSeleccionadas = ({
                       </button>
                     </div>
                   </div>
-
+        
                   {/* Input adicional si requiere */}
                   {tarea.requiereInput && (
                     <div className="flex items-center gap-1">

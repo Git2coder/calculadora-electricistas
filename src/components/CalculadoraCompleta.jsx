@@ -1,3 +1,4 @@
+// CalculadoraCompleta.jsx
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ModalTarifa from "./ModalTarifa";
@@ -15,6 +16,22 @@ import ResumenPresupuesto from "./calculadora/ResumenPresupuesto";
 import BuscadorTareas from "./calculadora/BuscadorTareas";
 import { getAuth } from "firebase/auth";
 
+// 🔹 Extras elegantes que multiplican el costo/tiempo
+
+{/*En altura → +50% tiempo (más de 3 m, escaleras, techos, fachadas).
+- Doble operario requerido → +30% (peso, seguridad, sostener piezas grandes).
+- Acceso restringido → +25% (ej: espacios muy reducidos, debajo de mesadas, entre cielorrasos).
+- Zona exterior / intemperie → +20% (tiempo extra por fijaciones, sellado, seguridad).
+- Trabajo nocturno / fuera de horario → +50% (disponibilidad y seguridad).
+- Instalación en servicio (sin corte) → +40% (maniobra con tensión, riesgo eléctrico).*/}
+
+const extrasDisponibles = [
+  { id: "altura", nombre: "Altura complicada", multiplicador: 1.5 },
+  { id: "urgencia", nombre: "Trabajo nocturno / fuera de horario", multiplicador: 1.3 },
+  { id: "riesgo", nombre: "Instalación en servicio", multiplicador: 1.4 },
+  { id: "doble", nombre: "Dos operarios", multiplicador: 1.3 },
+];
+
 export default function CalculadoraCompleta() {
   const [busqueda, setBusqueda] = useState("");
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState([]);
@@ -30,20 +47,20 @@ export default function CalculadoraCompleta() {
 
 
   useEffect(() => {
-  const fetchConfig = async () => {
-    try {
-      const docRef = doc(db, "config", "app");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        console.log("CONFIG:", docSnap.data());
-        setConfig(docSnap.data());
-      } else {
-        console.log("❌ No existe el documento config/app");
+    const fetchConfig = async () => {
+      try {
+        const docRef = doc(db, "config", "app");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          console.log("CONFIG:", docSnap.data());
+          setConfig(docSnap.data());
+        } else {
+          console.log("❌ No existe el documento config/app");
+        }
+      } catch (error) {
+        console.error("Error cargando config:", error);
       }
-    } catch (error) {
-      console.error("Error cargando config:", error);
-    }
-  };
+    };
 
     fetchConfig();
   }, []);
@@ -216,6 +233,7 @@ export default function CalculadoraCompleta() {
         valor: totalInterno,
         incluye: tarea.ocultarSubtareas ? [] : tarea.incluye,
         originalIncluye: tarea.incluye,
+        extras: [] // 👈 inicializo extras también en paquetes
       };
 
       setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
@@ -259,6 +277,7 @@ export default function CalculadoraCompleta() {
       valorUnidad: tarea.valorUnidad ?? 0,
       porcentaje: (varianteConfig?.porcentaje ?? tarea.porcentaje ?? 0),
       variante: tarea.variante ?? null,
+      extras: [] // 👈 nuevo: siempre inicializo extras como array de ids
     };
 
     setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
@@ -385,78 +404,97 @@ export default function CalculadoraCompleta() {
     valorBoca = (baseBoca.tiempo / 60) * tarifaHoraria * factor;
   }
 
-  // --- Calcular subtotal de cada tarea seleccionada ---
-const subtotalDeTarea = (tarea) => {
-  // 👇 caso especial para Boca
-  if (tarea.nombre === "Boca" && valorBoca !== null) {
-    return valorBoca * (tarea.cantidad || 1);
-  }
-
-  if (tarea.tipo === "base") {
-    return (tarea.tiempo / 60) * tarifaHoraria * (tarea.multiplicador ?? 1) * (tarea.cantidad || 1);
-  }
-
-  if (tarea.dependeDe === "Boca" && valorBoca !== null) {
-    let factor = tarea.factorBoca ?? 1;
-    if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-      factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
-    }
-    return valorBoca * factor * (tarea.cantidad || 1);
-  }
-
-  if (tarea.tipo === "administrativa") {
-    return (tarea.valor || 0) * (tarea.cantidad || 1);
-  }
-
-  if (tarea.tipo === "calculada") {
-    const cantidad = tarea.cantidad || 1;
-    const valorUnidad = tarea.valorUnidad || 0;
-    const porcentaje = tarea.porcentaje || 0;
-    return ((valorUnidad * porcentaje) / 100) * cantidad;
-  }
-
-  const factor = tarea.multiplicador ?? 1;
-  return (tarea.tiempo / 60) * tarifaHoraria * (tarea.cantidad || 1) * factor;
-};
-
-
-
-    // --- Calcular costo base total ---
-    const costoBase = tareasSeleccionadas.reduce(
-      (acc, tarea) => acc + subtotalDeTarea(tarea),
-      0
+  // 🔹 Toggle de extra en una tarea
+  // ahora recibe (uid, extraId) y almacena solo el id en el array extras
+  const toggleExtra = (uid, extraId) => {
+    setTareasSeleccionadas((prev) =>
+      prev.map((t) =>
+        t.uid === uid
+          ? {
+              ...t,
+              extras: t.extras?.includes(extraId)
+                ? t.extras.filter((e) => e !== extraId) // quitar
+                : [...(t.extras || []), extraId] // agregar
+            }
+          : t
+      )
     );
+  };
 
-    const costoFinal = isNaN(costoBase)
+  // --- Calcular subtotal de cada tarea seleccionada ---
+  const subtotalDeTarea = (tarea) => {
+    let base = 0;
+
+    if (tarea.nombre === "Boca" && valorBoca !== null) {
+      base = valorBoca * (tarea.cantidad || 1);
+    } else if (tarea.tipo === "base") {
+      base = (tarea.tiempo / 60) * tarifaHoraria * (tarea.multiplicador ?? 1) * (tarea.cantidad || 1);
+    } else if (tarea.dependeDe === "Boca" && valorBoca !== null) {
+      let factor = tarea.factorBoca ?? 1;
+      if (tarea.variante && tarea.opciones?.[tarea.variante]) {
+        factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
+      }
+      base = valorBoca * factor * (tarea.cantidad || 1);
+    } else if (tarea.tipo === "administrativa") {
+      base = (tarea.valor || 0) * (tarea.cantidad || 1);
+    } else if (tarea.tipo === "calculada") {
+      const cantidad = tarea.cantidad || 1;
+      const valorUnidad = tarea.valorUnidad || 0;
+      const porcentaje = tarea.porcentaje || 0;
+      base = ((valorUnidad * porcentaje) / 100) * cantidad;
+    } else {
+      const factor = tarea.multiplicador ?? 1;
+      base = (tarea.tiempo / 60) * tarifaHoraria * (tarea.cantidad || 1) * factor;
+    }
+
+    // 👇 aplicar extras (solo si no es administrativa)
+    if (tarea.tipo !== "administrativa") {
+      const extraFactor = (tarea.extras || []).reduce((acc, eId) => {
+        const ed = extrasDisponibles.find((x) => x.id === eId);
+        return acc * (ed?.multiplicador ?? 1);
+      }, 1);
+      return base * extraFactor;
+    }
+
+    return base;
+  };
+
+
+  // --- Calcular costo base total ---
+  const costoBase = tareasSeleccionadas.reduce(
+    (acc, tarea) => acc + subtotalDeTarea(tarea),
+    0
+  );
+
+  const costoFinal = isNaN(costoBase)
     ? 0
     : (costoBase + (incluirVisita ? visitaSegura : 0)) + (costoBase * ajustePorcentaje) / 100;
 
-    // Botones + y - adiciona o disminuyen la cantidad de la tarea
-    const actualizarCantidad = (id, nuevaCantidad) => {
-      setTareasSeleccionadas((prev) =>
-        prev.map((t) =>
-          t.uid === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
-        )
-      );
-    };
+  // Botones + y - adiciona o disminuyen la cantidad de la tarea
+  const actualizarCantidad = (id, nuevaCantidad) => {
+    setTareasSeleccionadas((prev) =>
+      prev.map((t) =>
+        t.uid === id ? { ...t, cantidad: Math.max(1, nuevaCantidad) } : t
+      )
+    );
+  };
 
-    if (!config) {
-      return <div className="p-4">Cargando configuración...</div>;
-    }
+  if (!config) {
+    return <div className="p-4">Cargando configuración...</div>;
+  }
 
-    // 👇 chequeás si está habilitada
-    if (!config.calculadoraCompletaHabilitada) {
-      return (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
-          🚧 La calculadora está en mantenimiento temporal.
-        </div>
-      );
-    }
+  // 👇 chequeás si está habilitada
+  if (!config.calculadoraCompletaHabilitada) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
+        🚧 La calculadora está en mantenimiento temporal.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
-        
         {/* 👇 chequeo si los datos de Firestore ya cargaron */}
         {tarifaHoraria === null || costoConsulta === null ? (
           <p className="text-center text-gray-500">Cargando configuración...</p>
@@ -515,6 +553,8 @@ const subtotalDeTarea = (tarea) => {
               eliminarTarea={eliminarTarea}
               limpiarTareas={limpiarTareas}
               setTareasSeleccionadas={setTareasSeleccionadas}
+              extrasDisponibles={extrasDisponibles}   // 👈 pasamos esto
+              toggleExtra={toggleExtra}               // 👈 y esto también
             />
 
             {/* Leyenda informativa sobre desarrollo de la app */}
