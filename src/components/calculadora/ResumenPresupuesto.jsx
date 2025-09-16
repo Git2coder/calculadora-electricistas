@@ -41,6 +41,8 @@ const ResumenPresupuesto = ({
       tareasPredefinidas,
       titulo: "Presupuesto Eléctrico",
       validezDias, // 👈 ahora se pasa al PDF
+      extrasGlobales,                
+      extrasSeleccionadosGlobal,    
     });
   };
 

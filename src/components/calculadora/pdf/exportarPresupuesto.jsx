@@ -14,6 +14,9 @@ export const exportarPresupuestoPDF = async ({
   tareasPredefinidas = [],
   titulo = "Presupuesto Eléctrico",
   validezDias = 15,
+  extrasGlobales = [],                 
+  extrasSeleccionadosGlobal = [],    
+
 }) => {
   const $fmt = (n) =>
     `$${Number(n || 0).toLocaleString("es-AR", {
@@ -151,23 +154,52 @@ export const exportarPresupuestoPDF = async ({
   // --- Tabla de conceptos ---
   const filas = [];
   let costoBasePDF = 0;
+
   tareasSeleccionadas.forEach((t) => {
     const sub = subtotalDeTarea(t);
     costoBasePDF += sub;
     filas.push([t.nombre, t.cantidad || 1, $fmt(sub)]);
   });
 
+  // Ajuste por herramientas/insumos
   const montoAjuste = (costoBasePDF * (ajustePorcentaje || 0)) / 100;
   if (ajustePorcentaje > 0) {
     filas.push([`Herramientas e Insumos`, "", $fmt(montoAjuste)]);
   }
 
+  // 👉 Extras globales: método acumulativo
+  let acumuladoConExtras = costoBasePDF + montoAjuste;
+
+  extrasSeleccionadosGlobal.forEach((id) => {
+    const extra = extrasGlobales.find((e) => e.id === id);
+    if (extra) {
+      const nuevoTotal = acumuladoConExtras * extra.multiplicador;
+      const impacto = nuevoTotal - acumuladoConExtras; // diferencia incremental
+      filas.push([
+        `${extra.label}`,
+        "",
+        $fmt(impacto),
+      ]);
+      acumuladoConExtras = nuevoTotal; // actualizar base para el siguiente extra
+    }
+  });
+
+ // --- Visita / Consulta ---
   if (incluirVisita) {
-    const conceptoVisita =
-      costoVisita > 0 ? "Visita / Consulta" : "Visita / Consulta (BONIFICADA)";
-    const subtotalVisita = costoVisita > 0 ? $fmt(costoVisita) : "";
+    const conceptoVisita = "Visita / Consulta";
+    let subtotalVisita;
+
+    if (costoVisita > 0) {
+      // caso normal: cobra la consulta
+      subtotalVisita = $fmt(costoVisita);
+    } else {
+      // caso bonificado
+      subtotalVisita = "Bonificado";
+    }
+
     filas.push([conceptoVisita, "", subtotalVisita]);
   }
+
 
   autoTable(docPDF, {
     head: [["Concepto", "Cantidad", { content: "Subtotal", styles: { halign: "right" } }]],
@@ -178,7 +210,7 @@ export const exportarPresupuestoPDF = async ({
     columnStyles: {
       0: { cellWidth: 100, halign: "left" },
       1: { cellWidth: 30, halign: "center" },
-      2: { cellWidth: 50, halign: "right" }, // 👉 montos alineados a la derecha
+      2: { cellWidth: 50, halign: "right" },
     },
     didDrawPage: () => {
       const pageSize = docPDF.internal.pageSize;
@@ -203,44 +235,70 @@ export const exportarPresupuestoPDF = async ({
     },
   });
 
-  const finalY = docPDF.lastAutoTable?.finalY || 40;
-  const totalPDF =
-    costoBasePDF + montoAjuste + (incluirVisita && costoVisita > 0 ? costoVisita : 0);
+    const finalY = docPDF.lastAutoTable?.finalY || 40;
 
-  // --- Total + Validez ---
-  docPDF.setFont("helvetica", "bold");
-  docPDF.setFontSize(13);
-  docPDF.text(`TOTAL: ${$fmt(totalPDF)}`, 14, finalY + 10);
+    // 1) Partimos del costo base
+    let totalPDF = costoBasePDF;
 
-  docPDF.setFont("helvetica", "italic");
-  docPDF.setFontSize(10);
-  docPDF.text(`Validez: ${validezDias} días`, 200 - 14, finalY + 10, { align: "right" });
+    // 2) Aplicar ajuste (% sobre las tareas)
+    if (ajustePorcentaje > 0) {
+      totalPDF += (totalPDF * ajustePorcentaje) / 100;
+    }
+
+    // 3) Extras globales (acumulativos)
+    extrasSeleccionadosGlobal.forEach((id) => {
+      const extra = extrasGlobales.find((e) => e.id === id);
+      if (extra) {
+        totalPDF *= extra.multiplicador;
+      }
+    });
+
+    // 4) Visita (se suma al final, nunca multiplicada)
+    if (incluirVisita) {
+      if (costoVisita > 0) {
+        totalPDF += costoVisita;
+      }
+      // si es bonificada, se muestra en la tabla pero suma $0
+    }
+
+    // --- Total + Validez ---
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(13);
+    docPDF.text(`TOTAL: ${$fmt(totalPDF)}`, 14, finalY + 10);
+
+    docPDF.setFont("helvetica", "italic");
+    docPDF.setFontSize(10);
+    docPDF.text(`Validez: ${validezDias} días`, 200 - 14, finalY + 10, { align: "right" });
+
+    // Línea separadora
+    docPDF.setDrawColor(180);
+    docPDF.line(10, finalY + 15, 200, finalY + 15);
 
   // Línea separadora
-  docPDF.setDrawColor(180);
-  docPDF.line(10, finalY + 15, 200, finalY + 15);
+    docPDF.setDrawColor(180);
+    docPDF.line(10, finalY + 15, 200, finalY + 15);
 
-  // --- Condiciones generales ---
-  docPDF.setFont("helvetica", "bold");
-  docPDF.setFontSize(12);
-  docPDF.text("CONDICIONES GENERALES", 14, finalY + 25);
+    // --- Condiciones generales ---
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(12);
+    docPDF.text("CONDICIONES GENERALES", 14, finalY + 25);
 
-  docPDF.setFont("times", "italic");
-  docPDF.setFontSize(10);
+    docPDF.setFont("times", "italic");
+    docPDF.setFontSize(10);
 
-  const condiciones = [
-    `Este presupuesto está expresado en pesos argentinos y mantiene su validez por ${validezDias} días a partir de la fecha de emisión.`,
-    "Si durante ese período surgieran cambios económicos importantes (impuestos, cargos o medidas que afecten materiales o servicios), el monto podrá ser ajustado en caso de que el trabajo no haya sido abonado en su totalidad.",
-    "El precio final puede variar si durante la ejecución se realizan cambios de diseño, ampliaciones o surgen imprevistos. Cualquier modificación será informada previamente al cliente.",
-    "Los impuestos y tasas aplicables se calcularán según la normativa vigente al momento de la facturación.",
-  ];
+    const condiciones = [
+      `Este presupuesto está expresado en pesos argentinos y mantiene su validez por ${validezDias} días a partir de la fecha de emisión.`,
+      "Si durante ese período surgieran cambios económicos importantes (impuestos, cargos o medidas que afecten materiales o servicios), el monto podrá ser ajustado en caso de que el trabajo no haya sido abonado en su totalidad.",
+      "El precio final puede variar si durante la ejecución se realizan cambios de diseño, ampliaciones o surgen imprevistos. Cualquier modificación será informada previamente al cliente.",
+      "Los impuestos y tasas aplicables se calcularán según la normativa vigente al momento de la facturación.",
+    ];
 
-  let yCondiciones = finalY + 35;
-  condiciones.forEach((linea) => {
-    const splitText = docPDF.splitTextToSize(`• ${linea}`, 180);
-    docPDF.text(splitText, 14, yCondiciones);
-    yCondiciones += splitText.length * 6;
-  });
+    let yCondiciones = finalY + 35;
+    condiciones.forEach((linea) => {
+      const splitText = docPDF.splitTextToSize(`• ${linea}`, 180);
+      docPDF.text(splitText, 14, yCondiciones);
+      yCondiciones += splitText.length * 6;
+    });
 
   // --- Guardar PDF ---
   docPDF.save(`presupuesto-${Date.now()}.pdf`);
