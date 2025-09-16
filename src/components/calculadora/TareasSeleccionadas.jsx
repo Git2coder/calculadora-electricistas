@@ -1,5 +1,5 @@
 // TareasSeleccionadas.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaTrash, FaBroom } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReactDOM from "react-dom";
@@ -15,6 +15,21 @@ const TareasSeleccionadas = ({
   toggleExtra
 }) => {
   
+  // referencia al contenedor del menú
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        // 👇 si hago click fuera del menú → cierro
+        setExtraMenuAbierto(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // 👇 sonido cuando se agrega una tarea
   const sonidoLimpiar = useRef(new Audio("/sounds/air-blow.mp3")); // 👈 poné tu archivo
 
@@ -82,6 +97,7 @@ const TareasSeleccionadas = ({
                     {extraMenuAbierto === tarea.uid &&
                       ReactDOM.createPortal(
                         <div
+                          ref={menuRef} // 👈 referencia aquí
                           className="absolute bg-white border rounded shadow p-2 z-50"
                           style={{
                             top: posicionMenu.top,

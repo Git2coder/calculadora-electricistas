@@ -161,31 +161,37 @@ const ResumenPresupuesto = ({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Ajuste de Precio (%)
         </label>
-        <input
-          type="range"
-          min="-50"
-          max="50"
-          step="1"
-          value={ajustePorcentaje}
-          onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
-          className="w-full accent-current"
-        />
 
-        {/* Indicador visual */}
-        <div className="relative w-full h-2 bg-gray-200 rounded mt-2">
-          <div
-            className={`absolute top-0 h-2 rounded transition-all duration-300 ${
-              ajustePorcentaje < 0
-                ? "bg-green-500"
-                : ajustePorcentaje > 0
-                ? "bg-red-500"
-                : "bg-gray-400"
-            }`}
-            style={{
-              left: ajustePorcentaje < 0 ? `${50 + ajustePorcentaje}%` : "50%",
-              width: `${Math.abs(ajustePorcentaje)}%`,
-            }}
+        {/* Riel central */}
+        <div className="relative w-full">
+          <input
+            type="range"
+            min="-50"
+            max="50"
+            step="1"
+            value={ajustePorcentaje}
+            onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
+            className="w-full appearance-none bg-transparent cursor-pointer"
+            style={{ zIndex: 10, position: "relative" }}
           />
+
+          {/* Colores dinámicos */}
+          <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-200 rounded -translate-y-1/2">
+            {/* Mitad izquierda (descuento) */}
+            <div
+              className="absolute top-0 left-0 h-2 bg-green-500 rounded-l transition-all duration-300"
+              style={{
+                width: ajustePorcentaje < 0 ? `${Math.abs(ajustePorcentaje)}%` : "0%",
+              }}
+            />
+            {/* Mitad derecha (recargo) */}
+            <div
+              className="absolute top-0 right-0 h-2 bg-red-500 rounded-r transition-all duration-300"
+              style={{
+                width: ajustePorcentaje > 0 ? `${ajustePorcentaje}%` : "0%",
+              }}
+            />
+          </div>
         </div>
 
         {/* Texto dinámico */}
@@ -196,8 +202,29 @@ const ResumenPresupuesto = ({
             ? `${ajustePorcentaje}% (descuento)`
             : "0% (sin ajuste)"}
         </p>
-      </div>
 
+        {/* Botones de control */}
+        <div className="flex justify-center gap-3 mt-3">
+          <button
+            onClick={() => setAjustePorcentaje((prev) => Math.max(prev - 1, -50))}
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            ➖
+          </button>
+          <button
+            onClick={() => setAjustePorcentaje(0)}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            🔄
+          </button>
+          <button
+            onClick={() => setAjustePorcentaje((prev) => Math.min(prev + 1, 50))}
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            ➕
+          </button>
+        </div>
+      </div>
       </div>  
     </div>
 
