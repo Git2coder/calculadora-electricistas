@@ -43,10 +43,11 @@ const ConfiguracionTarifas = ({
 
   return (
     <div className="bg-white p-4 rounded-xl shadow flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+      
       {/* Tarifa horaria */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <IoTime className="text-indigo-600" />
-        <span className="font-semibold">Tarifa Horaria:</span>
+        <span className="font-semibold">Tarifa/hora:</span>
         {editTarifa ? (
           <input
             type="number"
@@ -72,16 +73,16 @@ const ConfiguracionTarifas = ({
           <FaEdit /> Editar
         </button>
         <button
-          className="flex items-center gap-1 px-3 py-1 text-sm sm:text bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          className="flex items-center justify-center px-2 sm:px-3 py-1 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
           onClick={() => setMostrarModalTarifa(true)}
         >
           <FaCalculator />
-          <span>Calcular</span>
+          <span className="hidden sm:inline">Calcular</span>
         </button>
       </div>
 
       {/* Valor de la visita */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <FaMoneyBillWave className="text-green-600" />
         <span className="font-semibold">Visita:</span>
         {editVisita ? (
