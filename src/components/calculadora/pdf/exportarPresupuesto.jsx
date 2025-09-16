@@ -4,6 +4,7 @@ import autoTable from "jspdf-autotable";
 import { db } from "../../../firebaseConfig";
 import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { extrasDisponibles } from "../../CalculadoraCompleta";
 
 export const exportarPresupuestoPDF = async ({
   tareasSeleccionadas = [],
@@ -161,15 +162,28 @@ export const exportarPresupuestoPDF = async ({
   docPDF.setDrawColor(180);
   docPDF.line(10, 25, 200, 25);
 
- // --- Tabla de conceptos ---
-  const filas = [];
-  let costoBasePDF = 0;
+// --- Tabla de conceptos ---
+const filas = [];
+let costoBasePDF = 0;
 
-  tareasSeleccionadas.forEach((t) => {
-    const sub = subtotalDeTarea(t);
-    costoBasePDF += sub;
-    filas.push([t.nombre, t.cantidad || 1, $fmt(sub)]);
-  });
+tareasSeleccionadas.forEach((t) => {
+  // subtotal base de la tarea
+  let sub = subtotalDeTarea(t);
+
+  // aplicar extras individuales (array de IDs en t.extras)
+  if (t.extras && t.extras.length > 0) {
+    t.extras.forEach((idExtra) => {
+      const extra = extrasDisponibles.find((e) => e.id === idExtra);
+      if (extra) {
+        sub = sub * extra.multiplicador;
+      }
+    });
+  }
+
+  costoBasePDF += sub;
+  filas.push([t.nombre, t.cantidad || 1, $fmt(sub)]);
+});
+
 
   // 👉 Extras globales: método acumulativo
   let acumuladoConExtras = costoBasePDF;

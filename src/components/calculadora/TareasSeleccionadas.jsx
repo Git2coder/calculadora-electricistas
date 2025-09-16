@@ -75,7 +75,7 @@ const TareasSeleccionadas = ({
                       className="ml-2 text-xs text-gray-500 hover:text-blue-600"
                       title="Agregar condiciones especiales"
                     >
-                      ⚙️
+                      ✏️
                     </button>
 
                     {/* Renderizo portal solo cuando el menú de esa tarea está abierto */}
