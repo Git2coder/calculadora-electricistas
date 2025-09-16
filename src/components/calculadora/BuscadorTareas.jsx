@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { FaPlus, FaListUl } from "react-icons/fa";
 
 const BuscadorTareas = ({
@@ -13,6 +13,15 @@ const BuscadorTareas = ({
   setMostrarModalSugerencia,
 }) => {
   const [mostrarTodas, setMostrarTodas] = useState(false);
+  
+  // 👇 sonido cuando se agrega una tarea
+  const sonidoAgregar = useRef(new Audio("/sounds/bubble-pop.mp3"));
+
+  const handleAgregar = (tarea) => {
+    agregarTarea(tarea);
+    sonidoAgregar.current.currentTime = 0; // reinicia el sonido
+    sonidoAgregar.current.play();          // reproduce
+  };
 
   return (
     <div className="bg-white p-6 rounded-xl shadow space-y-4">
@@ -36,7 +45,7 @@ const BuscadorTareas = ({
             e.key === "Enter" &&
             tareasFiltradas[indiceSeleccionado]
           ) {
-            agregarTarea(tareasFiltradas[indiceSeleccionado]);
+            handleAgregar(tareasFiltradas[indiceSeleccionado]);
             setBusqueda("");
             setIndiceSeleccionado(-1);
           }
@@ -59,7 +68,7 @@ const BuscadorTareas = ({
                   i === indiceSeleccionado ? "bg-blue-100 font-semibold" : ""
                 }`}
                 onClick={() => {
-                  agregarTarea(tarea);
+                  handleAgregar(tarea);
                   setBusqueda("");
                   setIndiceSeleccionado(-1);
                 }}
@@ -81,7 +90,7 @@ const BuscadorTareas = ({
                 ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
                 : "bg-blue-500 text-white hover:bg-blue-600"
             }`}
-            onClick={() => agregarTarea(tarea)}
+            onClick={() => handleAgregar(tarea)}
           >
             {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
           </button>
@@ -104,7 +113,7 @@ const BuscadorTareas = ({
               <div
                 key={tarea.id}
                 className="p-2 cursor-pointer hover:bg-gray-100"
-                onClick={() => agregarTarea(tarea)}
+                onClick={() => handleAgregar(tarea)}
               >
                 {tarea.nombre}
               </div>

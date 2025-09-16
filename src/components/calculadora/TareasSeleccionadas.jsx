@@ -1,5 +1,5 @@
 // TareasSeleccionadas.jsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { FaTrash, FaBroom } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReactDOM from "react-dom";
@@ -15,6 +15,16 @@ const TareasSeleccionadas = ({
   toggleExtra
 }) => {
   
+  // 👇 sonido cuando se agrega una tarea
+  const sonidoLimpiar = useRef(new Audio("/sounds/air-blow.mp3")); // 👈 poné tu archivo
+
+  // 🚀 Handler con sonido + limpiar
+  const handleLimpiar = () => {
+    sonidoLimpiar.current.currentTime = 0; // reinicia
+    sonidoLimpiar.current.play();          // reproduce
+    limpiarTareas();                       // ejecuta la función original
+  };
+
   // Estado para menú de extras
   const [extraMenuAbierto, setExtraMenuAbierto] = useState(null);
   const [posicionMenu, setPosicionMenu] = useState({ top: 0, left: 0 });
@@ -194,7 +204,7 @@ const TareasSeleccionadas = ({
                   {/* Eliminar */}
                   <button
                     className="text-red-600 transition-transform duration-150 hover:scale-150 active:scale-95"
-                    onClick={() => eliminarTarea(tarea.uid)}
+                    onClick={() => eliminarTarea(tarea.uid)}                    
                     title="Eliminar tarea"
                   >
                     <FaTrash />
@@ -207,7 +217,7 @@ const TareasSeleccionadas = ({
           {/* Botón limpiar lista */}
           <div className="sticky bottom-0 flex justify-end p-2 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent">
             <button
-              onClick={limpiarTareas}
+              onClick={handleLimpiar}
               className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-400 text-white rounded hover:bg-black shadow-md"
             >
               <FaBroom className="text-white" />
