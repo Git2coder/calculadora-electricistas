@@ -29,15 +29,15 @@ import { getAuth } from "firebase/auth";
 
 const extrasDisponibles = [
   { id: "altura", nombre: "Trabajo en altura", multiplicador: 1.25 },
-  { id: "doble", nombre: "Dos operarios", multiplicador: 1.2 },
+  { id: "doble", nombre: "Refuerzo de personal", multiplicador: 1.15 },
   { id: "riesgo", nombre: "Instalación en servicio", multiplicador: 1.3 },
   { id: "urgencia", nombre: "Trabajo urgente / fuera de horario", multiplicador: 1.5 },
 ];
 const extrasGlobales = [
   { id: "altura", label: "Trabajo en altura", multiplicador: 1.25, icon: <RiExpandHeightFill /> },
-  { id: "dosOperarios", label: "Dos operarios", multiplicador: 1.2, icon: <ImUsers /> },
+  { id: "dosOperarios", label: "Refuerzo de personal", multiplicador: 1.15, icon: <ImUsers /> },
   { id: "riesgo", label: "Instalación en servicio", multiplicador: 1.3, icon: <FaBolt /> },
-  { id: "urgencia", label: "Trabajo urgente / fuera de horario", multiplicador: 1.5, icon: <FaClock /> },
+  { id: "urgencia", label: "Urgente / fuera de horario", multiplicador: 1.5, icon: <FaClock /> },
 ];
 
 export default function CalculadoraCompleta() {

@@ -151,21 +151,47 @@ const ResumenPresupuesto = ({
       </div>
      
       {/* Ajuste de precio */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Ajuste de Precio (%)
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={ajustePorcentaje}
-            onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <p className="text-center mt-1 font-semibold">{ajustePorcentaje}%</p>
-        </div>
+<div className="bg-white border rounded-lg p-4 shadow-sm">
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Ajuste de Precio (%)
+  </label>
+  <input
+    type="range"
+    min="-50"
+    max="50"
+    step="1"
+    value={ajustePorcentaje}
+    onChange={(e) => setAjustePorcentaje(parseFloat(e.target.value))}
+    className="w-full accent-current"
+  />
+
+  {/* Indicador visual */}
+  <div className="relative w-full h-2 bg-gray-200 rounded mt-2">
+    <div
+      className={`absolute top-0 h-2 rounded transition-all duration-300 ${
+        ajustePorcentaje < 0
+          ? "bg-green-500"
+          : ajustePorcentaje > 0
+          ? "bg-red-500"
+          : "bg-gray-400"
+      }`}
+      style={{
+        left: ajustePorcentaje < 0 ? `${50 + ajustePorcentaje}%` : "50%",
+        width: `${Math.abs(ajustePorcentaje)}%`,
+      }}
+    />
+  </div>
+
+  {/* Texto dinámico */}
+  <p className="text-center mt-2 font-semibold">
+    {ajustePorcentaje > 0
+      ? `+${ajustePorcentaje}% (recargo)`
+      : ajustePorcentaje < 0
+      ? `${ajustePorcentaje}% (descuento)`
+      : "0% (sin ajuste)"}
+  </p>
+</div>
+
       </div>  
     </div>
 

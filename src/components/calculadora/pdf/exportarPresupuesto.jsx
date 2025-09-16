@@ -18,11 +18,21 @@ export const exportarPresupuestoPDF = async ({
   extrasSeleccionadosGlobal = [],    
 
 }) => {
-  const $fmt = (n) =>
-    `$${Number(n || 0).toLocaleString("es-AR", {
+    function roundFavorCliente(valor) {
+    // Multiplicamos por 100 para trabajar en centavos
+    const centavos = valor * 100;
+    // Math.floor siempre redondea para abajo
+    return Math.floor(centavos) / 100;
+  }
+
+  function $fmt(valor) {
+    return roundFavorCliente(valor).toLocaleString("es-AR", {
+      style: "currency",
+      currency: "ARS",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })}`;
+    });
+  }
 
   // --- Obtener datos del emisor desde Firebase ---
   let datosEmisor = {
@@ -151,7 +161,7 @@ export const exportarPresupuestoPDF = async ({
   docPDF.setDrawColor(180);
   docPDF.line(10, 25, 200, 25);
 
-  // --- Tabla de conceptos ---
+ // --- Tabla de conceptos ---
   const filas = [];
   let costoBasePDF = 0;
 
@@ -161,44 +171,50 @@ export const exportarPresupuestoPDF = async ({
     filas.push([t.nombre, t.cantidad || 1, $fmt(sub)]);
   });
 
-  // Ajuste por herramientas/insumos
-  const montoAjuste = (costoBasePDF * (ajustePorcentaje || 0)) / 100;
-  if (ajustePorcentaje > 0) {
-    filas.push([`Herramientas e Insumos`, "", $fmt(montoAjuste)]);
-  }
-
   // 👉 Extras globales: método acumulativo
-  let acumuladoConExtras = costoBasePDF + montoAjuste;
+  let acumuladoConExtras = costoBasePDF;
 
   extrasSeleccionadosGlobal.forEach((id) => {
     const extra = extrasGlobales.find((e) => e.id === id);
     if (extra) {
       const nuevoTotal = acumuladoConExtras * extra.multiplicador;
       const impacto = nuevoTotal - acumuladoConExtras; // diferencia incremental
-      filas.push([
-        `${extra.label}`,
-        "",
-        $fmt(impacto),
-      ]);
+      filas.push([`${extra.label}`, "", $fmt(impacto)]);
       acumuladoConExtras = nuevoTotal; // actualizar base para el siguiente extra
     }
   });
 
- // --- Visita / Consulta ---
-  if (incluirVisita) {
-    const conceptoVisita = "Visita / Consulta";
-    let subtotalVisita;
-
-    if (costoVisita > 0) {
-      // caso normal: cobra la consulta
-      subtotalVisita = $fmt(costoVisita);
-    } else {
-      // caso bonificado
-      subtotalVisita = "Bonificado";
-    }
-
-    filas.push([conceptoVisita, "", subtotalVisita]);
+  // --- Ajuste global (riel de ajuste) → al final de extras
+  let filaAjuste = null;
+  if (ajustePorcentaje !== 0) {
+    const montoAjuste = (acumuladoConExtras * ajustePorcentaje) / 100;
+    filaAjuste = [
+      ajustePorcentaje > 0 ? "Herramientas/insumos" : "Descuento aplicado",
+      "",
+      $fmt(montoAjuste),
+    ];
+    acumuladoConExtras += montoAjuste;
   }
+
+  if (filaAjuste) {
+    filas.push(filaAjuste);
+  }
+
+// --- Visita / Consulta ---
+  const conceptoVisita = "Visita / Consulta";
+  let subtotalVisita;
+
+  if (!incluirVisita) {
+    subtotalVisita = "BONIFICADA"; // 👈 palabra cuando está desactivado
+  } else if (costoVisita > 0) {
+    subtotalVisita = $fmt(costoVisita);
+    acumuladoConExtras += costoVisita;
+  } else {
+    subtotalVisita = "Bonificado";
+  }
+
+  filas.push([conceptoVisita, "", subtotalVisita]);
+
 
 
   autoTable(docPDF, {
@@ -240,8 +256,8 @@ export const exportarPresupuestoPDF = async ({
     // 1) Partimos del costo base
     let totalPDF = costoBasePDF;
 
-    // 2) Aplicar ajuste (% sobre las tareas)
-    if (ajustePorcentaje > 0) {
+    // 2) Aplicar ajuste (% sobre las tareas, positivo o negativo)
+    if (ajustePorcentaje !== 0) {
       totalPDF += (totalPDF * ajustePorcentaje) / 100;
     }
 
