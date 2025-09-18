@@ -175,20 +175,17 @@ const ResumenPresupuesto = ({
             style={{ zIndex: 10, position: "relative" }}
           />
 
-          {/* Colores dinámicos */}
-          <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-200 rounded -translate-y-1/2">
-            {/* Mitad izquierda (descuento) */}
+          {/* Fondo base */}
+          <div className="absolute top-1/2 left-0 w-full h-2 bg-gray-200 rounded -translate-y-1/2 overflow-hidden">
+            {/* Colores desde el centro */}
             <div
-              className="absolute top-0 left-0 h-2 bg-green-500 rounded-l transition-all duration-300"
+              className={`absolute top-0 h-2 transition-all duration-300 ${
+                ajustePorcentaje < 0 ? "bg-green-500" : ajustePorcentaje > 0 ? "bg-red-500" : "bg-gray-400"
+              }`}
               style={{
-                width: ajustePorcentaje < 0 ? `${Math.abs(ajustePorcentaje)}%` : "0%",
-              }}
-            />
-            {/* Mitad derecha (recargo) */}
-            <div
-              className="absolute top-0 right-0 h-2 bg-red-500 rounded-r transition-all duration-300"
-              style={{
-                width: ajustePorcentaje > 0 ? `${ajustePorcentaje}%` : "0%",
+                left: ajustePorcentaje < 0 ? "50%" : "50%",
+                width: `${Math.abs(ajustePorcentaje)}%`,
+                transform: ajustePorcentaje < 0 ? "translateX(-100%)" : "translateX(0)",
               }}
             />
           </div>
@@ -213,7 +210,7 @@ const ResumenPresupuesto = ({
           </button>
           <button
             onClick={() => setAjustePorcentaje(0)}
-            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-3 py-1 bg-blue-400 text-white rounded hover:bg-blue-600"
           >
             🔄
           </button>

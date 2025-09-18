@@ -98,9 +98,55 @@ export function Home() {
         </div>
       </section>
 
+      {/* Paso a paso en horizontal con animación al hacer scroll */}
+      <section className="bg-gradient-to-r from-blue-50 to-blue-100 py-20 px-6">
+        <div className="max-w-6xl mx-auto text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-blue-900">
+            ⚡ Tu presupuesto en 4 pasos
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 text-center relative">
+          {/* Línea de conexión */}
+          <div className="hidden md:block absolute top-16 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-green-400 via-yellow-400 to-red-400"></div>
+
+          {[
+            { num: 1, color: "text-blue-600", icon: "✏️", titulo: "Definí tu base", texto: "Establecé tu tarifa horaria. Podés calcularla o ajustarla a mano." },
+            { num: 2, color: "text-green-600", icon: "🔍", titulo: "Buscá tareas", texto: "Encontrá la tarea con el buscador o explorá la lista." },
+            { num: 3, color: "text-yellow-500", icon: "🔧", titulo: "Ajustá las cantidades", texto: "Configuralas y aplicá extras, según sea la situación." },
+            { num: 4, color: "text-red-600", icon: "💸", titulo: "Mirá los resultados", texto: "Colocá tiempo de validez y descargá el presupuesto." },
+          ].map((step, i) => (
+            <motion.div
+              key={step.num}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }} // 👈 arranca al 30% visible
+              transition={{ delay: i * 0.4, duration: 0.9, ease: "easeOut" }}
+              className="relative"
+            >
+              <div className="flex flex-col items-center">
+                {/* Número con efecto bounce */}
+                <motion.div
+                  initial={{ scale: 0.5 }}
+                  whileInView={{ scale: [1, 1.2, 1] }}
+                  transition={{ delay: i * 0.4 + 0.6, duration: 0.6, ease: "easeOut" }}
+                  className={`text-6xl font-extrabold ${step.color} mb-2`}
+                >
+                  {step.num}
+                </motion.div>
+
+                <div className="text-5xl">{step.icon}</div>
+                <h4 className="text-lg font-bold mt-3">{step.titulo}</h4>
+                <p className="text-gray-600 mt-2 text-sm">{step.texto}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* Secciones progresivas con scroll */}
-      <section className="max-w-5xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center text-blue-800 mb-12">Herramientas destacadas</h2>
+      {/*<section className="max-w-5xl mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-center text-blue-800 mb-12">Secciones destacadas</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link to="/noticias" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
@@ -121,9 +167,15 @@ export function Home() {
             <p className="text-gray-600">Los reglamentos son muchos, fijate y ubica el que podias estar necesitando.</p>
           </Link>
         </div>
-      </section>
+      </section>*/}
 
       <section className="bg-white py-16 space-y-24">
+        <div className="max-w-6xl mx-auto text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-blue-900">
+            3 motivos para usar esta herramienta 👌
+          </h2>
+        </div>
+
         <div className="space-y-8">
           {/* Bloque 1 */}
           <motion.div
@@ -177,7 +229,7 @@ export function Home() {
               />
             </div>
             <div className="p-8 md:pl-16">
-              <h3 className="text-3xl font-bold text-yellow-500 mb-4">📈 Más oportunidades</h3>
+              <h3 className="text-3xl font-bold text-yellow-500 mb-4">📈 Generá mas oportunidades</h3>
               <p className="text-gray-700 text-lg">Respondé más rápido a nuevos pedidos. Cotizando más y mejor vas a lograr cerrar más trabajos.</p>
             </div>
           </motion.div>

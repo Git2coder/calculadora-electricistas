@@ -234,6 +234,17 @@ tareasSeleccionadas.forEach((t) => {
   autoTable(docPDF, {
     head: [["Concepto", "Cantidad", { content: "Subtotal", styles: { halign: "right" } }]],
     body: filas,
+     didParseCell: function (data) {
+        // 👉 chequeamos si la celda contiene "BONIFICADA"
+        if (
+          data.section === "body" &&
+          data.row.cells[2].text[0] === "BONIFICADA"
+        ) {
+          data.cell.styles.textColor = [34, 139, 34]; // verde fuerte
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [220, 255, 220]; // verde claro de fondo
+        }
+      },
     startY: 30,
     theme: "striped",
     styles: { fontSize: 10 },

@@ -42,7 +42,7 @@ const extrasGlobales = [
   { id: "urgencia", label: "Urgente / fuera de horario", multiplicador: 1.5, icon: <FaClock /> },
 ];
 
-export default function CalculadoraCompleta() {
+export default function CalculadoraCompleta({ modoPreview = false }) {
   const [busqueda, setBusqueda] = useState("");
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState([]);
   const [tarifaHoraria, setTarifaHoraria] = useState(null);
@@ -55,7 +55,6 @@ export default function CalculadoraCompleta() {
   const [config, setConfig] = useState(null);
   const sonidoMonedas = useRef(new Audio("/sounds/coin.mp3"));
   const [extrasSeleccionadosGlobal, setExtrasSeleccionadosGlobal] = useState([]);
-
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -502,24 +501,33 @@ export default function CalculadoraCompleta() {
     );
   };
 
-  if (!config) {
-    return <div className="p-4">Cargando configuración...</div>;
-  }
+  // Tarifa y visita: usan config si existe, si no, valores de preview
+  const tarifa = tarifaHoraria ?? (modoPreview ? 5000 : null);
+  const visita = costoConsulta ?? (modoPreview ? 0 : null);
 
-  // 👇 chequeás si está habilitada
-  if (!config.calculadoraCompletaHabilitada) {
+  // 👇 Condición para mostrar "cargando"
+  if (!modoPreview && (tarifa === null || visita === null)) {
     return (
-      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
-        🚧 La calculadora está en mantenimiento temporal.
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <p className="text-lg text-gray-600">⏳ Cargando configuración...</p>
       </div>
     );
   }
+
+  // 👇 chequeás si está habilitada
+if (!modoPreview && config && !config.calculadoraCompletaHabilitada) {
+  return (
+    <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
+      🚧 La calculadora está en mantenimiento temporal.
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* 👇 chequeo si los datos de Firestore ya cargaron */}
-        {tarifaHoraria === null || costoConsulta === null ? (
+        {(!modoPreview && (tarifaHoraria === null || costoConsulta === null)) ? (
           <p className="text-center text-gray-500">Cargando configuración...</p>
         ) : (
           <>

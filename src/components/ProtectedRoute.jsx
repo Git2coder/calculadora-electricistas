@@ -1,28 +1,46 @@
-import React from "react";
-import { useAuth } from "../context/AuthContext";
+// ProtectedRoute.jsx
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // ajustá la ruta si tu contexto está en otro lugar
+import ModalAcceso from "./ModalAcceso"; // ajustá ruta si hace falta
+import CalculadoraPreview from "./calculadora/CalculadoraPreview"; // ajustá ruta si la guardaste en otra carpeta
 
-const ProtectedRoute = ({ children }) => {
-  const { usuario } = useAuth();
+export default function ProtectedRoute({ children }) {
+  const { usuario } = useAuth(); // tu hook/context para saber si hay usuario
+  const location = useLocation();
+  const [mostrarModal, setMostrarModal] = useState(false);
 
+  useEffect(() => {
+    let timer;
+    // Solo mostramos preview automático cuando el usuario visita la calculadora
+    if (!usuario && location.pathname === "/calculadora") {
+      // Espera 5s antes de mostrar modal
+      timer = setTimeout(() => setMostrarModal(true), 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [usuario, location.pathname]);
+
+  // Si no hay usuario y estamos en la calculadora -> desplegar preview bloqueado + modal
+  if (!usuario && location.pathname.startsWith("/calculadora")) {
+    return (
+      <div className="relative min-h-screen bg-gray-50">
+        <CalculadoraPreview />
+        {mostrarModal && (
+          <ModalAcceso
+            isOpen={mostrarModal}
+            onClose={() => setMostrarModal(false)}
+          />
+        )}
+      </div>
+    );
+  }
+
+
+  // Si no hay usuario y NO estamos en /calculadora mostramos el mensaje clásico
   if (!usuario) {
     return <p>Debes iniciar sesión para acceder.</p>;
   }
 
-  if (usuario.puedeAcceder) {
-    return children;
-  }
-
-  // 🔑 Mostrar mensajes según estadoAcceso
-  switch (usuario.estadoAcceso) {
-    case "suspendido":
-      return <p>Tu cuenta está suspendida. Contacta con soporte.</p>;
-    case "vencido":
-      return <p>Tu período de prueba ha finalizado. Suscríbete para continuar.</p>;
-    case "sin-usuario":
-      return <p>No tienes acceso. Por favor, regístrate.</p>;
-    default:
-      return <p>No tienes acceso.</p>;
-  }
-};
-
-export default ProtectedRoute;
+  // Si hay usuario, renderizamos normalmente
+  return children;
+}

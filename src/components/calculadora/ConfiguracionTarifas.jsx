@@ -63,7 +63,7 @@ const ConfiguracionTarifas = ({
           />
         ) : (
           <span className="ml-2 font-mono text-blue-700">
-            ${tarifaHoraria.toLocaleString("es-AR")}
+            ${(tarifaHoraria ?? 0).toLocaleString("es-AR")}
           </span>
         )}
         <button
@@ -100,7 +100,7 @@ const ConfiguracionTarifas = ({
           />
         ) : (
           <span className="ml-2 font-mono text-green-700">
-            ${costoConsulta.toLocaleString("es-AR")}
+            ${(costoConsulta ?? 0).toLocaleString("es-AR")}
           </span>
         )}
         <button
