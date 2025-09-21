@@ -515,13 +515,13 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   }
 
   // 👇 chequeás si está habilitada
-if (!modoPreview && config && !config.calculadoraCompletaHabilitada) {
-  return (
-    <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
-      🚧 La calculadora está en mantenimiento temporal.
-    </div>
-  );
-}
+  if (!modoPreview && config && !config.calculadoraCompletaHabilitada) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
+        🚧 La calculadora está en mantenimiento temporal.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">

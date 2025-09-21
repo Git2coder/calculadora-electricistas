@@ -189,24 +189,7 @@ useEffect(() => {
                       >
                         👤 Mi perfil
                       </button>
-                      <button
-                        onClick={() => alert("Abrir configuración")}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        ⚙️ Configuración
-                      </button>
-                      <button
-                        onClick={() => alert("Ver historial de presupuestos")}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        📂 Historial de presupuestos
-                      </button>
-                      <button
-                        onClick={() => alert("Ver estadísticas")}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        📊 Panel de estadísticas
-                      </button>
+                     
                       <button
                         onClick={() => alert("Abrir ayuda / tutorial")}
                         className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"

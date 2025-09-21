@@ -35,7 +35,7 @@ export default function ModalTarifa({ setTarifaHoraria, onClose }) {
             value={gastosFijos}
             onChange={(e) => setGastosFijos(e.target.value)}
           />
-          <p className="text-sm text-gray-500 mt-1">Ej: alquiler, seguros, herramientas</p>
+          <p className="text-sm text-gray-500 mt-1">Ej: alquiler, vehículo, matriculas, celular, etc.</p>
         </label>
 
         <label className="block mb-3">
@@ -46,7 +46,7 @@ export default function ModalTarifa({ setTarifaHoraria, onClose }) {
             value={gastosVariables}
             onChange={(e) => setGastosVariables(e.target.value)}
           />
-          <p className="text-sm text-gray-500 mt-1">Ej: combustible, viáticos, impresiones</p>
+          <p className="text-sm text-gray-500 mt-1">Ej: combustible, viáticos, insumos, ayudantes, etc.</p>
         </label>
 
         <div className="flex justify-between mt-6">

@@ -50,21 +50,21 @@ export const tareasPredefinidas = [
     nombre: "Protector de tension (2P)",
     tiempo: 15,              
     dependeDe: "Boca",
-    factorBoca: 0.65,          
+    factorBoca: 0.75,          
   },
   {
     id: 14,
     nombre: "Contactor",
     tiempo: 18,              
     dependeDe: "Boca",
-    factorBoca: 1.5,          
+    factorBoca: 1.7,          
   },  
   {
     id: 15,
     nombre: "Jabalina de proteccion",
     tiempo: 80,              
     dependeDe: "Boca",
-    factorBoca: 2,          
+    factorBoca: 1.9,          
   },
   {
     id: 16,
@@ -92,7 +92,7 @@ export const tareasPredefinidas = [
     nombre: "Reflector",
     tiempo: 35,              
     dependeDe: "Boca",
-    factorBoca: 0.65,          
+    factorBoca: 0.45,          
   },    
   {
     id: 20,
@@ -124,27 +124,29 @@ export const tareasPredefinidas = [
   },
   {
     id: 24,
-    nombre: "Canalizacion",
-    tiempo: 5, 
-    unidad: "metros",             
+    nombre: "Caño corrugado",
+    unidad: "metros",        
+    tiempo: 3,     
     dependeDe: "Boca",
-    factorBoca: 0.033,          
-  },    
+    factorBoca: 0.06,  
+  },
   {
     id: 25,
-    nombre: "Cajas",
-    tiempo: 5,          
+    nombre: "Caja de paso",
     dependeDe: "Boca",
-    factorBoca: 0.045,          
-  },    
+    factorBoca: 0.1,   
+    tiempo: 5,
+    descripcion: "Colocar caja de paso intermedia para canalización y cableado."
+  },
   {
     id: 26,
-    nombre: "Montaje bandejas portacables",
-    tiempo: 15, 
-    unidad: "metros",             
+    nombre: "Farola de parque",
     dependeDe: "Boca",
-    factorBoca: 0.1,          
-  },    
+    factorBoca: 0.85, 
+    tiempo: 45,
+    descripcion: "Colocación de farola de parque con conexión eléctrica."
+  },
+
   {
     id: 27,
     nombre: "Tendido cable por bandeja",
@@ -168,13 +170,19 @@ export const tareasPredefinidas = [
     dependeDe: "Boca",
     factorBoca: 0.75,          
   },    
-  {
+   {
     id: 30,
-    nombre: "Tablero BEA A/M - 2 bombas",
-    tiempo: 300,          
+    nombre: "Tablero bombas elevadoras de agua",
     dependeDe: "Boca",
-    factorBoca: 11,          
-  },    
+    opciones: {
+      "1B-Básico": { factorBoca: 5.0, tiempo: 180 },
+      "2B-Alternancia": { factorBoca: 8.0, tiempo: 300 },
+      "2B-Alt + Alarma": { factorBoca: 10.0, tiempo: 360 },
+      "2B-Completo": { factorBoca: 12.0, tiempo: 420 }
+    },
+    variante: "1B-Básico",
+    descripcion: "Básico: 1 bomba automática. Alternancia: 2 bombas con lógica de alternancia. Alt + Alarma: alternancia con alarma local. Completo: alternancia con alarma sonora/luminosa y contactos de aviso."
+  },
   {
     id: 31,
     nombre: "Sensor de movimiento",
@@ -198,17 +206,18 @@ export const tareasPredefinidas = [
   },
   {
     id: 34,
-    nombre: "Tareas industriales / automatismos",
-    tiempo: 90,              
+    nombre: "Reemplazo de lámpara",
     dependeDe: "Boca",
-    factorBoca: 2.5,          
+    factorBoca: 0.12, 
+    tiempo: 6,
+    descripcion: "Cambio de lámpara. contemplar: altura, escaleras, etc."
   },
   {
     id: 35,
     nombre: "Reemplazo fusible NH",
     tiempo: 20,          
     dependeDe: "Boca",
-    factorBoca: 0.85,          
+    factorBoca: 1,          
   },   
   {
     id: 36,
@@ -219,18 +228,82 @@ export const tareasPredefinidas = [
   },   
   {
     id: 37,
-    nombre: "Pilar monofasico",
+    nombre: "Pilar completo",
     tiempo: 240,          
     dependeDe: "Boca",
-    factorBoca: 7.55,          
+    factorBoca: 9,          
   },   
-  {
+ {
     id: 38,
-    nombre: "Pilar trifasico",
-    tiempo: 240,          
+    nombre: "Tablero 8 polos",
+    unidad: "Tableros",
     dependeDe: "Boca",
-    factorBoca: 9.15,          
-  },   
+    factorBoca: 3, 
+    tiempo: 80,
+    descripcion: "Montaje de tablero seccional hasta 8 polos."
+  },
+  {
+    id: 39,
+    nombre: "Circuito independiente",
+    unidad: "m",
+    dependeDe: "Boca",
+    factorBoca: 0.2, 
+    tiempo: 7, 
+    descripcion: "Ejecución de un nuevo circuito independiente desde tablero."
+  },
+  {
+    id: 40,
+    nombre: "PLC pequeño",
+    dependeDe: "Boca",
+    factorBoca: 6.8, 
+    tiempo: 240,
+    descripcion: "Montaje y cableado de PLC pequeño para automatización básica."
+  },
+
+  {
+    id: 41,
+    nombre: "Variador de frecuencia",
+    dependeDe: "Boca",
+    factorBoca: 5.95, 
+    tiempo: 180,
+    descripcion: "Montaje, conexionado y puesta en marcha de variador de frecuencia."
+  },
+
+  {
+    id: 42,
+    nombre: "Arranque estrella-triángulo",
+    dependeDe: "Boca",
+    factorBoca: 5.5,
+    tiempo: 240,
+    descripcion: "Montaje de dispositivos en tablero para arranque estrella-triángulo de motor trifásico."
+  },
+
+  {
+    id: 43,
+    nombre: "Arranque directo motor trifásico",
+    dependeDe: "Boca", 
+    factorBoca: 3.0, 
+    tiempo: 120,
+    descripcion: "Montaje de disposituvos en tablero para arranque directo de motor trifásico."
+  },
+  {
+    id: 44,
+    nombre: "Cableado de sensores industriales",
+    unidad: "m",
+    dependeDe: "Boca",
+    factorBoca: 0.85, 
+    tiempo: 45,
+    descripcion: "Cableado y conexionado de sensores de automatización industrial."
+  },
+  {
+    id: 45,
+    nombre: "Cargador para auto eléctrico",
+    dependeDe: "Boca",
+    factorBoca: 6.0,
+    tiempo: 300,
+    descripcion: "Montaje y conexionado de cargador para vehículo eléctrico."
+  },
+
 
   // 🔌 3) SIMPLES CON OPCIONES
   {
@@ -253,67 +326,94 @@ export const tareasPredefinidas = [
   },
   {
     id: 3,
-    nombre: "Cableado",
+    nombre: "Tendido de conductores hasta la boca (5 m)",
     unidad: "Boca",
     dependeDe: "Boca",
     opciones: {
-      ObraNueva: { factorBoca: 0.2, tiempo: 7.5 },
-      Recableado: { factorBoca: 0.35, tiempo: 15 },
-    }, variante: "ObraNueva",
-    descripcion: "hasta 5 metros por boca"
+      "Obra nueva": { factorBoca: 0.20, tiempo: 7.5 },
+      "Recableado": { factorBoca: 0.35, tiempo: 15 }
+    },
+    variante: "Obra nueva",
+    descripcion: "Solo incluye el tendido de conductores en canalización existente, hasta 5 m por boca. No incluye instalación de cañería, caja ni aparato."
+  },
+  
+  {
+    id: 4,
+    nombre: "Caño sintético - semirrigido",
+    unidad: "metros",             
+    dependeDe: "Boca",
+    opciones: {
+        "A la vista": { factorBoca: 0.08, tiempo: 5, },
+        "Embutido": { factorBoca: 0.12, tiempo: 10, },          
+      },
+    variante: "A la vista",
+  },
+  {
+    id: 5,
+    nombre: "Caño metálico",
+    unidad: "metros",             
+    dependeDe: "Boca",
+    opciones: {
+        "A la vista": { factorBoca: 0.12, tiempo: 6 },
+        "Embutido": { factorBoca: 0.15, tiempo: 12 }
+      },
+    variante: "A la vista",
+    descripcion: "Colocación de cañerías metálicas en distintas variantes"
+  },
+  {
+    id: 6,
+    nombre: "Bandeja portacables",
+    unidad: "metros",           
+    dependeDe: "Boca",
+    opciones: {
+        "<= 150mm": { factorBoca: 0.24, tiempo: 12 },
+        "de 200mm a 300mm": { factorBoca: 0.28, tiempo: 13 },
+        "de 450mm a 600mm": { factorBoca: 0.36, tiempo: 14 }
+      },
+    descripcion: ""
+  },
+  {
+    id: 7,
+    nombre: "Tendido de cable subterráneo",
+    unidad: "metros",
+    dependeDe: "Boca",
+    opciones: {
+      "Con zanjeo y cañería": { factorBoca: 0.6, tiempo: 35 },
+      "Con zanjeo y sin cañería": { factorBoca: 0.40, tiempo: 20 }
+    },
+    variante: "Con zanjeo y cañería",
+    descripcion: "Excavación y tendido subterráneo. La opción con cañería incluye colocación de caño/corrugado, tendido de conductores y relleno. La opción sin cañería contempla tendido directo del cable con cama de arena/protección y relleno."
   },
 
   // 🔌 4) ADMINISTRATIVAS
-  { id: 50, nombre: "DCI (Res.Enre 225/11 - 380/15)", tipo: "administrativa", descripcion: "Incluye documentacion y relevamiento. Valores sugeridos COPIME", opciones: {
-          "Cat. 1": { valor: 200000 },
-          "Cat. 2": { valor: 480000 },
-          "Cat. 3": { valor: 1200000 }
-        }, variante: "Cat. 1" },
+  { id: 50, nombre: "DCI", tipo: "administrativa", descripcion: "", opciones: {
+          "Monofasico": { valor: 305000 },
+          "Trifasico": { valor: 460000 },          
+        }, variante: "Monofasico" },
 
-  { id: 51, nombre: "Relevamiento de la instalación eléctrica", tipo: "administrativa", descripcion: "Cat 1: <10KVA- Cat 2: entre 10 y 50KVA - Cat 3: >50KVA (BT). Valores sugeridos COPIME", opciones: {
+  { id: 51, nombre: "Relevamiento de la instalación eléctrica", tipo: "administrativa", descripcion: "Cat 1: <10KVA- Cat 2: entre 10 y 50KVA - Cat 3: >50KVA (BT).", opciones: {
           "Cat. 1": { valor: 60000 },
           "Cat. 2": { valor: 144000 },
           "Cat. 3": { valor: 360000 }
         }, variante: "Cat. 1" },      
 
   { id: 52, nombre: "Medicion de Puesta a Tierra (T1-R)", tipo: "administrativa", valor: 160000 },
+  { id: 53, nombre: "Puesta en servicio / pruebas / medicion", tipo: "administrativa", valor: 100000, descripcion: "Pruebas finales de funcionamiento, verificación de protecciones y seguridad, mediciones eléctricas, continuidad, aislamiento, corrientes de fuga." },
+  { id: 54, nombre: "Balanceo de cargas trifásicas", tipo: "administrativa", valor: 360000, descripcion: "Medición y redistribución de circuitos en fases para mejorar balance trifásico." },
+  { id: 55, nombre: "Memoria tecnica", tipo: "administrativa", valor: 300000, descripcion: "Redacción de informe técnico de acuerdo a reglamentaciones vigentes." },
+  { id: 56, nombre: "Informe termografico", tipo: "administrativa", valor: 250000, descripcion: "Relevamiento termográfico de tableros o instalaciones eléctricas." },
 
   // 🔌 5) CALCULADAS
-  { id: 60, 
-    nombre: "Montaje de TV", 
-    tiempo: 40, 
-    tipo: "calculada", 
+  {
+    id: 60,
+    nombre: "Montaje de TV",
+    tiempo: 40,
+    tipo: "calculada",
     requiereInput: true,
-  },
- 
-  /**
-   * 🗑️ BLOQUE DE DESCARTE / HISTÓRICO
-   * Si más adelante querés recuperar o revisar lógicas anteriores,
-   * podés dejar acá las tareas que no uses actualmente.
-   *
-   * Ej:
-   * {
-   *id: 300,
-    nombre: "Tablero nuevo",
-    tipo: "composicion",
-    unidad: "polos",
-    cantidad: 96,
     opciones: {
-      "Solo armado": { porcentajeDiseno: 0, porcentajeArmado: 0.65 },
-      "Solo diseño": { porcentajeDiseno: 0.35, porcentajeArmado: 0 },
-      "Diseño + armado": { porcentajeDiseno: 0.35, porcentajeArmado: 0.65 }
-    },
-    variante: "Solo armado",
-    descripcion: "Diseño técnico y/o armado físico del tablero según cantidad de polos.",
+      "Grande": { porcentaje: 27 },
+      "Pequeño": { porcentaje: 20 }
+    }
+  } 
 
-    id: 350,
-    nombre: "Tendido cable subterraneo",
-    tiempo: 5, 
-    unidad: "metros",             
-    dependeDe: "Boca",
-    factorBoca: 0.3,    
-    descripcion: "No contempla tiempos de zanjeo debido a que este es variable segun sea por medio de maquinas o manual."
-
-  * }
-  */
 ];

@@ -113,7 +113,7 @@ export function Home() {
           {[
             { num: 1, color: "text-blue-600", icon: "✏️", titulo: "Definí tu base", texto: "Establecé tu tarifa horaria. Podés calcularla o ajustarla a mano." },
             { num: 2, color: "text-green-600", icon: "🔍", titulo: "Buscá tareas", texto: "Encontrá la tarea con el buscador o explorá la lista." },
-            { num: 3, color: "text-yellow-500", icon: "🔧", titulo: "Ajustá las cantidades", texto: "Configuralas y aplicá extras, según sea la situación." },
+            { num: 3, color: "text-yellow-500", icon: "🔢", titulo: "Ajustá las cantidades", texto: "Configuralas y aplicá extras, según sea la situación." },
             { num: 4, color: "text-red-600", icon: "💸", titulo: "Mirá los resultados", texto: "Colocá tiempo de validez y descargá el presupuesto." },
           ].map((step, i) => (
             <motion.div
