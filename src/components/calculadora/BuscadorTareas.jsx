@@ -1,5 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaPlus, FaListUl, FaTrash } from "react-icons/fa";
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { db } from "../../firebaseConfig"; // ajustá la ruta según tu proyecto
 
 const BuscadorTareas = ({
   busqueda,
@@ -21,11 +24,38 @@ const BuscadorTareas = ({
   const [nuevoValor, setNuevoValor] = useState("");
 
   // Estado de créditos
-  const [creditos, setCreditos] = useState(5);
+  const [creditos, setCreditos] = useState(null);
+  const [userId, setUserId] = useState(null);
 
-  const handleAgregarCustom = () => {
+  // 👇 cargar créditos desde Firestore al montar
+  useEffect(() => {
+    const fetchCreditos = async () => {
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        setUserId(user.uid);
+
+        const userRef = doc(db, "usuarios", user.uid);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          setCreditos(data.creditos ?? 0);
+        }
+      } catch (err) {
+        console.error("Error obteniendo créditos:", err);
+      }
+    };
+
+    fetchCreditos();
+  }, []);
+
+  // 👇 consumir 1 crédito y crear tarea
+  const handleAgregarCustom = async () => {
     if (!nuevoNombre || !nuevoTiempo || !nuevoValor) return;
-    if (creditos <= 0) return; // no dejar si no hay créditos
+    if (creditos <= 0) return;
 
     const nueva = {
       id: Date.now(),
@@ -42,8 +72,15 @@ const BuscadorTareas = ({
     setNuevoValor("");
     setMostrarFormCustom(false);
 
-    // Descontar crédito
-    setCreditos((prev) => prev - 1);
+    try {
+      if (userId) {
+        const userRef = doc(db, "usuarios", userId);
+        await updateDoc(userRef, { creditos: increment(-1) });
+        setCreditos((prev) => (prev !== null ? prev - 1 : prev));
+      }
+    } catch (err) {
+      console.error("Error descontando crédito:", err);
+    }
   };
 
   // 👇 sonido cuando se agrega una tarea
