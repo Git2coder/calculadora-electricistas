@@ -255,7 +255,7 @@ export const tareasPredefinidas = [
     id: 40,
     nombre: "PLC pequeño",
     dependeDe: "Boca",
-    factorBoca: 6.8, 
+    factorBoca: 5.5, 
     tiempo: 240,
     descripcion: "Montaje y cableado de PLC pequeño para automatización básica."
   },

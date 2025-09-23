@@ -13,6 +13,8 @@ import { db } from "../../firebaseConfig";
 import { FaEdit, FaTrash, FaPause, FaPlay } from "react-icons/fa";
 import { tareasPredefinidas } from "../../utils/tareas";
 import { getAuth } from "firebase/auth";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export function TareasAdmin() {
   const [tareas, setTareas] = useState([]);
@@ -89,6 +91,73 @@ export function TareasAdmin() {
       }
       return sortConfig.direction === "asc" ? x - y : y - x;
     });
+  };
+
+  const exportarExcel = () => {
+    const workbook = XLSX.utils.book_new();
+
+    // función auxiliar para generar cada hoja
+    const crearHoja = (tareasFiltradas, nombreHoja) => {
+      const data = tareasFiltradas.map((t) => ({
+        Nombre: t.nombre,
+        Tiempo: t.tiempo ?? "-",
+        "Factor Boca": t.factorBoca ?? "-",
+        Precio: fmtPesos(
+          t.tipo === "administrativa"
+            ? t.valor || 0
+            : t.tipo === "calculada"
+            ? ((t.valorUnidad || 0) * (t.porcentaje || 0)) / 100
+            : t.dependeDe === "Boca"
+            ? (() => {
+                const baseBoca = tareas.find(
+                  (x) =>
+                    x.nombre === "Boca" ||
+                    x.id === "Boca" ||
+                    x.idOriginal === "Boca"
+                );
+                const valorBoca =
+                  baseBoca && baseBoca.tiempo
+                    ? (baseBoca.tiempo / 60) *
+                      (baseBoca.multiplicador ?? 1) *
+                      tarifaHoraria
+                    : 0;
+                return valorBoca * (t.factorBoca || 1);
+              })()
+            : ((t.tiempo || 0) / 60) * (t.multiplicador ?? 1) * tarifaHoraria
+        ),
+        Estado: t.pausada ? "En pausa" : "Activa",
+        Actualización: t.updatedAt
+          ? new Date(t.updatedAt).toLocaleDateString()
+          : "-",
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
+    };
+
+    // Dependientes
+    crearHoja(
+      tareasExpandida.filter(
+        (t) => t.tipo !== "administrativa" && t.tipo !== "calculada"
+      ),
+      "Dependientes"
+    );
+
+    // Administrativas
+    crearHoja(
+      tareasExpandida.filter((t) => t.tipo === "administrativa"),
+      "Administrativas"
+    );
+
+    // Calculadas
+    crearHoja(
+      tareasExpandida.filter((t) => t.tipo === "calculada"),
+      "Calculadas"
+    );
+
+    // Descargar
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "tareas.xlsx");
   };
 
   // =======================
@@ -460,6 +529,12 @@ export function TareasAdmin() {
         onClick={() => setTab("calculadas")}
       >
         Calculadas
+      </button>
+      <button
+        onClick={exportarExcel}
+        className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
+      >
+        📥 Exportar a Excel
       </button>
     </div>
 
