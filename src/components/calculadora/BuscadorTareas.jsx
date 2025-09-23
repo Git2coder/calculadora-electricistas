@@ -263,8 +263,14 @@ const BuscadorTareas = ({
                       </div>
                     </div>
                     {creditos <= 0 && (
-                      <p className="text-sm text-red-600 mt-2">
-                        ⚠️ No tienes más créditos para crear tareas personalizadas.
+                      <p className="text-sm text-yellow-700 mt-2 text-center">
+                        ✨ Ya usaste tus créditos gratuitos. 
+                        <button
+                          onClick={() => {/* abrir modal de compra */}}
+                          className="ml-1 text-blue-600 font-semibold hover:underline"
+                        >
+                          Obtener más
+                        </button>
                       </p>
                     )}
                   </div>
