@@ -20,9 +20,34 @@ export default function Asistente({ agregarTarea }) {
   const [enviando, setEnviando] = useState(false);
 
   const faqs = [
-    { q: "¿Cómo se calcula el costo final?", a: "El costo surge de la suma de las tareas seleccionadas más el costo de visita/tarifa horaria si corresponde. El usuario es quien decide qué tareas incluir." },
-    { q: "¿Qué hago si no encuentro una tarea?", a: "Podés usar el asistente para describir tu caso o sugerir nuevas tareas. También podés cargar manualmente una tarea genérica de 'otros'." },
-    { q: "¿Qué significa cada tarea?", a: "Cada tarea representa un trabajo posible dentro de la instalación eléctrica. El valor es solo para cotización, no incluye instrucciones de ejecución." }
+    {
+      q: "¿Cómo se usa la calculadora?",
+      a: "En el buscador elegí las tareas que correspondan a tu trabajo, y la calculadora irá sumando sus valores para mostrarte un presupuesto estimado."
+    },
+    {
+      q: "¿Qué hago si no encuentro una tarea?",
+      a: "Podés describir tu caso en el asistente para recibir sugerencias, o usar la opción 'añadir personalizada' ubicada dentro del botón 'ver listado'."
+    },
+    {
+      q: "¿Los valores son definitivos?",
+      a: "No. Los valores son de referencia para ayudarte a cotizar. El precio final lo definís vos según tu criterio y condiciones del trabajo."
+    },
+    {
+      q: "¿Qué diferencia hay entre el buscador y el asistente?",
+      a: "El buscador sirve para localizar una tarea específica. El asistente es mas flexible sugiriendo opciones relacionadas."
+    },
+    {
+      q: "¿Puedo modificar los valores de las tareas?",
+      a: "No de manera individual, salvo algunas excepciones. La 2 maneras en que podes readecuar los precios son: reajustando tu tarifa horaria o haciendo uso del riel de ajuste."
+    },
+    {
+      q: "¿Qué significa cuando una tarea aparece con candado 🔒?",
+      a: "Indica que tu suscripción actual no habilita esa tarea. Podés ver dentro de que plan esta incluida accediendo en el listado completo."
+    },
+    {
+      q: "¿Qué pasa con los reclamos o sugerencias que envío?",
+      a: "El equipo los revisa y, si corresponde, se implementan mejoras en futuras actualizaciones. En el caso de los reclamos buscará solucionarlo lo antes posible."
+    }
   ];
 
   const fuse = new Fuse(tareasPredefinidas, {
@@ -159,9 +184,8 @@ export default function Asistente({ agregarTarea }) {
             {modo === "sugerencias" && (
               <>
                 <div className="text-sm text-gray-600 bg-gray-50 border p-2 rounded">
-                  🔎 El <b>buscador</b> encuentra tareas específicas.<br/>
-                  🦻 El <b>asistente</b> te acompaña con sugerencias y opciones
-                  relacionadas para armar tu presupuesto.
+                  🦻 El <b>asistente</b> te mostrará opciones que podrian estar
+                  relacionadas para armar tu presupuesto. Cabe aclarar que no cuenta con IA.
                 </div>
 
                 <textarea
@@ -253,14 +277,14 @@ export default function Asistente({ agregarTarea }) {
 
                 {/* Dejar sugerencia */}
                 <div>
-                  <h3 className="text-md font-semibold mb-2">💡 Dejar una sugerencia</h3>
+                  <h3 className="text-md font-semibold mb-2">💡 Consulta o sugerencia</h3>
                   <form onSubmit={enviarSugerencia} className="space-y-2">
                     <textarea
                       className="w-full p-2 border rounded"
                       rows={2}
                       value={sugerencia}
                       onChange={(e) => setSugerencia(e.target.value)}
-                      placeholder="¿Que mejorarías en esta herramienta?"
+                      placeholder="¿Tenes alguna duda?¿Queres comentarnos que mejorarías en esta herramienta?"
                     />
                     <button
                       type="submit"
@@ -281,7 +305,7 @@ export default function Asistente({ agregarTarea }) {
                       rows={3}
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
-                      placeholder="Contanos cual es tu problema..."
+                      placeholder="Contanos cual es tu inconveniente..."
                     />
                     <button
                       type="submit"

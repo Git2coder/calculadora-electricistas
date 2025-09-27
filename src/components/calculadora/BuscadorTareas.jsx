@@ -202,7 +202,7 @@ const BuscadorTareas = ({
           className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
         >
           <FaListUl />
-          {mostrarTodas ? "Ocultar todas las tareas" : "Ver todas las tareas"}
+          {mostrarTodas ? "Ocultar todas las tareas" : "Ver listado"}
         </button>
 
         {/* 🔹 Modal con listado y custom */}
