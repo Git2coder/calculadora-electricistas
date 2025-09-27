@@ -17,6 +17,7 @@ import TareasSeleccionadas from "./calculadora/TareasSeleccionadas";
 import ResumenPresupuesto from "./calculadora/ResumenPresupuesto";
 import BuscadorTareas from "./calculadora/BuscadorTareas";
 import { getAuth } from "firebase/auth";
+import Asistente from "./Asistente";  // 👈 ruta según donde guardes Asistente.jsx
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
@@ -569,7 +570,9 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               agregarTarea={agregarTarea}
               setMostrarModalSugerencia={setMostrarModalSugerencia}
             />
-
+            {/* 👇 Nuevo bloque: Asistente interno */}
+            <Asistente />
+           
             {/* Leyenda informativa sobre tiempos */}
             <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
               ℹ️ <strong>Los tiempos sobre las tarea son estimados</strong>.  

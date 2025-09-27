@@ -1,29 +1,31 @@
-// src/utils/subirTareas.jsx
-import { collection, setDoc, doc } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // Tu configuración correcta
-import { tareasPredefinidas } from "../utils/tareas";
+import { collection, doc, setDoc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import { tareasPredefinidas } from "./tareas";
 
-// Extraemos las tareas desde el componente (necesitamos adaptarlo)
-import React from "react";
+export default function SubirTareas() {
+  const handleSubir = async () => {
+    try {
+      const colRef = collection(db, "tareas");
 
-export const subirTareasAFirebase = async () => {
-  try {
-    
-    const tareas = tareasPredefinidas;
+      for (const tarea of tareasPredefinidas) {
+        // 🔑 Subimos el objeto entero, no sólo campos seleccionados
+        const docRef = doc(colRef, tarea.id.toString());
+        await setDoc(docRef, tarea, { merge: true });
+      }
 
-
-    if (!Array.isArray(tareas) || tareas.length === 0) {
-      console.error("No se encontraron tareas en tareasPredefinidas.");
-      return;
+      alert("✅ Tareas subidas correctamente con todos los campos (incluido nivel)");
+    } catch (error) {
+      console.error("❌ Error al subir tareas:", error);
+      alert("Error al subir tareas");
     }
-console.log("🔍 Tareas para subir:", tareasPredefinidas);
+  };
 
-    for (const tarea of tareas) {
-      await setDoc(doc(collection(db, "tareas"), tarea.id.toString()), tarea);
-    }
-
-    console.log("✅ Tareas subidas correctamente.");
-  } catch (error) {
-    console.error("❌ Error al subir tareas:", error);
-  }
-};
+  return (
+    <button
+      onClick={handleSubir}
+      className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+    >
+      Cargar tareas
+    </button>
+  );
+}

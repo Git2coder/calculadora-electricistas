@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { subirTareasAFirebase } from "./utils/subirTareas";
+import subirTareasAFirebase from "./utils/subirTareas";
 
 export default function CargarTareasManual() {
   useEffect(() => {

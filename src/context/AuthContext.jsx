@@ -42,81 +42,88 @@ const evaluarAcceso = (usuarioData) => {
   return { estadoAcceso: "vencido", puedeAcceder: false };
 };
 
-export const AuthProvider = ({ children }) => {
-  const [usuario, setUsuario] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  export const AuthProvider = ({ children }) => {
+    const [usuario, setUsuario] = useState(null);
+    const [cargando, setCargando] = useState(true);
 
-  useEffect(() => {
-    let unsubscribeDoc = null;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const docRef = doc(db, "usuarios", user.uid);
-
-        // 🔄 Escucha en tiempo real al documento del usuario
-        unsubscribeDoc = onSnapshot(docRef, async (docSnap) => {
-          if (docSnap.exists()) {
-            const usuarioDoc = docSnap.data();
-            console.log("Usuario cargado en tiempo real:", usuarioDoc);
-
-            // Aseguramos que el rol esté correcto
-            setUsuario((prev) => ({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              rol: usuarioDoc.rol,  // Verificamos que el rol se setee correctamente
-              ...usuarioDoc,
-              ...evaluarAcceso(usuarioDoc),
-            }));
-          } else {
-            // 🚀 Si no existe, lo creamos en Firestore
-            await setDoc(docRef, {
-              email: user.email,
-              displayName: user.displayName || "",
-              creadoEn: serverTimestamp(),
-              estado: "activo",
-              rol: "usuario",  // Aseguramos que los nuevos usuarios tienen rol de "usuario"
-              suscripcionActiva: false,
-              fechaExpiracion: null,
-            });
-          }
-          setCargando(false);  // Aseguramos que se actualice el estado después de cargar
-        });
-      } else {
-        setUsuario(null);
-        setCargando(false);
-      }
-    });
-
-    return () => {
-      unsubscribeAuth();
-      if (unsubscribeDoc) unsubscribeDoc();
+    // 🔑 Mapa de equivalencia suscripción ↔ nivel
+    const mapaSuscripcionNivel = {
+      gratuita: 1,
+      basica: 2,
+      completa: 3,
     };
-  }, []);
 
-  const logout = async () => {
-    await signOut(auth);
+    useEffect(() => {
+      let unsubscribeDoc = null;
+
+      const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const docRef = doc(db, "usuarios", user.uid);
+
+          // 🔄 Escucha en tiempo real al documento del usuario
+          unsubscribeDoc = onSnapshot(docRef, async (docSnap) => {
+            if (docSnap.exists()) {
+              const usuarioDoc = docSnap.data();
+              console.log("Usuario cargado en tiempo real:", usuarioDoc);
+
+              // 📌 Determinamos el nivel máximo según su suscripción
+              const suscripcion = usuarioDoc.suscripcion || "gratuita";
+              const nivelMaximo = mapaSuscripcionNivel[suscripcion];
+
+              setUsuario((prev) => ({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                rol: usuarioDoc.rol || "usuario",
+                ...usuarioDoc,
+                suscripcion,   // 👈 ahora queda siempre definido
+                nivelMaximo,   // 👈 se calcula automáticamente
+                ...evaluarAcceso(usuarioDoc),
+              }));
+            } else {
+              // 🚀 Si no existe, lo creamos en Firestore
+              await setDoc(docRef, {
+                email: user.email,
+                displayName: user.displayName || "",
+                creadoEn: serverTimestamp(),
+                estado: "activo",
+                rol: "usuario",
+                suscripcion: "gratuita",     // 👈 nuevo campo por defecto
+                suscripcionActiva: false,
+                fechaExpiracion: null,
+              });
+            }
+            setCargando(false);
+          });
+        } else {
+          setUsuario(null);
+          setCargando(false);
+        }
+      });
+
+      return () => {
+        unsubscribeAuth();
+        if (unsubscribeDoc) unsubscribeDoc();
+      };
+    }, []);
+
+    const logout = async () => {
+      await signOut(auth);
+    };
+
+    const actualizarPerfil = async (nombre) => {
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: nombre });
+        setUsuario((prev) => ({ ...prev, displayName: nombre }));
+      }
+    };
+
+    return (
+      <AuthContext.Provider
+        value={{ usuario, cargando, logout, actualizarPerfil }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
   };
 
-  const actualizarPerfil = async (nombre) => {
-    if (auth.currentUser) {
-      await updateProfile(auth.currentUser, { displayName: nombre });
-      setUsuario((prev) => ({ ...prev, displayName: nombre }));
-    }
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        usuario,
-        cargando,
-        logout,
-        actualizarPerfil,
-        fechaExpiracion: usuario?.fechaExpiracion?.toDate ? usuario.fechaExpiracion.toDate() : usuario?.fechaExpiracion,
-      }}
-    >
-      {!cargando && children}
-    </AuthContext.Provider>
-  );
-
-};

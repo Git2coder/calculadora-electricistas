@@ -3,6 +3,8 @@ import { FaPlus, FaListUl, FaTrash } from "react-icons/fa";
 import { getAuth } from "firebase/auth";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // ajustá la ruta según tu proyecto
+import { useAuth } from "../../context/AuthContext";
+import TareaItem from "../TareaItem"; // ruta según tu proyecto
 
 const BuscadorTareas = ({
   busqueda,
@@ -26,6 +28,7 @@ const BuscadorTareas = ({
   // Estado de créditos
   const [creditos, setCreditos] = useState(null);
   const [userId, setUserId] = useState(null);
+  const { usuario } = useAuth();
 
   // 👇 cargar créditos desde Firestore al montar
   useEffect(() => {
@@ -129,40 +132,67 @@ const BuscadorTareas = ({
               Si no encontras tu tarea podes crear una personalizada dentro del botón del listado completo.
             </div>
           ) : (
-            tareasFiltradas.map((tarea, i) => (
-              <div
-                key={tarea.id}
-                className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                  i === indiceSeleccionado ? "bg-blue-100 font-semibold" : ""
-                }`}
-                onClick={() => {
-                  handleAgregar(tarea);
-                  setBusqueda("");
-                  setIndiceSeleccionado(-1);
-                }}
-              >
-                {tarea.nombre}
-              </div>
-            ))
+            tareasFiltradas.map((tarea, i) => {
+              const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
+              return (
+                <div
+                  key={tarea.id}
+                  className={`p-2 relative ${
+                    puedeAcceder
+                      ? "cursor-pointer hover:bg-gray-100"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  } ${i === indiceSeleccionado ? "bg-blue-100 font-semibold" : ""}`}
+                  onClick={() => {
+                    if (puedeAcceder) {
+                      handleAgregar(tarea);
+                      setBusqueda("");
+                      setIndiceSeleccionado(-1);
+                    }
+                  }}
+                >
+                  {tarea.nombre}
+                  {!puedeAcceder && (
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center text-xs text-yellow-600">
+                      🎫 {tarea.nivel === 2 ? "Plan Básico" : "Plan Completo"}
+                    </span>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       )}
 
       {/* ⭐ Populares */}
       <div className="flex flex-wrap gap-2">
-        {tareasPopulares.map((tarea) => (
-          <button
-            key={tarea.id}
-            className={`px-4 py-2 rounded-full text-sm transition-colors duration-200 ${
-              tarea.nombre === "Boca"
-                ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
-            onClick={() => handleAgregar(tarea)}
-          >
-            {tarea.nombre === "Boca" ? "⭐ Boca (unidad)" : tarea.nombre}
-          </button>
-        ))}
+        {tareasPopulares.map((tarea) => {
+          const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
+          const isBoca = tarea.nombre === "Boca";
+
+          return (
+            <button
+              key={tarea.id}
+              disabled={!puedeAcceder}
+              className={`px-4 py-2 rounded-full text-sm transition-colors duration-200 relative ${
+                isBoca
+                  ? "bg-yellow-100 text-yellow-900 border border-yellow-400 italic font-medium hover:bg-yellow-200"
+                  : puedeAcceder
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+              onClick={() => {
+                if (puedeAcceder) handleAgregar(tarea);
+              }}
+            >
+              {isBoca ? "⭐ Boca (unidad)" : tarea.nombre}
+              {!puedeAcceder && (
+                <span className="absolute -top-2 -right-2 text-xs text-yellow-600">
+                  🔒
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* 📋 Listado completo de tareas */}
@@ -328,16 +358,49 @@ const BuscadorTareas = ({
                     Listado de tareas disponibles
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {todasLasTareas.map((tarea) => (
-                      <button
-                        key={tarea.id ?? tarea.uid}
-                        onClick={() => handleAgregar(tarea)}
-                        className="p-4 border rounded-lg bg-white hover:bg-blue-50 shadow-sm text-left"
-                      >
-                        <span className="font-medium">{tarea.nombre}</span>
-                        
-                      </button>
-                    ))}
+                    {todasLasTareas.map((tarea) => {
+                      const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
+
+                      {!puedeAcceder ? (
+                        <div className="flex justify-between items-center w-full px-2 py-1 bg-gray-50 rounded">
+                          <span className="truncate">{tarea.nombre}</span>
+                          <div className="flex items-center text-xs text-gray-500 ml-2">
+                            <span className="text-yellow-500">👑</span>
+                            <span className="ml-1">Plan completo</span>
+                          </div>
+                        </div>
+
+                      ) : (
+                        <button onClick={() => agregarTarea(tarea)}>{tarea.nombre}</button>
+                      )}
+
+
+                      return (
+                        <div
+                          key={tarea.id ?? tarea.uid}
+                          className={`p-4 border rounded-lg shadow-sm relative transition ${
+                            puedeAcceder
+                              ? "bg-white hover:bg-blue-50 cursor-pointer"
+                              : "bg-gray-100 text-gray-500 cursor-not-allowed"
+                          }`}
+                          onClick={() => {
+                            if (puedeAcceder) {
+                              handleAgregar(tarea);
+                            }
+                          }}
+                        >
+                          <span className="font-medium">{tarea.nombre}</span>
+
+                          {!puedeAcceder && (
+                            <div className="absolute top-2 right-2 flex items-center text-yellow-600 text-xs">
+                              <span className="mr-1">🎫</span>
+                              {tarea.nivel === 2 ? "Plan Básico" : "Plan Completo"}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
                   </div>
                 </div>
               </div>
