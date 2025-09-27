@@ -571,7 +571,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               setMostrarModalSugerencia={setMostrarModalSugerencia}
             />
             {/* 👇 Nuevo bloque: Asistente interno */}
-            <Asistente />
+            <Asistente agregarTarea={agregarTarea} />
            
             {/* Leyenda informativa sobre tiempos */}
             <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">

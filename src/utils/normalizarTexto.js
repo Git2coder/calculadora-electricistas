@@ -7,19 +7,20 @@ export function normalizarTexto(texto) {
     .trim();
 }
 
-const diccionario = {
-  "termo magnética": "tm",
-  "termomagnetica": "tm",
-  "id": "disyuntor diferencial",
-  "disyuntor": "disyuntor diferencial",
-  "tablero": "tablero electrico",
+const sinonimos = {
+  id: "diferencial",
+  disyuntor: "diferencial",
+  diferencial: "diferencial",
+  tm: "termica",
+  termomagnetica: "termica",
+  termomagnética: "termica",
+  tablero: "tablero",
+  reacondicionar: "tablero",
 };
 
 export function reemplazarSinonimos(texto) {
-  let salida = texto;
-  for (const [clave, valor] of Object.entries(diccionario)) {
-    const regex = new RegExp("\\b" + clave + "\\b", "gi");
-    salida = salida.replace(regex, valor);
-  }
-  return salida;
+  let palabras = texto.split(/\s+/);
+  palabras = palabras.map((p) => (sinonimos[p] ? sinonimos[p] : p));
+  return palabras.join(" ");
 }
+
