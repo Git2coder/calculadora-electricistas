@@ -277,14 +277,14 @@ export default function Asistente({ agregarTarea }) {
 
                 {/* Dejar sugerencia */}
                 <div>
-                  <h3 className="text-md font-semibold mb-2">💡 Consulta o sugerencia</h3>
+                  <h3 className="text-md font-semibold mb-2">💡 Consulta o Comentario</h3>
                   <form onSubmit={enviarSugerencia} className="space-y-2">
                     <textarea
                       className="w-full p-2 border rounded"
                       rows={2}
                       value={sugerencia}
                       onChange={(e) => setSugerencia(e.target.value)}
-                      placeholder="¿Tenes alguna duda?¿Queres comentarnos que mejorarías en esta herramienta?"
+                      placeholder="¿Tenés una duda?¿Que te pareció la herramienta?¿Mejorarias algo?"
                     />
                     <button
                       type="submit"

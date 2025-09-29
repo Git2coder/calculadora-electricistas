@@ -264,7 +264,7 @@ export const tareasPredefinidas = [
   },   
  {
     id: 38,
-    nombre: "Tablero 8 polos",
+    nombre: "Tablero 12 polos",
     unidad: "Tableros",
     dependeDe: "Boca",
     factorBoca: 3, 
@@ -430,7 +430,7 @@ export const tareasPredefinidas = [
   },
 
   // 🔌 4) ADMINISTRATIVAS
-  { id: 50, nombre: "DCI", tipo: "administrativa", descripcion: "", opciones: {
+  { id: 50, nombre: "certificado DCI", tipo: "administrativa", descripcion: "", opciones: {
           "Monofasico": { valor: 305000 },
           "Trifasico": { valor: 460000 },          
         }, variante: "Monofasico",
