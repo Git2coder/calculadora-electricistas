@@ -18,6 +18,7 @@ import ResumenPresupuesto from "./calculadora/ResumenPresupuesto";
 import BuscadorTareas from "./calculadora/BuscadorTareas";
 import { getAuth } from "firebase/auth";
 import Asistente from "./Asistente";  // 👈 ruta según donde guardes Asistente.jsx
+import ModalTutorial from "./ModalTutorial";
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
@@ -531,8 +532,23 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
         {(!modoPreview && (tarifaHoraria === null || costoConsulta === null)) ? (
           <p className="text-center text-gray-500">Cargando configuración...</p>
         ) : (
-          <>
-            <h1 className="text-4xl font-bold text-center text-bkack-700">💡 Calculadora de Presupuestos</h1>
+          <>          
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <h1 className="text-4xl font-bold text-center text-gray-800">
+                💡 Calculadora de Presupuestos
+              </h1>
+              
+              <ModalTutorial 
+                videoUrl="https://www.youtube.com/embed/u7RlPoLtqBA"
+                triggerText={
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg 
+                                  bg-red-600 text-white text-sm font-medium shadow-md 
+                                  hover:bg-red-700 transition">
+                    🎥 Ver tutorial
+                  </span>
+                }
+              />
+            </div>       
 
             {/* MODAL TARIFA */}
             {mostrarModalTarifa && (
