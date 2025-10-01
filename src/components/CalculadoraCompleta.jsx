@@ -34,7 +34,7 @@ export const extrasDisponibles = [
   { id: "altura", nombre: "Altura/dificil acceso ", multiplicador: 1.25 },
   { id: "doble", nombre: "Refuerzo de personal", multiplicador: 1.15 },
   { id: "riesgo", nombre: "Instalación en servicio", multiplicador: 1.3 },
-  { id: "urgencia", nombre: "Trabajo urgente / fuera de horario", multiplicador: 1.5 },
+  
 ];
 
 const extrasGlobales = [
@@ -312,7 +312,6 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
       if (!tareaOriginal) return tareas;
   
       if (campo === "variante") {
-        // Usamos las opciones de la MISMA tarea que viene de Firestore
         const nuevaConfig = tareaOriginal?.opciones?.[valor];
 
         return tareas.map((t) =>
@@ -320,19 +319,23 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
             ? {
                 ...t,
                 variante: valor,
-                // Traemos todo de la variante elegida si existe
                 tiempo: nuevaConfig?.tiempo ?? t.tiempo,
                 multiplicador: nuevaConfig?.multiplicador ?? t.multiplicador,
                 porcentaje: nuevaConfig?.porcentaje ?? t.porcentaje,
-                // Recalcular el valor si ya hay valorUnidad cargado
-                valor: t.valorUnidad
-        ? Math.round(
-            ((t.valorUnidad || 0) *
-              ((nuevaConfig?.porcentaje ?? (t.porcentaje || 0))) / 100) *
-            (t.cantidad || 1)
-          )
-        : t.valor,
-
+                valor:
+                  t.tipo === "administrativa"
+                    ? (nuevaConfig?.valor ?? t.valor ?? 0) * (t.cantidad || 1)
+                    : t.valorUnidad
+                    ? Math.round(
+                        ((t.valorUnidad || 0) *
+                          (nuevaConfig?.porcentaje ?? (t.porcentaje || 0))) /
+                          100 *
+                          (t.cantidad || 1)
+                      )
+                    : ((nuevaConfig?.tiempo ?? t.tiempo ?? 0) / 60) *
+                      tarifaHoraria *
+                      (nuevaConfig?.multiplicador ?? t.multiplicador ?? 1) *
+                      (t.cantidad || 1),
               }
             : t
         );

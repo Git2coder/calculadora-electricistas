@@ -4,6 +4,9 @@ import { exportarPresupuestoPDF } from "./pdf/exportarPresupuesto";
 import { FaTicketAlt, FaFilePdf } from "react-icons/fa";
 import { FaRegCalendarAlt, FaEdit } from "react-icons/fa";
 import { RiLineHeight } from "react-icons/ri";
+import { useAuth } from "../../context/AuthContext"; 
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
 const ResumenPresupuesto = ({
   tareasSeleccionadas,
@@ -24,7 +27,9 @@ const ResumenPresupuesto = ({
   setExtrasSeleccionadosGlobal
 }) => {
   // 👇 nuevo estado para validez en días
-  const [validezDias, setValidezDias] = useState(15);
+  const { usuario } = useAuth();
+  const [validezDias, setValidezDias] = useState(usuario?.validezDias || 15);
+
   // 👇 estado para mostrar/ocultar edición
   const [editandoValidez, setEditandoValidez] = useState(false);
 
@@ -47,6 +52,16 @@ const ResumenPresupuesto = ({
       extrasGlobales,                
       extrasSeleccionadosGlobal,    
     });
+  };
+
+  const handleValidezChange = async (e) => {
+    const nuevoValor = Number(e.target.value);
+    setValidezDias(nuevoValor);
+
+    if (usuario?.uid) {
+      const ref = doc(db, "usuarios", usuario.uid);
+      await updateDoc(ref, { validezDias: nuevoValor });
+    }
   };
 
   return (
@@ -140,7 +155,7 @@ const ResumenPresupuesto = ({
             type="number"
             min="1"
             value={validezDias}
-            onChange={(e) => setValidezDias(e.target.value)}
+            onChange={handleValidezChange}
             onBlur={() => setEditandoValidez(false)}
             className="w-24 text-center border rounded-md p-1"
             autoFocus

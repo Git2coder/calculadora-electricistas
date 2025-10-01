@@ -1,6 +1,6 @@
 // TareasSeleccionadas.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { FaTrash, FaBroom } from "react-icons/fa";
+import { FaTrash, FaBroom, FaPen } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReactDOM from "react-dom";
 
@@ -78,6 +78,18 @@ const TareasSeleccionadas = ({
                   </span>
                 )}
 
+                {/* Si es administrativa o calculada → mostrar input + icono lápiz */}
+                {(tarea.tipo === "administrativa" || tarea.tipo === "calculada") && (
+                  <div className="flex items-center gap-1">
+                    
+                    {/* ✏️ Lápiz con tooltip */}
+                    <FaPen
+                      className="text-blue-400 hover:text-blue-600 cursor-pointer"
+                      title="Este tarea tiene valor editable"
+                    />
+                  </div>
+                )}
+
                 {/* ⚙️ Extras SOLO si no es administrativa */}
                 {tarea.tipo !== "administrativa" && (
                   <div className="relative">
@@ -88,9 +100,9 @@ const TareasSeleccionadas = ({
                           : abrirMenu(tarea.uid, e)
                       }
                       className="ml-2 text-xs text-gray-500 hover:text-blue-600"
-                      title="Agregar condiciones especiales"
+                      title="Marcar condiciones especiales"
                     >
-                      ✏️
+                      ⚙️
                     </button>
 
                     {/* Renderizo portal solo cuando el menú de esa tarea está abierto */}
@@ -203,7 +215,7 @@ const TareasSeleccionadas = ({
                       />
                     </div>
                   )}
-
+                  
                   {/* Si es administrativa, valor directo */}
                   {tarea.tipo === "administrativa" && (
                     <div className="flex items-center gap-1">
