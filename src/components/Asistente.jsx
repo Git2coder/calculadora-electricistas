@@ -19,18 +19,18 @@ export default function Asistente({ agregarTarea }) {
   const [faqAbierta, setFaqAbierta] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
-  const faqs = [
-    {
-      q: "¿Cómo se usa la calculadora?",
-      a: "En el buscador elegí las tareas que correspondan a tu trabajo, y la calculadora irá sumando sus valores para mostrarte un presupuesto estimado."
-    },
+  const faqs = [    
     {
       q: "¿Qué hago si no encuentro una tarea?",
-      a: "Podés describir tu caso en el asistente para recibir sugerencias, o usar la opción 'añadir personalizada' ubicada dentro del botón 'ver listado'."
+      a: "Podés describir tu caso en el asistente para recibir sugerencias, o usar la opción 'añadir personalizada' ubicada dentro del botón 'ver listado' (con esta alternativa el precio lo fijas vos)."
+    },
+    {
+      q: "¿Van a añadir nuevas tareas a la lista?",
+      a: "Si, es la idea mantenerla actulizada para ustedes. Por eso dejamos a disposicion la caja de sugerencias para que se puedan comunicar."
     },
     {
       q: "¿Los valores son definitivos?",
-      a: "No. Los valores son de referencia para ayudarte a cotizar. El precio final lo definís vos según tu criterio y condiciones del trabajo."
+      a: "No. Los valores son de referencia para ayudarte a cotizar. El precio final lo definís vos aplicando los ajustes según tu criterio y condiciones del trabajo."
     },
     {
       q: "¿Qué diferencia hay entre el buscador y el asistente?",
@@ -38,16 +38,13 @@ export default function Asistente({ agregarTarea }) {
     },
     {
       q: "¿Puedo modificar los valores de las tareas?",
-      a: "No de manera individual, salvo algunas excepciones. La 2 maneras en que podes readecuar los precios son: reajustando tu tarifa horaria o haciendo uso del riel de ajuste."
+      a: "No de manera individual, salvo algunas excepciones (marcadas con el simbolo de un lapiz). La 2 maneras en que podes readecuar los precios son: modificando tu tarifa horaria o haciendo uso del riel de ajuste."
     },
     {
       q: "¿Qué significa cuando una tarea aparece con candado 🔒?",
       a: "Indica que tu suscripción actual no habilita esa tarea. Podés ver dentro de que plan esta incluida accediendo en el listado completo."
     },
-    {
-      q: "¿Qué pasa con los reclamos o sugerencias que envío?",
-      a: "El equipo los revisa y, si corresponde, se implementan mejoras en futuras actualizaciones. En el caso de los reclamos buscará solucionarlo lo antes posible."
-    }
+    
   ];
 
   const fuse = new Fuse(tareasPredefinidas, {

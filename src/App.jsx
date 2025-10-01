@@ -161,7 +161,7 @@ useEffect(() => {
                     className="flex items-center gap-2 text-white hover:opacity-80 transition"
                   >
                     <FaUserCircle className="text-3xl" />
-                    <span className="hidden sm:inline">{usuario.nombre || usuario.email}</span>
+                    <span className="hidden sm:inline">Hola, {usuario.nombre || usuario.email}</span>
                   </button>
 
                   {menuUsuario && (

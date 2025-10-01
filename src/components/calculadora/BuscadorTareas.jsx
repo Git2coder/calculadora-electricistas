@@ -393,8 +393,8 @@ const BuscadorTareas = ({
 
                           {!puedeAcceder && (
                             <div className="absolute top-2 right-2 flex items-center text-yellow-600 text-xs">
-                              <span className="mr-1">🎫</span>
-                              {tarea.nivel === 2 ? "Plan Básico" : "Plan Completo"}
+                              <span className="mr-1">🔒</span>
+                              {tarea.nivel === 2 ? " " : " "}
                             </div>
                           )}
                         </div>

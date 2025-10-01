@@ -295,228 +295,62 @@ export function Home() {
       </section>
 
       {/* Planes de suscripción */}
-      <section id="planes" className="bg-white py-12 px-6 scroll-mt-20">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <h2 className="text-3xl font-bold text-blue-800">Elegí tu plan</h2>
+      <section id="planes" className="bg-white py-8 px-6 scroll-mt-8">
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <h2 className="text-3xl font-bold text-blue-800">Acceso Beta Gratuito</h2>
           <p className="text-gray-600 mt-2">
-            Accedé a la calculadora y recursos exclusivos según tu suscripción
+            Usá la calculadora y explorá la plataforma sin costo hasta el{" "}
+            <span className="font-semibold text-blue-700">15 de noviembre de 2025</span>.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Plan Gratis */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className={`relative bg-white border rounded-2xl shadow p-8 flex flex-col hover:shadow-lg transition ${
-              !config?.gratisHabilitado ? "opacity-60" : ""
-            }`}
-          >
-            {/* Cinta de FOMO */}
-            {!config?.gratisHabilitado && (
-              <div className="absolute top-6 right-[-40px] rotate-[20deg] bg-red-600 text-white font-bold px-16 py-1 shadow-lg">
-                Próximamente
-              </div>
-            )}
-
-            <h3 className="text-xl font-bold mb-4">Gratis</h3>
-            <p className="text-gray-600 mb-6">Probá la herramienta sin costo durante 7 días.</p>
-
-            {<ul className="space-y-3 flex-1 text-left">
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora limitada</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> 7 días de prueba</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Escala de remuneraciones</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Noticias e índice</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Presupuestos PDF</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Votaciones o soporte</li>
-            </ul>}
-
-            <div className="mt-6">
-              <span className="text-3xl font-bold text-gray-700">$0</span>
-              <span className="text-sm text-gray-500"> / prueba</span>
-            </div>
-
-            <button
-              disabled={!config?.gratisHabilitado}
-              onClick={() => {
-                if (config?.gratisHabilitado) {
-                  setPlanSeleccionado("gratis");
-                  setOrigen("suscripcion");
-                  setModalAbierto(true);
-                }
-              }}
-              className={`mt-6 block w-full py-3 rounded-xl font-semibold ${
-                config?.gratisHabilitado
-                  ? "bg-green-600 hover:bg-green-500 text-white"
-                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
-              }`}
-            >
-              {config?.gratisHabilitado ? "Empezar gratis" : "No disponible"}
-            </button>
-          </motion.div>
-
-          
-
-          {/* Plan Profesional (destacado) */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className={`relative bg-white border-2 border-yellow-500 rounded-2xl shadow-xl p-10 flex flex-col transform scale-105 hover:shadow-2xl transition ${
-              !config?.profesionalHabilitado ? "opacity-60" : ""
-            }`}
-          >
-            {/* Cinta de FOMO */}
-            {!config?.profesionalHabilitado && (
-              <div className="absolute top-6 right-[-40px] rotate-[20deg] bg-red-600 text-white font-bold px-16 py-1 shadow-lg">
-                Próximamente
-              </div>
-            )}
-
-            <div className="absolute -top-3 right-6 bg-black text-white text-xs px-3 py-1 rounded-full">
-              ⚡ Profesional
-            </div>
-
-            <h3 className="text-xl font-bold mb-4">Completo</h3>
-            <p className="text-gray-600 mb-6">
-              Accedé al máximo potencial de la herramienta y todas sus funciones.
+        {/* Plan Gratis */}
+        <div className="max-w-md mx-auto">
+          <div className="relative bg-white border-2 border-green-500 rounded-2xl shadow-xl p-10 flex flex-col items-center hover:shadow-2xl transition">
+            
+            <h3 className="text-xl font-bold mb-2">Plan Gratis (Beta)</h3>
+            <p className="text-gray-500 mb-6 text-center">
+              Durante esta etapa de prueba podrás acceder a las funciones principales.
             </p>
 
-            {<ul className="space-y-3 flex-1 text-left">
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora completa y actualizada</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Noticias e índice</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Presupuestos PDF ilimitados</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Participación en votaciones</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Sugerencia de precios al votar</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Soporte a consultas</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Acceso a futuras actualizaciones</li>
-            </ul>}
+            {/* Características */}
+            <ul className="space-y-3 text-left w-full">
+              <li className="flex items-center gap-2">
+                <FaCheck className="text-green-600" /> Acceso a la calculadora
+              </li>
+              <li className="flex items-center gap-2">
+                <FaCheck className="text-green-600" /> Escala de remuneraciones
+              </li>
+              <li className="flex items-center gap-2">
+                <FaCheck className="text-green-600" /> Noticias e índice
+              </li>
+              <li className="flex items-center gap-2">
+                <FaCheck className="text-green-600" /> Votaciones y soporte
+              </li>                            
+            </ul>
 
-            {/*Tarifa profesional*/}
-            <div className="mt-6 flex items-baseline gap-2">
-              {/* Precio anterior (solo si existe en Firestore) */}
-              {config?.precioAnteriorProfesional && (
-                <span className="text-lg text-gray-400 line-through">
-                  ${config.precioAnteriorProfesional.toLocaleString("es-AR")}
-                </span>
-              )}
-
-              {/* Precio actual */}
-              <span className="text-3xl font-bold text-black-600">
-                ${config?.precioProfesional?.toLocaleString("es-AR")}
-              </span>
-              <span className="text-sm text-gray-500"> / mes</span>
-            </div>
-
+            {/* Botón */}
             <button
-              disabled={!config?.profesionalHabilitado || loadingPago}
               onClick={() => {
-                if (config?.profesionalHabilitado) {
-                  if (usuario) {
-                    iniciarPago(usuario.uid, "profesional");
-                  } else {
-                    setPlanSeleccionado("profesional");
-                    setOrigen("suscripcion");
-                    setModalAbierto(true);
-                  }
-                }
+                setPlanSeleccionado("gratis");
+                setOrigen("suscripcion");
+                setModalAbierto(true);
               }}
-              className={`mt-6 block w-full py-3 rounded-xl font-semibold ${
-                config?.profesionalHabilitado
-                  ? "bg-yellow-500 hover:bg-yellow-600 text-white"
-                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
-              }`}
+              className="mt-8 block w-full py-3 rounded-xl font-semibold bg-green-600 hover:bg-green-500 text-white"
             >
-              {loadingPago
-                ? "Redirigiendo..."
-                : config?.profesionalHabilitado
-                ? "Suscribirme"
-                : "No disponible"}
+              Empezar ahora
             </button>
-          </motion.div>
+          </div>
+        </div>
 
-
-          {/* Plan Básico */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className={`relative bg-white border-2 border-blue-500 rounded-2xl shadow-lg p-8 flex flex-col hover:shadow-xl transition ${
-              !config?.basicoHabilitado ? "opacity-60" : ""
-            }`}
-          >
-            {/* Cinta de FOMO */}
-            {!config?.basicoHabilitado && (
-              <div className="absolute top-6 right-[-40px] rotate-[20deg] bg-red-600 text-white font-bold px-16 py-1 shadow-lg">
-                Próximamente
-              </div>
-            )}
-
-            <h3 className="text-xl font-bold mb-4">Básico</h3>
-            <p className="text-gray-600 mb-6">
-              Ideal para quienes recién comienzan y quieren gestionar presupuestos.
-            </p>
-
-            {<ul className="space-y-3 flex-1 text-left">
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Calculadora parcial</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Noticias e índice</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Presupuestos PDF limitados</li>
-              <li className="flex items-center gap-2"><FaCheck className="text-green-600" /> Escala de remuneraciones</li>
-              <li className="flex items-center gap-2 text-gray-400"><FaTimes className="text-red-400" /> Votaciones de precios</li>
-              
-            </ul>}
-
-            {/*Tarifa Basico*/}
-
-            {/* Precio anterior (solo si existe en Firestore) */}
-            <div className="mt-6 flex items-baseline gap-2">
-              {config?.precioAnteriorBasico && (
-                <span className="text-lg text-gray-400 line-through">
-                  ${config.precioAnteriorBasico.toLocaleString("es-AR")}
-                </span>
-              )}
-
-              {/* Precio actual */}
-              <span className="text-3xl font-bold text-black-600">
-                ${config?.precioBasico?.toLocaleString("es-AR")}
-              </span>
-              <span className="text-sm text-gray-500"> / mes</span>
-            </div>
-
-
-            <button
-              disabled={!config?.basicoHabilitado || loadingPago}
-              onClick={() => {
-                if (config?.basicoHabilitado) {
-                  if (usuario) {
-                    iniciarPago(usuario.uid, "basico");
-                  } else {
-                    setPlanSeleccionado("basico");
-                    setOrigen("suscripcion");
-                    setModalAbierto(true);
-                  }
-                }
-              }}
-              className={`mt-6 block w-full py-3 rounded-xl font-semibold ${
-                config?.basicoHabilitado
-                  ? "bg-blue-600 hover:bg-blue-500 text-white"
-                  : "bg-gray-400 text-gray-200 cursor-not-allowed"
-              }`}
-            >
-              {loadingPago
-                ? "Redirigiendo..."
-                : config?.basicoHabilitado
-                ? "Suscribirme"
-                : "No disponible"}
-            </button>
-          </motion.div>
-
+        {/* Próximamente */}
+        <div className="max-w-2xl mx-auto text-center mt-10 text-gray-500">
+          <p>
+            Próximamente estarán disponibles los planes con beneficios exclusivos.
+          </p>
         </div>
       </section>
+
 
         {/* Modal acceso */}
         {modalAbierto && (

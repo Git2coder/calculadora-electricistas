@@ -579,6 +579,12 @@ export function TareasAdmin() {
                 onChange={toggleSelectAll}
               />
             </th>
+            <th
+              className="border px-2 py-1 cursor-pointer"
+              onClick={() => handleSortHeader("nivel")}
+            >
+              Nivel
+            </th>
             <th className="border px-2 py-1">Nombre</th>
             <th
               className="border px-2 py-1 cursor-pointer"
@@ -657,13 +663,18 @@ export function TareasAdmin() {
               >
 
                 {/* Checkbox */}
-              <td className="border px-2 py-1 text-center">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(tareaKey)}
-                  onChange={() => toggleSelect(tareaKey)}
-                />
-              </td>
+                <td className="border px-2 py-1 text-center">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(tareaKey)}
+                    onChange={() => toggleSelect(tareaKey)}
+                  />
+                </td>
+                
+                {/* Nivel */}
+                <td className="border px-2 py-1 text-center">
+                  {tarea.nivel ?? "-"}
+                </td>
 
                 {/* Nombre */}
                 <td className="border px-2 py-1">{tarea.nombre}</td>
