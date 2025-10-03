@@ -412,7 +412,7 @@ export const tareasPredefinidas = [
         "de 200mm a 300mm": { factorBoca: 0.28, tiempo: 13 },
         "de 450mm a 600mm": { factorBoca: 0.36, tiempo: 14 }
       },
-    descripcion: "",
+    variante: "<= 150mm",
     nivel: 1
   },
   {
@@ -430,32 +430,67 @@ export const tareasPredefinidas = [
   },
 
   // 🔌 4) ADMINISTRATIVAS
-  { id: 50, nombre: "certificado DCI", tipo: "administrativa", descripcion: "", opciones: {
-          "Monofasico": { valor: 305000 },
-          "Trifasico": { valor: 460000 },          
-        }, variante: "Monofasico",
-  
-     nivel: 2
+  {
+    id: 50,
+    nombre: "Certificado DCI",
+    tipo: "administrativa",
+    opciones: {
+      "Monofasico": { factorJornal: 5 },
+      "Trifasico": { factorJornal: 7 }
+    },
+    variante: "Monofasico",
+    nivel: 1
   },
-
-  { id: 51, nombre: "Relevamiento de la instalación eléctrica", tipo: "administrativa", descripcion: "Cat 1: <10KVA- Cat 2: entre 10 y 50KVA - Cat 3: >50KVA (BT).", opciones: {
-          "Cat. 1": { valor: 60000 },
-          "Cat. 2": { valor: 144000 },
-          "Cat. 3": { valor: 360000 }
-        }, variante: "Cat. 1",
+  {
+    id: 51,
+    nombre: "Relevamiento de la instalación eléctrica",
+    tipo: "administrativa",
+    opciones: {
+      "Cat. 1": { factorJornal: 1.3 },
+      "Cat. 2": { factorJornal: 3 },
+      "Cat. 3": { factorJornal: 7.2 }
+    },
+    variante: "Cat. 1",
     nivel: 3
-  },      
-
-  { id: 52, nombre: "Medicion de Puesta a Tierra (T1-R)", tipo: "administrativa", valor: 160000, 
-    nivel: 2 },
-  { id: 53, nombre: "Puesta en servicio / pruebas / medicion", tipo: "administrativa", valor: 100000, descripcion: "Pruebas finales de funcionamiento, verificación de protecciones y seguridad, mediciones eléctricas, continuidad, aislamiento, corrientes de fuga.", 
-    nivel: 1 },
-  { id: 54, nombre: "Balanceo de cargas trifásicas", tipo: "administrativa", valor: 360000, descripcion: "Medición y redistribución de circuitos en fases para mejorar balance trifásico.",
-    nivel: 2 },
-  { id: 55, nombre: "Memoria tecnica", tipo: "administrativa", valor: 300000, descripcion: "Redacción de informe técnico de acuerdo a reglamentaciones vigentes.",
-    nivel: 2 },
-  { id: 56, nombre: "Informe termografico", tipo: "administrativa", valor: 250000, descripcion: "Relevamiento termográfico de tableros o instalaciones eléctricas.", 
-    nivel: 2 },
+  },
+  { 
+    id: 52, 
+    nombre: "Medicion de Puesta a Tierra (T1-R)", 
+    tipo: "administrativa", 
+    factorJornal: 3.9, // Ejemplo: vale 2 jornales de oficial
+    nivel: 1
+  },
+  { 
+    id: 53, 
+    nombre: "Puesta en servicio / pruebas / medicion", 
+    tipo: "administrativa", 
+    factorJornal: 1.2, 
+    nivel: 1
+  },
+  { 
+    id: 54, 
+    nombre: "Balanceo de cargas trifásicas", 
+    tipo: "administrativa", 
+    factorJornal: 6.0, 
+    nivel: 3,
+    descripcion: "Medición y redistribución de circuitos en fases para mejorar balance trifásico."
+  },
+  { 
+    id: 55, 
+    nombre: "Memoria tecnica", 
+    tipo: "administrativa", 
+    factorJornal: 4.8, 
+    nivel: 2,
+    descripcion: "Redacción de informe técnico de acuerdo a reglamentaciones vigentes."
+  },
+  { 
+    id: 56, 
+    nombre: "Informe termografico", 
+    tipo: "administrativa", 
+    factorJornal: 4.3, 
+    nivel: 2,
+    descripcion: "Relevamiento termográfico de tableros o instalaciones eléctricas."
+  },
 
   // 🔌 5) CALCULADAS
   {

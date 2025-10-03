@@ -216,15 +216,29 @@ const TareasSeleccionadas = ({
                     </div>
                   )}
                   
-                  {/* Si es administrativa, valor directo */}
+                 {/* Si es administrativa, valor editable con sugerencia */}
                   {tarea.tipo === "administrativa" && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <label className="text-gray-500">Valor:</label>
+
+                      {/* Slider */}
+                      <input
+                        type="range"
+                        min={Math.round(tarea.valorSugerido * 0.65)}
+                        max={Math.round(tarea.valorSugerido * 1.35)}
+                        step={10} // 👈 ajuste fino, podés cambiarlo a 500 o 2000 según prefieras
+                        value={tarea.valor}
+                        onChange={(e) => modificarTarea(tarea.uid, "valor", Number(e.target.value))}
+                        className="flex-1"
+                      />
+                      {/* Número editable */}
                       <input
                         type="number"
                         className="w-24 p-1 border rounded"
-                        value={tarea.valor}
-                        onChange={(e) => modificarTarea(tarea.uid, "valor", e.target.value)}
+                        value={tarea.valor > 0 ? tarea.valor : tarea.valorSugerido || 0}
+                        onChange={(e) =>
+                          modificarTarea(tarea.uid, "valor", Number(e.target.value) || 0)
+                        }
                       />
                     </div>
                   )}

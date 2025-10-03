@@ -57,6 +57,20 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const [config, setConfig] = useState(null);
   const sonidoMonedas = useRef(new Audio("/sounds/coin.mp3"));
   const [extrasSeleccionadosGlobal, setExtrasSeleccionadosGlobal] = useState([]);
+  const [jornales, setJornales] = useState(null);
+  const [jornalOficial, setJornalOficial] = useState(0);
+
+  useEffect(() => {
+    const fetchJornales = async () => {
+      const snap = await getDoc(doc(db, "jornales", "valores"));
+      if (snap.exists()) {
+        const data = snap.data();
+        setJornales(data);
+        setJornalOficial(data.CBT / data.diasOficial);
+      }
+    };
+    fetchJornales();
+  }, []);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -264,7 +278,6 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     }
 
     // 🔹 OTRAS TAREAS
-    // Usa las opciones de ESTA tarea
     const varianteConfig =
       (tarea.variante && tarea.opciones?.[tarea.variante])
         ? tarea.opciones[tarea.variante]
@@ -274,22 +287,31 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
       ...tarea,
       uid: Date.now() + Math.floor(Math.random() * 1000),
       cantidad: 1,
-      // si hay variante elegida, tomar sus campos; si no, caer al de la tarea
       tiempo: (varianteConfig?.tiempo ?? tarea.tiempo ?? 0),
       multiplicador: (varianteConfig?.multiplicador ?? tarea.multiplicador ?? 1),
-      // valor queda en 0 al inicio para "calculada" hasta que el usuario ingrese valorUnidad
+
+      // 🔹 Nuevo: calcular valor sugerido para administrativas en base a jornal
+      valorSugerido:
+        tarea.tipo === "administrativa"
+          ? (jornalOficial || 0) *
+            (varianteConfig?.factorJornal ?? tarea.factorJornal ?? 1)
+          : undefined,
+
+      // 🔹 Valor editable: arranca en sugerido si es administrativa
       valor:
         tarea.tipo === "administrativa"
-          ? (varianteConfig?.valor ?? tarea.valor ?? 0)
+          ? (jornalOficial || 0) *
+            (varianteConfig?.factorJornal ?? tarea.factorJornal ?? 1)
           : tarea.tipo === "calculada"
             ? 0
             : ((varianteConfig?.tiempo ?? tarea.tiempo ?? 0) / 60) *
               tarifaHoraria *
               (varianteConfig?.multiplicador ?? tarea.multiplicador ?? 1),
+
       valorUnidad: tarea.valorUnidad ?? 0,
       porcentaje: (varianteConfig?.porcentaje ?? tarea.porcentaje ?? 0),
       variante: tarea.variante ?? null,
-      extras: [] // 👈 nuevo: siempre inicializo extras como array de ids
+      extras: [],
     };
 
     setTareasSeleccionadas((prev) => [...prev, nuevaTarea]);
@@ -322,9 +344,15 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
                 tiempo: nuevaConfig?.tiempo ?? t.tiempo,
                 multiplicador: nuevaConfig?.multiplicador ?? t.multiplicador,
                 porcentaje: nuevaConfig?.porcentaje ?? t.porcentaje,
+                valorSugerido:
+                  t.tipo === "administrativa"
+                    ? (jornalOficial || 0) *
+                      (nuevaConfig?.factorJornal ?? t.factorJornal ?? 1)
+                    : undefined,
                 valor:
                   t.tipo === "administrativa"
-                    ? (nuevaConfig?.valor ?? t.valor ?? 0) * (t.cantidad || 1)
+                    ? (jornalOficial || 0) *
+                      (nuevaConfig?.factorJornal ?? t.factorJornal ?? 1)
                     : t.valorUnidad
                     ? Math.round(
                         ((t.valorUnidad || 0) *
@@ -451,7 +479,18 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
       }
       base = valorBoca * factor * (tarea.cantidad || 1);
     } else if (tarea.tipo === "administrativa") {
-      base = (tarea.valor || 0) * (tarea.cantidad || 1);
+      // 👇 si el usuario editó el valor, se respeta ese número
+      if (typeof tarea.valor === "number" && tarea.valor > 0) {
+        base = tarea.valor * (tarea.cantidad || 1);   // ✅ ahora multiplica por cantidad
+      } else {
+        // respaldo: usar cálculo sugerido
+        let factor = tarea.factorJornal ?? 0;
+        if (tarea.variante && tarea.opciones?.[tarea.variante]) {
+          factor = tarea.opciones[tarea.variante].factorJornal ?? factor;
+        }
+        base = (jornalOficial || 0) * factor * (tarea.cantidad || 1);
+      }
+      
     } else if (tarea.tipo === "calculada") {
       const cantidad = tarea.cantidad || 1;
       const valorUnidad = tarea.valorUnidad || 0;
