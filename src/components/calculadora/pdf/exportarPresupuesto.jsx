@@ -228,52 +228,52 @@ export const exportarPresupuestoPDF = async ({
   }
 
   filas.push([conceptoVisita, "", subtotalVisita]);
-  
+
     autoTable(docPDF, {
-    head: [["Concepto", "Cantidad", { content: "Subtotal", styles: { halign: "right" } }]],
-    body: filas,
-    didParseCell: function (data) {
-      if (
-        data.section === "body" &&
-        data.row.cells[2].text[0] === "BONIFICADA"
-      ) {
-        data.cell.styles.textColor = [34, 139, 34];
-        data.cell.styles.fontStyle = "bold";
-        data.cell.styles.fillColor = [220, 255, 220];
-      }
-    },
-    startY: 35,
-    theme: "striped",
-    styles: { fontSize: 10 },
-    columnStyles: {
-      0: { cellWidth: 100, halign: "left" },
-      1: { cellWidth: 30, halign: "center" },
-      2: { cellWidth: 50, halign: "right" },
-    },
-    pageBreak: "auto",
-    margin: { bottom: 40 }, // 👈 siempre deja espacio para pie
-    didDrawPage: () => {
-      const pageSize = docPDF.internal.pageSize;
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+      head: [["Concepto", "Cantidad", { content: "Subtotal", styles: { halign: "right" } }]],
+      body: filas,
+      didParseCell: function (data) {
+        if (
+          data.section === "body" &&
+          data.row.cells[2].text[0] === "BONIFICADA"
+        ) {
+          data.cell.styles.textColor = [34, 139, 34];
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [220, 255, 220];
+        }
+      },
+      startY: 35,
+      theme: "striped",
+      styles: { fontSize: 10 },
+      columnStyles: {
+        0: { cellWidth: 100, halign: "left" },
+        1: { cellWidth: 30, halign: "center" },
+        2: { cellWidth: 50, halign: "right" },
+      },
+      pageBreak: "auto",
+      margin: { bottom: 40 }, // 👈 siempre deja espacio para pie
+      didDrawPage: () => {
+        const pageSize = docPDF.internal.pageSize;
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
 
-      // Línea separadora arriba del pie
-      docPDF.setDrawColor(180);
-      docPDF.line(10, pageHeight - 20, 200, pageHeight - 20);
+        // Línea separadora arriba del pie
+        docPDF.setDrawColor(180);
+        docPDF.line(10, pageHeight - 20, 200, pageHeight - 20);
 
-      // Datos de emisor
-      docPDF.setFontSize(8);
-      docPDF.setFont("helvetica", "normal");
-      docPDF.text(`Emitido por: ${datosEmisor.nombre || "Usuario"}`, 14, pageHeight - 15);
-      if (datosEmisor.telefono)
-        docPDF.text(`Tel: ${datosEmisor.telefono}`, 14, pageHeight - 10);
-      if (datosEmisor.email)
-        docPDF.text(`Email: ${datosEmisor.email}`, 80, pageHeight - 10);
+        // Datos de emisor
+        docPDF.setFontSize(8);
+        docPDF.setFont("helvetica", "normal");
+        docPDF.text(`Emitido por: ${datosEmisor.nombre || "Usuario"}`, 14, pageHeight - 15);
+        if (datosEmisor.telefono)
+          docPDF.text(`Tel: ${datosEmisor.telefono}`, 14, pageHeight - 10);
+        if (datosEmisor.email)
+          docPDF.text(`Email: ${datosEmisor.email}`, 80, pageHeight - 10);
 
-      // Numeración simple
-      const pageCurrent = docPDF.internal.getCurrentPageInfo().pageNumber;
-      docPDF.text(`Página ${pageCurrent}`, 200 - 20, pageHeight - 10);
-    },
-  });
+        // Numeración simple
+        const pageCurrent = docPDF.internal.getCurrentPageInfo().pageNumber;
+        docPDF.text(`Página ${pageCurrent}`, 200 - 20, pageHeight - 10);
+      },
+    });
 
       let finalY = docPDF.lastAutoTable?.finalY || 40;
   const pageHeight = docPDF.internal.pageSize.height;
