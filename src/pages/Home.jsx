@@ -8,6 +8,7 @@ import { FaUserCircle } from "react-icons/fa";
 import EscalaRemuneracion from "../components/EscalaRemuneracion";
 import ModalAcceso from "../components/ModalAcceso";
 import { useAuth } from "../context/AuthContext";
+import { scrollToSection } from "../utils/scrollToSection";
 
 export function Home() {
   const db = getFirestore();
@@ -30,6 +31,20 @@ export function Home() {
     });
     return () => unsub();
   }, [db]);
+  
+  useEffect(() => {
+    const pendingScroll = sessionStorage.getItem("scrollToPlanes");
+    if (pendingScroll) {
+      sessionStorage.removeItem("scrollToPlanes");
+      setTimeout(() => {
+        document.getElementById("planes")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 500); // delay breve para que cargue el DOM
+    }
+  }, []);
+
 
   if (!config) {
     return <p className="text-center mt-10 text-gray-600">Cargando configuración...</p>;
