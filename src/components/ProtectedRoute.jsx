@@ -1,27 +1,27 @@
 // ProtectedRoute.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // ajustá la ruta si tu contexto está en otro lugar
-import ModalAcceso from "./ModalAcceso"; // ajustá ruta si hace falta
-import CalculadoraPreview from "./calculadora/CalculadoraPreview"; // ajustá ruta si la guardaste en otra carpeta
+import { useAuth } from "../context/AuthContext";
+import ModalAcceso from "./ModalAcceso";
+import CalculadoraPreview from "./calculadora/CalculadoraPreview";
 
 export default function ProtectedRoute({ children }) {
-  const { usuario } = useAuth(); // tu hook/context para saber si hay usuario
+  const { usuario, cargando } = useAuth();
   const location = useLocation();
   const [mostrarModal, setMostrarModal] = useState(false);
 
   useEffect(() => {
     let timer;
-    // Solo mostramos preview automático cuando el usuario visita la calculadora
-    if (!usuario && location.pathname === "/calculadora") {
-      // Espera 5s antes de mostrar modal
-      timer = setTimeout(() => setMostrarModal(true), 5000);
+    if (!usuario?.puedeAcceder && location.pathname === "/calculadora") {
+      timer = setTimeout(() => setMostrarModal(true), 4000);
     }
     return () => clearTimeout(timer);
   }, [usuario, location.pathname]);
 
-  // Si no hay usuario y estamos en la calculadora -> desplegar preview bloqueado + modal
-  if (!usuario && location.pathname.startsWith("/calculadora")) {
+  if (cargando) return null; // opcional: spinner
+
+  // 🔒 Usuario no logueado ni con acceso
+  if (!usuario?.puedeAcceder && location.pathname.startsWith("/calculadora")) {
     return (
       <div className="relative min-h-screen bg-gray-50">
         <CalculadoraPreview />
@@ -35,12 +35,9 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
+  // Usuario no logueado (fuera de calculadora)
+  if (!usuario) return <p>Debes iniciar sesión para acceder.</p>;
 
-  // Si no hay usuario y NO estamos en /calculadora mostramos el mensaje clásico
-  if (!usuario) {
-    return <p>Debes iniciar sesión para acceder.</p>;
-  }
-
-  // Si hay usuario, renderizamos normalmente
+  // ✅ Acceso permitido
   return children;
 }

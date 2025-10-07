@@ -4,126 +4,134 @@ import { doc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
 const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
-
-// 🔑 Función para evaluar estado de acceso
+// 🔑 Función para evaluar el estado de acceso del usuario
 const evaluarAcceso = (usuarioData) => {
   if (!usuarioData) return { estadoAcceso: "sin-usuario", puedeAcceder: false };
 
   const ahora = new Date();
+  const fechaFinBeta = new Date("2025-11-15T23:59:59-03:00");
 
-  // 1. Si está suspendido manualmente
+  // 1️⃣ Si fue suspendido manualmente
   if (usuarioData.estado === "suspendido") {
     return { estadoAcceso: "suspendido", puedeAcceder: false };
   }
 
-  // 2. Si tiene fechaExpiracion futura
-  if (usuarioData.fechaExpiracion && usuarioData.fechaExpiracion.toDate() > ahora) {
+  // 2️⃣ Si tiene suscripción activa con fecha válida
+  const fechaExp = usuarioData.fechaExpiracion?.toDate
+    ? usuarioData.fechaExpiracion.toDate()
+    : usuarioData.fechaExpiracion
+    ? new Date(usuarioData.fechaExpiracion)
+    : null;
+
+  if (
+    usuarioData.suscripcionActiva === true &&
+    fechaExp &&
+    fechaExp > ahora
+  ) {
     return { estadoAcceso: "suscripto", puedeAcceder: true };
   }
 
-  // 3. Si está en período de prueba (7 días desde creadoEn)
-  if (!usuarioData.creadoEn) {
-    return { estadoAcceso: "trial", puedeAcceder: true };
+  // 3️⃣ Si está dentro del periodo BETA global
+  const creado = usuarioData.creadoEn?.toDate
+    ? usuarioData.creadoEn.toDate()
+    : usuarioData.creadoEn
+    ? new Date(usuarioData.creadoEn)
+    : null;
+
+  const esUsuarioBeta =
+    creado && creado <= fechaFinBeta && ahora <= fechaFinBeta;
+  if (esUsuarioBeta) {
+    return { estadoAcceso: "beta", puedeAcceder: true };
   }
 
-  if (usuarioData.creadoEn && usuarioData.creadoEn.toDate) {
-    const creado = usuarioData.creadoEn.toDate();
+  // 4️⃣ Si fue creado después del beta y aún está dentro de los 7 días de prueba
+  if (creado && creado > fechaFinBeta) {
     const diasDesdeCreacion = (ahora - creado) / (1000 * 60 * 60 * 24);
     if (diasDesdeCreacion <= 7) {
       return { estadoAcceso: "trial", puedeAcceder: true };
     }
   }
 
-  // 4. Caso contrario: vencido
+  // 5️⃣ Caso contrario → vencido
   return { estadoAcceso: "vencido", puedeAcceder: false };
 };
 
-  export const AuthProvider = ({ children }) => {
-    const [usuario, setUsuario] = useState(null);
-    const [cargando, setCargando] = useState(true);
+export const AuthProvider = ({ children }) => {
+  const [usuario, setUsuario] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
-    // 🔑 Mapa de equivalencia suscripción ↔ nivel
-    const mapaSuscripcionNivel = {
-      gratuita: 1,
-      basica: 2,
-      completa: 3,
-    };
-
-    useEffect(() => {
-      let unsubscribeDoc = null;
-
-      const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const docRef = doc(db, "usuarios", user.uid);
-
-          // 🔄 Escucha en tiempo real al documento del usuario
-          unsubscribeDoc = onSnapshot(docRef, async (docSnap) => {
-            if (docSnap.exists()) {
-              const usuarioDoc = docSnap.data();
-              console.log("Usuario cargado en tiempo real:", usuarioDoc);
-
-              // 📌 Determinamos el nivel máximo según su suscripción
-              const suscripcion = usuarioDoc.suscripcion || "gratuita";
-              const nivelMaximo = mapaSuscripcionNivel[suscripcion];
-
-              setUsuario((prev) => ({
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                rol: usuarioDoc.rol || "usuario",
-                ...usuarioDoc,
-                suscripcion,   // 👈 ahora queda siempre definido
-                nivelMaximo,   // 👈 se calcula automáticamente
-                ...evaluarAcceso(usuarioDoc),
-              }));
-            } else {
-              // 🚀 Si no existe, lo creamos en Firestore
-              await setDoc(docRef, {
-                email: user.email,
-                displayName: user.displayName || "",
-                creadoEn: serverTimestamp(),
-                estado: "activo",
-                rol: "usuario",
-                suscripcion: "gratuita",     // 👈 nuevo campo por defecto
-                suscripcionActiva: false,
-                fechaExpiracion: null,
-              });
-            }
-            setCargando(false);
-          });
-        } else {
-          setUsuario(null);
-          setCargando(false);
-        }
-      });
-
-      return () => {
-        unsubscribeAuth();
-        if (unsubscribeDoc) unsubscribeDoc();
-      };
-    }, []);
-
-    const logout = async () => {
-      await signOut(auth);
-    };
-
-    const actualizarPerfil = async (nombre) => {
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: nombre });
-        setUsuario((prev) => ({ ...prev, displayName: nombre }));
-      }
-    };
-
-    return (
-      <AuthContext.Provider
-        value={{ usuario, cargando, logout, actualizarPerfil }}
-      >
-        {children}
-      </AuthContext.Provider>
-    );
+  const mapaSuscripcionNivel = {
+    gratuita: 1,
+    basica: 2,
+    completa: 3,
   };
 
+  useEffect(() => {
+    let unsubscribeDoc = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "usuarios", user.uid);
+
+        unsubscribeDoc = onSnapshot(docRef, async (docSnap) => {
+          if (docSnap.exists()) {
+            const usuarioDoc = docSnap.data();
+            console.log("Usuario cargado en tiempo real:", usuarioDoc);
+
+            const suscripcion = usuarioDoc.suscripcion || "gratuita";
+            const nivelMaximo = mapaSuscripcionNivel[suscripcion];
+
+            setUsuario({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              rol: usuarioDoc.rol || "usuario",
+              ...usuarioDoc,
+              suscripcion,
+              nivelMaximo,
+              ...evaluarAcceso(usuarioDoc),
+            });
+          } else {
+            // Crear documento base si no existe
+            await setDoc(docRef, {
+              email: user.email,
+              displayName: user.displayName || "",
+              creadoEn: serverTimestamp(),
+              estado: "activo",
+              rol: "usuario",
+              suscripcion: "gratuita",
+              suscripcionActiva: false,
+              fechaExpiracion: null,
+            });
+          }
+          setCargando(false);
+        });
+      } else {
+        setUsuario(null);
+        setCargando(false);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDoc) unsubscribeDoc();
+    };
+  }, []);
+
+  const logout = async () => await signOut(auth);
+
+  const actualizarPerfil = async (nombre) => {
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: nombre });
+      setUsuario((prev) => ({ ...prev, displayName: nombre }));
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ usuario, cargando, logout, actualizarPerfil }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
