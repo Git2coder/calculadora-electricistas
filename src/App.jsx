@@ -211,8 +211,7 @@ useEffect(() => {
                         className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
                       >
                         🚪 Cerrar sesión
-                      </button>
-                      <BotonRenovacion />
+                      </button>                  
                     </div>
                   )}
 

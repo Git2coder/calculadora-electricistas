@@ -19,6 +19,7 @@ import BuscadorTareas from "./calculadora/BuscadorTareas";
 import { getAuth } from "firebase/auth";
 import Asistente from "./Asistente";  // 👈 ruta según donde guardes Asistente.jsx
 import ModalTutorial from "./ModalTutorial";
+import { BotonRenovacion } from "./BotonRenovacion";
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
@@ -674,6 +675,9 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}  
               setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
             />
+
+             {/* ← Botón/banner de renovación (ubicado al final de la calculadora) */}
+            <BotonRenovacion />
           </>
         )}
       </div>
