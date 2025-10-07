@@ -11,7 +11,7 @@ const evaluarAcceso = (usuarioData) => {
   if (!usuarioData) return { estadoAcceso: "sin-usuario", puedeAcceder: false };
 
   const ahora = new Date();
-  const fechaFinBeta = new Date("2025-11-15T23:59:59-03:00");
+  const fechaFinBeta = new Date("2025-10-05T23:59:59-03:00");
 
   // 1️⃣ Si fue suspendido manualmente
   if (usuarioData.estado === "suspendido") {
