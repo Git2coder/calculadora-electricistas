@@ -13,13 +13,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  const { uid } = req.body;
+  const { uid, descuentoAnticipado } = req.body;
   if (!uid) {
     return res.status(400).json({ error: "Falta el uid" });
   }
 
   try {
-    // 🔒 Leer precio desde Firestore (Admin SDK)
+    // 🔒 Leer precio base del plan completo desde Firestore
     const snap = await admin.firestore().doc("config/app").get();
     if (!snap.exists) {
       return res.status(500).json({ error: "Config no encontrada en Firestore" });
@@ -29,6 +29,11 @@ export default async function handler(req, res) {
     if (!suscripcionPrecio) {
       return res.status(500).json({ error: "Precio no definido en Firestore" });
     }
+
+    // 💰 Aplicar descuento anticipado (10 %) solo si corresponde
+    const precioFinal = descuentoAnticipado
+      ? Number(suscripcionPrecio) * 0.9
+      : Number(suscripcionPrecio);
 
     // 🔑 Token MercadoPago
     const token = process.env.MERCADO_PAGO_TOKEN;
@@ -46,11 +51,13 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         items: [
           {
-            title: "Renovación suscripción Electricista+",
-            description: "Extiende 30 días adicionales",
+            title: descuentoAnticipado
+              ? "Renovación anticipada - Plan Completo (10% OFF)"
+              : "Renovación suscripción - Plan Completo",
+            description: "Extiende 30 días adicionales de acceso completo",
             quantity: 1,
             currency_id: "ARS",
-            unit_price: Number(suscripcionPrecio), // 👈 igual que la suscripción inicial
+            unit_price: parseFloat(precioFinal.toFixed(2)),
           },
         ],
         back_urls: {
@@ -59,7 +66,11 @@ export default async function handler(req, res) {
           pending: "https://calculadora-electricistas.vercel.app/espera",
         },
         auto_return: "approved",
-        metadata: { uid }, // 👈 se guarda el UID del usuario
+        metadata: {
+          uid,
+          tipoPlan: "completo",
+          descuentoAnticipado: !!descuentoAnticipado,
+        },
       }),
     });
 

@@ -91,43 +91,6 @@ export function BotonRenovacion({ compact = false }) {
     window.location.href = "/";
   };
 
-  const handleRenovar = async () => {
-    if (!usuario?.uid) {
-      alert("Necesitás iniciar sesión para renovar.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/createPreferenceRenovacion", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: usuario.uid }),
-      });
-
-      if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        console.error("Respuesta no OK createPreferenceRenovacion:", res.status, txt);
-        alert("No se pudo iniciar la renovación. Intentá nuevamente.");
-        setLoading(false);
-        return;
-      }
-
-      const data = await res.json().catch(() => ({}));
-      if (data.init_point) {
-        window.location.href = data.init_point;
-      } else {
-        console.error("createPreferenceRenovacion: init_point no recibido", data);
-        alert("No se pudo iniciar la renovación. Intentá nuevamente.");
-      }
-    } catch (err) {
-      console.error("Error en handleRenovar:", err);
-      alert("Hubo un problema al iniciar la renovación.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // RENDER: todas las condiciones se aplican después de definir hooks
   // mostramos nada mientras carga config o si no hay usuario
   if (!usuario) return null;
@@ -157,7 +120,7 @@ export function BotonRenovacion({ compact = false }) {
     );
   }
 
-  // si faltan más de 7 días
+    // si faltan más de 7 días
   if (diasRestantes > 7) {
     return (
       <p className="px-4 py-2 text-gray-500 text-sm text-center">
@@ -166,14 +129,62 @@ export function BotonRenovacion({ compact = false }) {
     );
   }
 
-  // si llegamos aquí: faltan <=7 días (o 0 días)
+  // 💡 Mostrar mensaje de descuento anticipado si faltan >0 días
+  const mensajeDescuento =
+    diasRestantes > 0
+      ? "🔥 Renová antes del vencimiento y obtené un 10 % de descuento en el plan completo."
+      : "⏰ Tu suscripción ha vencido. Renovala para seguir usando la calculadora.";
+
+  const handleRenovar = async () => {
+    if (!usuario?.uid) {
+      alert("Necesitás iniciar sesión para renovar.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/createPreferenceRenovacion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: usuario.uid,
+          descuentoAnticipado: diasRestantes > 0, // 👈 envío info al backend
+        }),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => null);
+        console.error("Respuesta no OK createPreferenceRenovacion:", res.status, txt);
+        alert("No se pudo iniciar la renovación. Intentá nuevamente.");
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        console.error("createPreferenceRenovacion: init_point no recibido", data);
+        alert("No se pudo iniciar la renovación. Intentá nuevamente.");
+      }
+    } catch (err) {
+      console.error("Error en handleRenovar:", err);
+      alert("Hubo un problema al iniciar la renovación.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // si llegamos aquí: faltan <=7 días (o vencido)
   return (
     <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       <div className="text-sm text-blue-800">
-        <strong>🔔 Tu suscripción vence en {diasRestantes} día{diasRestantes !== 1 && "s"}.</strong>
-        <div className="text-gray-700 mt-1">
-          Renová para mantener acceso continuo a la calculadora y tus presupuestos.
-        </div>
+        <strong>
+          {diasRestantes > 0
+            ? `🔔 Tu suscripción vence en ${diasRestantes} día${diasRestantes !== 1 ? "s" : ""}.`
+            : "❌ Tu suscripción ha expirado."}
+        </strong>
+        <div className="text-gray-700 mt-1">{mensajeDescuento}</div>
       </div>
 
       <div className="flex gap-2">
@@ -181,21 +192,35 @@ export function BotonRenovacion({ compact = false }) {
           onClick={handleIrPlanes}
           className="px-4 py-2 bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition"
         >
-          Ver planes disponibles
+          Ver planes
         </button>
 
-        <button
-          onClick={handleRenovar}
-          disabled={loading}
-          className={`px-4 py-2 font-semibold rounded-lg text-white transition ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500"
-          }`}
-        >
-          {loading ? "Procesando..." : "💎 Renovar ahora"}
-        </button>
+        <div className="relative inline-block">
+          {/* Sticker de descuento si es anticipado */}
+          {diasRestantes > 0 && (
+            <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-md rotate-12 z-10">
+              10% OFF
+            </span>
+          )}
+
+          <button
+            onClick={handleRenovar}
+            disabled={loading}
+            className={`px-4 py-2 font-semibold rounded-lg text-white transition ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500"
+            }`}
+          >
+            {loading
+              ? "Procesando..."
+              : diasRestantes > 0
+              ? "🎟️ Anticipada"
+              : "💎 Renovar ahora"}
+          </button>
+        </div>
       </div>
     </div>
   );
+
 }
 
 export default BotonRenovacion;
