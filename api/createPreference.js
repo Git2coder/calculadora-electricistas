@@ -14,38 +14,33 @@ export default async function handler(req, res) {
   }
 
   const { uid, plan } = req.body;
-
   if (!uid || !plan) {
     return res.status(400).json({ error: "Faltan datos (uid o plan)" });
   }
 
   try {
-    // 🔒 Leer el precio base desde Firestore
+    // 🔒 Leer config desde Firestore
     const snap = await admin.firestore().doc("config/app").get();
     if (!snap.exists) {
       return res.status(500).json({ error: "Config no encontrada en Firestore" });
     }
 
-    const { suscripcionPrecio } = snap.data();
-    if (!suscripcionPrecio) {
-      return res.status(500).json({ error: "Precio no definido en Firestore" });
+    const data = snap.data();
+    const { precioProfesional, precioBasico } = data;
+
+    if (!precioProfesional || !precioBasico) {
+      return res.status(500).json({ error: "Precios no definidos en Firestore" });
     }
 
-    // 🔑 Token MercadoPago
-    const token = process.env.MERCADO_PAGO_TOKEN;
-    if (!token) {
-      return res.status(500).json({ error: "Falta MERCADO_PAGO_TOKEN" });
-    }
-
-    // 💰 Calcular precio según plan
+    // 💰 Calcular precio según el plan seleccionado
     let precio = 0;
     let titulo = "Suscripción";
 
     if (plan === "profesional") {
-      precio = suscripcionPrecio;
+      precio = Number(precioProfesional);
       titulo = "Suscripción Profesional";
     } else if (plan === "basico") {
-      precio = suscripcionPrecio * 0.6;
+      precio = Number(precioBasico);
       titulo = "Suscripción Básico";
     } else if (plan === "gratis") {
       return res.status(400).json({ error: "El plan gratis no requiere pago" });
@@ -53,7 +48,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Plan inválido" });
     }
 
-    // 📤 Crear preferencia en MercadoPago
+    const token = process.env.MERCADO_PAGO_TOKEN;
+    if (!token) {
+      return res.status(500).json({ error: "Falta MERCADO_PAGO_TOKEN" });
+    }
+
+    // 📤 Crear preferencia Mercado Pago
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
             title: titulo,
             quantity: 1,
             currency_id: "ARS",
-            unit_price: Number(precio),
+            unit_price: parseFloat(precio.toFixed(2)),
           },
         ],
         back_urls: {
@@ -75,18 +75,18 @@ export default async function handler(req, res) {
           pending: "https://calculadora-electricistas.vercel.app/espera",
         },
         auto_return: "approved",
-        metadata: { uid, plan }, // ✅ guardamos ambos
+        metadata: { uid, plan },
       }),
     });
 
-    const data = await response.json();
+    const dataMP = await response.json();
 
-    if (!data.init_point) {
-      console.error("❌ Error creando preferencia:", data);
+    if (!dataMP.init_point) {
+      console.error("❌ Error creando preferencia:", dataMP);
       return res.status(500).json({ error: "No se pudo crear la preferencia" });
     }
 
-    return res.status(200).json({ init_point: data.init_point });
+    return res.status(200).json({ init_point: dataMP.init_point });
   } catch (error) {
     console.error("❌ Error al crear preferencia:", error);
     return res.status(500).json({ error: "Error interno al generar preferencia" });

@@ -25,15 +25,16 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Config no encontrada en Firestore" });
     }
 
-    const { suscripcionPrecio } = snap.data();
-    if (!suscripcionPrecio) {
-      return res.status(500).json({ error: "Precio no definido en Firestore" });
+    const { precioProfesional } = snap.data();
+    if (!precioProfesional) {
+      return res.status(500).json({ error: "Precio del plan profesional no definido en Firestore" });
     }
 
     // 💰 Aplicar descuento anticipado (10 %) solo si corresponde
     const precioFinal = descuentoAnticipado
-      ? Number(suscripcionPrecio) * 0.9
-      : Number(suscripcionPrecio);
+      ? Number(precioProfesional) * 0.9
+      : Number(precioProfesional);
+
 
     // 🔑 Token MercadoPago
     const token = process.env.MERCADO_PAGO_TOKEN;
