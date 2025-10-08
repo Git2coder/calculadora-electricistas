@@ -19,30 +19,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 🔒 Leer precio base del plan completo desde Firestore
-    const snap = await admin.firestore().doc("config/app").get();
+    // 🔒 Leer precios desde config/planes
+    const snap = await admin.firestore().doc("config/planes").get();
     if (!snap.exists) {
-      return res.status(500).json({ error: "Config no encontrada en Firestore" });
+      return res.status(500).json({ error: "Config 'planes' no encontrada en Firestore" });
     }
 
-    const { precioProfesional } = snap.data();
+    const { precioProfesional, porcentajeDescuentoRenovacion } = snap.data();
+
     if (!precioProfesional) {
       return res.status(500).json({ error: "Precio del plan profesional no definido en Firestore" });
     }
 
-    // 💰 Aplicar descuento anticipado (10 %) solo si corresponde
+    const descuento = Number(porcentajeDescuentoRenovacion ?? 10);
     const precioFinal = descuentoAnticipado
-      ? Number(precioProfesional) * 0.9
+      ? Number(precioProfesional) * (1 - descuento / 100)
       : Number(precioProfesional);
 
-
-    // 🔑 Token MercadoPago
     const token = process.env.MERCADO_PAGO_TOKEN;
     if (!token) {
       return res.status(500).json({ error: "Falta MERCADO_PAGO_TOKEN" });
     }
 
-    // 📤 Crear preferencia en MercadoPago
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
@@ -53,7 +51,7 @@ export default async function handler(req, res) {
         items: [
           {
             title: descuentoAnticipado
-              ? "Renovación anticipada - Plan Completo (10% OFF)"
+              ? `Renovación anticipada - Plan Completo (${descuento}% OFF)`
               : "Renovación suscripción - Plan Completo",
             description: "Extiende 30 días adicionales de acceso completo",
             quantity: 1,

@@ -19,10 +19,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 🔒 Leer config desde Firestore
-    const snap = await admin.firestore().doc("config/app").get();
+    // 🔒 Leer precios desde config/planes
+    const snap = await admin.firestore().doc("config/planes").get();
     if (!snap.exists) {
-      return res.status(500).json({ error: "Config no encontrada en Firestore" });
+      return res.status(500).json({ error: "Config 'planes' no encontrada en Firestore" });
     }
 
     const data = snap.data();
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Precios no definidos en Firestore" });
     }
 
-    // 💰 Calcular precio según el plan seleccionado
+    // 💰 Calcular precio según plan
     let precio = 0;
     let titulo = "Suscripción";
 
