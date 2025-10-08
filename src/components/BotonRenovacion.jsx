@@ -1,7 +1,7 @@
 // src/components/BotonRenovacion.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 
 /**
  * BotonRenovacion
@@ -23,28 +23,30 @@ export function BotonRenovacion({ compact = false }) {
   const [suscripcionHabilitada, setSuscripcionHabilitada] = useState(true);
   const [cargandoConfig, setCargandoConfig] = useState(true);
   const [diasRestantes, setDiasRestantes] = useState(null);
+  const [configPlanes, setConfigPlanes] = useState(null);
 
-  // 1) leo configuración global (si la admin deshabilitó renovaciones)
+  // leo configuración global (habilitaciones)
   useEffect(() => {
-    let mounted = true;
-    const fetchConfig = async () => {
-      try {
-        const db = getFirestore();
-        const ref = doc(db, "config", "app");
-        const snap = await getDoc(ref);
-        if (snap.exists() && mounted) {
-          const data = snap.data();
-          setSuscripcionHabilitada(data.suscripcionHabilitada ?? true);
-        }
-      } catch (err) {
-        console.error("Error leyendo config:", err);
-      } finally {
-        if (mounted) setCargandoConfig(false);
+    const db = getFirestore();
+    const refApp = doc(db, "config", "app");
+    const refPlanes = doc(db, "config", "planes");
+
+    const unsubApp = onSnapshot(refApp, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setSuscripcionHabilitada(data.suscripcionHabilitada ?? true);
       }
-    };
-    fetchConfig();
+      setCargandoConfig(false); // 👈 agregado
+    });
+
+    const unsubPlanes = onSnapshot(refPlanes, (snap) => {
+      if (snap.exists()) setConfigPlanes(snap.data());
+      setCargandoConfig(false); // 👈 agregado
+    });
+
     return () => {
-      mounted = false;
+      unsubApp();
+      unsubPlanes();
     };
   }, []);
 
@@ -130,9 +132,11 @@ export function BotonRenovacion({ compact = false }) {
   }
 
   // 💡 Mostrar mensaje de descuento anticipado si faltan >0 días
+  const descuento = configPlanes?.porcentajeDescuentoRenovacion ?? 10;
+
   const mensajeDescuento =
     diasRestantes > 0
-      ? "🔥 Renová antes del vencimiento y obtené un 10 % de descuento en el plan completo."
+      ? `🔥 Renová antes del vencimiento y obtené un ${descuento}% de descuento en el plan completo.`
       : "⏰ Tu suscripción ha vencido. Renovala para seguir usando la calculadora.";
 
   const handleRenovar = async () => {
@@ -199,7 +203,7 @@ export function BotonRenovacion({ compact = false }) {
           {/* Sticker de descuento si es anticipado */}
           {diasRestantes > 0 && (
             <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-md rotate-12 z-10">
-              10% OFF
+              {descuento}% OFF
             </span>
           )}
 

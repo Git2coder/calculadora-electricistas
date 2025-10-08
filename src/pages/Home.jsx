@@ -24,12 +24,18 @@ export function Home() {
 
   // Suscripción en tiempo real a Firestore
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "config", "app"), (snap) => {
-      if (snap.exists()) {
-        setConfig(snap.data());
-      }
+    const unsubApp = onSnapshot(doc(db, "config", "app"), (snap) => {
+      if (snap.exists()) setConfig((prev) => ({ ...prev, ...snap.data() }));
     });
-    return () => unsub();
+
+    const unsubPlanes = onSnapshot(doc(db, "config", "planes"), (snap) => {
+      if (snap.exists()) setConfig((prev) => ({ ...prev, ...snap.data() }));
+    });
+
+    return () => {
+      unsubApp();
+      unsubPlanes();
+    };
   }, [db]);
   
   useEffect(() => {
