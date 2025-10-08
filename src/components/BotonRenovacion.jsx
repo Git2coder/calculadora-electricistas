@@ -136,7 +136,7 @@ export function BotonRenovacion({ compact = false }) {
 
   const mensajeDescuento =
     diasRestantes > 0
-      ? `🔥 Renová antes del vencimiento y obtené un ${descuento}% de descuento en el plan completo.`
+      ? `⏳ Renová antes del vencimiento y obtené un ${descuento}% de descuento en el plan completo.`
       : "⏰ Tu suscripción ha vencido. Renovala para seguir usando la calculadora.";
 
   const handleRenovar = async () => {
@@ -202,8 +202,8 @@ export function BotonRenovacion({ compact = false }) {
         <div className="relative inline-block">
           {/* Sticker de descuento si es anticipado */}
           {diasRestantes > 0 && (
-            <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-md rotate-12 z-10">
-              {descuento}% OFF
+            <span className="absolute -top-3 -right-3 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-md rotate-12 z-10">
+              -{descuento}% OFF
             </span>
           )}
 
