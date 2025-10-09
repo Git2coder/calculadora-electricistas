@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-  Timestamp,
-} from "firebase/firestore";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, } from "firebase/auth";
+import { getFirestore, doc, setDoc, updateDoc, serverTimestamp, Timestamp, getDoc, onSnapshot } from "firebase/firestore";
 import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +8,20 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
   if (!isOpen) return null;
 
   const db = getFirestore();
+  const [registroHabilitado, setRegistroHabilitado] = useState(true);
+
+  // Leer configuración global
+  useEffect(() => {
+    const ref = doc(db, "config", "app");
+    const unsub = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setRegistroHabilitado(data.registroHabilitado ?? true);
+      }
+    });
+    return () => unsub();
+  }, [db]);
+  
   const navigate = useNavigate();
 
   // --- UI state ---
@@ -533,13 +536,38 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
 
         {/* Link para cambiar modo */}
         <p className="mt-4 text-center text-sm text-gray-600">
-          {modo === "login" ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}{" "}
-          <button
-            onClick={() => setModo(modo === "login" ? "registro" : "login")}
-            className="text-blue-600 hover:underline font-medium"
-          >
-            {modo === "login" ? "Registrate" : "Accedé"}
-          </button>
+          {modo === "login" ? (
+            registroHabilitado ? (
+              <>
+                ¿No tenés cuenta?{" "}
+                <button
+                  onClick={() => setModo("registro")}
+                  className="text-blue-600 hover:underline font-medium"
+                >
+                  Registrate
+                </button>
+              </>
+            ) : (
+              <div className="text-center text-gray-600 mt-4">
+                <span className="font-semibold text-blue-600 block mb-1">
+                  🚫 Registro temporalmente cerrado
+                </span>
+                <span className="text-gray-500 italic block">                  
+                  Por ahora los cupos están completos, pero pronto abriremos nuevos lugares. 🙌
+                </span>
+              </div>
+            )
+          ) : (
+            <>
+              ¿Ya tenés cuenta?{" "}
+              <button
+                onClick={() => setModo("login")}
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Accedé
+              </button>
+            </>
+          )}
         </p>
       </div>
     </div>

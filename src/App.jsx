@@ -46,8 +46,7 @@ export default function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [menuUsuario, setMenuUsuario] = useState(false);
-  const { usuario } = useAuth();
-  const esAdmin = usuario?.rol === "admin";
+  const { usuario } = useAuth(); 
   const [config, setConfig] = useState(null);
   const menuRef = useRef(null);
   const [mostrarModalTerminos, setMostrarModalTerminos] = useState(false);
@@ -96,17 +95,73 @@ useEffect(() => {
   return () => document.removeEventListener("mousedown", handleClickOutside);
 }, [menuUsuario]);
 
+  // Si no cargó la configuración todavía
   if (!config) return <p>Cargando...</p>;
 
- if (!config.habilitado && !esAdmin) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-red-600">
-        🚧 Sitio en mantenimiento 🚧
-      </h1>
-    </div>
-  );
-}
+  // ⚙️ Verificamos si el usuario es admin
+  const esAdmin = usuario?.rol === "admin";
+
+  // 🚧 Bloqueo general (excepto admin)
+  if (!esAdmin && config?.habilitado === false) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 text-center p-8">
+        <div className="bg-white shadow-lg rounded-2xl p-10 max-w-lg border border-blue-200 relative overflow-hidden flex flex-col items-center">
+
+          {/* Título principal */}
+          <h1 className="text-4xl font-extrabold text-blue-700 mb-3">
+            ¡Estamos recargando energía!
+          </h1>
+
+          <p className="text-gray-700 text-lg mb-6">
+            Realizando mejoras para brindarte un servicio de calidad 🧱
+          </p>
+
+          <p className="text-gray-500 text-sm mb-6">
+            Pronto volveremos para seguir trabajando con vos.
+          </p>
+
+          {/* Rayo animado encima del nombre */}
+          <div className="text-yellow-400 text-6xl animate-electric mb-2">
+            ⚡
+          </div>
+
+          {/* Marca */}
+          <p className="text-black-600 font-extrabold text-xl tracking-wide">
+            Electricista+
+          </p>
+        </div>
+
+        {/* Animación CSS */}
+        <style jsx>{`
+          @keyframes electricFlash {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+              filter: drop-shadow(0 0 4px #facc15);
+            }
+            25% {
+              opacity: 0.9;
+              transform: scale(1.1);
+              filter: drop-shadow(0 0 10px #fde047);
+            }
+            50% {
+              opacity: 0.6;
+              transform: scale(0.95);
+              filter: drop-shadow(0 0 6px #facc15);
+            }
+            75% {
+              opacity: 1;
+              transform: scale(1.05);
+              filter: drop-shadow(0 0 12px #fcd34d);
+            }
+          }
+          .animate-electric {
+            animation: electricFlash 1.6s infinite ease-in-out;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <Router>

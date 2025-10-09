@@ -20,6 +20,7 @@ import { getAuth } from "firebase/auth";
 import Asistente from "./Asistente";  // 👈 ruta según donde guardes Asistente.jsx
 import ModalTutorial from "./ModalTutorial";
 import { BotonRenovacion } from "./BotonRenovacion";
+import { useAuth } from "../context/AuthContext";
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
@@ -60,6 +61,9 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const [extrasSeleccionadosGlobal, setExtrasSeleccionadosGlobal] = useState([]);
   const [jornales, setJornales] = useState(null);
   const [jornalOficial, setJornalOficial] = useState(0);
+  // dentro del componente:
+  const { usuario } = useAuth();
+  const esAdmin = usuario?.rol === "admin";
 
   useEffect(() => {
     const fetchJornales = async () => {
@@ -559,11 +563,21 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     );
   }
 
-  // 👇 chequeás si está habilitada
-  if (!modoPreview && config && !config.calculadoraCompletaHabilitada) {
+  // Bloqueo de calculadora, excepto admin
+  if (!esAdmin && config?.calculadoraHabilitada === false) {
     return (
-      <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 p-4 rounded">
-        🚧 La calculadora está en mantenimiento temporal.
+      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-yellow-50 text-center px-6 py-10">
+        <div className="bg-white border border-yellow-300 shadow-md rounded-2xl p-8 max-w-md">
+          <h2 className="text-2xl font-bold text-yellow-600 mb-3">
+            🧰 Calculadora en mantenimiento
+          </h2>
+          <p className="text-gray-700 mb-4">
+            Estamos actualizando funciones para mejorar la calculadora de presupuestos.
+          </p>
+          <p className="text-sm text-gray-500">
+            Podrás volver a usarla en breve. ¡Gracias por tu comprensión!
+          </p>
+        </div>
       </div>
     );
   }

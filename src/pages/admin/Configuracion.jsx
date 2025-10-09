@@ -4,65 +4,88 @@ import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 
 export default function Configuracion() {
   const [loading, setLoading] = useState(true);
+
+  // Campos de planes
   const [precioBasico, setPrecioBasico] = useState("");
   const [precioProfesional, setPrecioProfesional] = useState("");
   const [porcentajeDescuentoRenovacion, setPorcentajeDescuentoRenovacion] = useState("");
+
+  // Campos de app (habilitaciones)
   const [calculadoraHabilitada, setCalculadoraHabilitada] = useState(true);
   const [habilitado, setHabilitado] = useState(true);
+  const [registroHabilitado, setRegistroHabilitado] = useState(true);
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const docRef = doc(db, "config", "planes");
-        const snap = await getDoc(docRef);
+        // 1️⃣ Obtener config/planes
+        const planesRef = doc(db, "config", "planes");
+        const planesSnap = await getDoc(planesRef);
 
-        if (snap.exists()) {
-          const data = snap.data();
+        if (planesSnap.exists()) {
+          const data = planesSnap.data();
           setPrecioBasico(data.precioBasico ?? "");
           setPrecioProfesional(data.precioProfesional ?? "");
           setPorcentajeDescuentoRenovacion(data.porcentajeDescuentoRenovacion ?? "");
-          setCalculadoraHabilitada(data.calculadoraHabilitada ?? true);
-          setHabilitado(data.habilitado ?? true);
         } else {
-          console.warn("El documento config/planes no existe. Creando uno nuevo...");
-          await setDoc(docRef, {
+          console.warn("⚠️ El documento config/planes no existe. Creando uno nuevo...");
+          await setDoc(planesRef, {
             precioBasico: 0,
             precioProfesional: 0,
             porcentajeDescuentoRenovacion: 0,
+          });
+        }
+
+        // 2️⃣ Obtener config/app
+        const appRef = doc(db, "config", "app");
+        const appSnap = await getDoc(appRef);
+
+        if (appSnap.exists()) {
+          const data = appSnap.data();
+          setCalculadoraHabilitada(data.calculadoraHabilitada ?? true);
+          setHabilitado(data.habilitado ?? true);
+          setRegistroHabilitado(data.registroHabilitado ?? true);
+        } else {
+          console.warn("⚠️ El documento config/app no existe. Creando uno nuevo...");
+          await setDoc(appRef, {
             calculadoraHabilitada: true,
             habilitado: true,
+            registroHabilitado: true,
           });
         }
       } catch (error) {
-        console.error("Error al cargar configuración:", error);
-        alert("❌ No se pudieron cargar los datos de configuración.");
+        console.error("❌ Error al cargar configuración:", error);
+        alert("Error al cargar la configuración. Verificá los permisos.");
       } finally {
         setLoading(false);
       }
     };
+
     cargarDatos();
   }, []);
 
   const handleGuardarCambios = async () => {
     try {
-      if (!precioBasico || !precioProfesional) {
-        alert("Por favor, completá los precios antes de guardar.");
-        return;
-      }
-
-      const docRef = doc(db, "config", "planes");
-      await updateDoc(docRef, {
+      // 🔹 Guardar precios de planes
+      const planesRef = doc(db, "config", "planes");
+      await updateDoc(planesRef, {
         precioBasico: Number(precioBasico),
         precioProfesional: Number(precioProfesional),
         porcentajeDescuentoRenovacion: Number(porcentajeDescuentoRenovacion) || 0,
+      });
+
+      // 🔹 Guardar switches de habilitación
+      const appRef = doc(db, "config", "app");
+      await updateDoc(appRef, {
         calculadoraHabilitada,
         habilitado,
+        registroHabilitado,
       });
 
       alert("✅ Los cambios se guardaron correctamente.");
     } catch (error) {
       console.error("Error al guardar configuración:", error);
-      alert("❌ Hubo un error al guardar los cambios. Intentalo de nuevo.");
+      alert("❌ Hubo un error al guardar los cambios.");
     }
   };
 
@@ -145,6 +168,16 @@ export default function Configuracion() {
               className="h-5 w-5"
             />
             <span className="text-gray-700">Habilitar sitio completo</span>
+          </label>
+
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={registroHabilitado}
+              onChange={(e) => setRegistroHabilitado(e.target.checked)}
+              className="h-5 w-5"
+            />
+            <span className="text-gray-700">Habilitar registro de nuevos usuarios</span>
           </label>
         </div>
       </div>
