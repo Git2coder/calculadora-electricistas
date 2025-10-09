@@ -36,11 +36,23 @@ const ResumenPresupuesto = ({
    // 🎵 sonido para switches
   const sonidoSwitch = useRef(new Audio("/sounds/switch.mp3"));
 
+  const puedeDescargarCompleto = usuario?.suscripcion === "completa";
+  const puedeDescargarBasico = usuario?.suscripcion === "basica";
+  const puedeDescargarGratuito = usuario?.suscripcion === "gratuita";
+
   const handleDescargarPDF = () => {
     const confirmacion = window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?");
     if (!confirmacion) return;
 
+    const tipoPDF =
+      usuario.suscripcion === "gratuita"
+        ? "gratuita"
+        : usuario.suscripcion === "basica"
+        ? "basico"
+        : "completo";
+
     exportarPresupuestoPDF({
+      tipoPDF,
       tareasSeleccionadas,
       tarifaHoraria,
       ajustePorcentaje,
@@ -48,9 +60,9 @@ const ResumenPresupuesto = ({
       costoVisita: visitaSegura,
       tareasPredefinidas,
       titulo: "Presupuesto Eléctrico",
-      validezDias, // 👈 ahora se pasa al PDF
-      extrasGlobales,                
-      extrasSeleccionadosGlobal,    
+      validezDias,
+      extrasGlobales,
+      extrasSeleccionadosGlobal,
     });
   };
 
@@ -59,10 +71,10 @@ const ResumenPresupuesto = ({
     setValidezDias(nuevoValor);
 
     if (usuario?.uid) {
-      const ref = doc(db, "usuarios", usuario.uid);
-      await updateDoc(ref, { validezDias: nuevoValor });
-    }
-  };
+        const ref = doc(db, "usuarios", usuario.uid);
+        await updateDoc(ref, { validezDias: nuevoValor });
+      }
+    };
 
   return (
   <div className="bg-blue-50 p-6 rounded-xl shadow space-y-6">
@@ -260,15 +272,24 @@ const ResumenPresupuesto = ({
       <div className="text-right">
         <ContadorAnimado valor={costoFinal} />
       </div>   
-       <button
-          onClick={usuario?.rol === "admin" ? handleDescargarPDF : undefined}
-          disabled={usuario?.rol !== "admin"}
-          className={`px-4 py-2 rounded text-white ${
-            usuario?.rol === "admin"
+        <button
+          onClick={() => {
+            if (puedeDescargarCompleto) handleDescargarPDF("completo");
+            else if (puedeDescargarBasico) handleDescargarPDF("basico");
+            else if (puedeDescargarGratuito) handleDescargarPDF("gratuita");
+            else alert("Iniciá sesión para generar tu presupuesto.");
+          }}
+          className={`px-4 py-2 rounded text-white font-semibold transition ${
+            puedeDescargarCompleto
               ? "bg-red-600 hover:bg-red-700"
+              : puedeDescargarBasico
+              ? "bg-blue-600 hover:bg-blue-700"
+              : puedeDescargarGratuito
+              ? "bg-green-600 hover:bg-green-700"
               : "bg-gray-300 cursor-not-allowed"
           }`}
         >
+          <FaFilePdf className="inline mr-2" />
           Descargar PDF
         </button>
     </div>

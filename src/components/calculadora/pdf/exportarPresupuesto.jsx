@@ -16,7 +16,8 @@ export const exportarPresupuestoPDF = async ({
   titulo = "Presupuesto Eléctrico",
   validezDias = 15,
   extrasGlobales = [],                 
-  extrasSeleccionadosGlobal = [],    
+  extrasSeleccionadosGlobal = [],
+  tipoPDF = "completo", // 👈 nuevo parámetro    
 
 }) => {
     function roundFavorCliente(valor) {
@@ -146,6 +147,222 @@ export const exportarPresupuestoPDF = async ({
 
   // --- Armar PDF ---
   const docPDF = new jsPDF();
+
+  // 💡 PDF para la suscripción BÁSICA
+  if (tipoPDF === "basico") {
+    const filas = [];
+    let costoBasePDF = 0;
+
+    tareasSeleccionadas.forEach((t) => {
+      const sub = subtotalDeTarea(t);
+      costoBasePDF += sub;
+      filas.push([t.nombre || "Tarea sin nombre", $fmt(sub)]);
+    });
+
+    let acumuladoConExtras = costoBasePDF;
+    extrasSeleccionadosGlobal.forEach((id) => {
+      const extra = extrasGlobales.find((e) => e.id === id);
+      if (extra) {
+        const nuevoTotal = acumuladoConExtras * extra.multiplicador;
+        const impacto = nuevoTotal - acumuladoConExtras;
+        filas.push([`${extra.label}`, $fmt(impacto)]);
+        acumuladoConExtras = nuevoTotal;
+      }
+    });
+
+    if (ajustePorcentaje !== 0) {
+      const montoAjuste = (acumuladoConExtras * ajustePorcentaje) / 100;
+      filas.push([
+        ajustePorcentaje > 0 ? "Herramientas/insumos" : "Descuento aplicado",
+        $fmt(montoAjuste),
+      ]);
+      acumuladoConExtras += montoAjuste;
+    }
+
+    if (!incluirVisita) {
+      filas.push(["Visita / Consulta", "BONIFICADA"]);
+    } else if (costoVisita > 0) {
+      filas.push(["Visita / Consulta", $fmt(costoVisita)]);
+      acumuladoConExtras += costoVisita;
+    } else {
+      filas.push(["Visita / Consulta", "Bonificado"]);
+    }
+
+    // --- Encabezado ---
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(18);
+    docPDF.text("Presupuesto", 14, 18);
+
+    docPDF.setFont("helvetica", "normal");
+    docPDF.setFontSize(10);
+    docPDF.text(`Fecha: ${new Date().toLocaleDateString("es-AR")}`, 14, 25);
+
+    docPDF.setDrawColor(180);
+    docPDF.line(10, 28, 200, 28);
+
+    // --- Tabla ---
+    autoTable(docPDF, {
+      head: [["Concepto", "Subtotal"]],
+      body: filas,
+      startY: 35,
+      theme: "grid",
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 120, halign: "left" },
+        1: { cellWidth: 50, halign: "right" },
+      },
+      didParseCell: function (data) {
+        const txt = String(data.cell.text).trim();
+        if (txt === "BONIFICADA" || txt === "Bonificado") {
+          data.cell.styles.textColor = [34, 139, 34];
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [220, 255, 220];
+        }
+      },
+    });
+
+    // --- Total ---
+    let totalPDF = costoBasePDF;
+    if (ajustePorcentaje !== 0) totalPDF += (totalPDF * ajustePorcentaje) / 100;
+    extrasSeleccionadosGlobal.forEach((id) => {
+      const extra = extrasGlobales.find((e) => e.id === id);
+      if (extra) totalPDF *= extra.multiplicador;
+    });
+    if (incluirVisita && costoVisita > 0) totalPDF += costoVisita;
+
+    const finalY = docPDF.lastAutoTable?.finalY || 40;
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(12);
+    docPDF.text(`TOTAL: ${$fmt(totalPDF)}`, 14, finalY + 10);
+
+    // --- Pie con datos del profesional ---
+    const pageHeight = docPDF.internal.pageSize.height;
+    docPDF.setDrawColor(180);
+    docPDF.line(10, pageHeight - 20, 200, pageHeight - 20);
+
+    docPDF.setFont("helvetica", "normal");
+    docPDF.setFontSize(9);
+    docPDF.text(`Emitido por: ${datosEmisor.nombre || "Usuario"}`, 14, pageHeight - 15);
+    if (datosEmisor.telefono)
+      docPDF.text(`Tel: ${datosEmisor.telefono}`, 14, pageHeight - 10);
+    if (datosEmisor.email)
+      docPDF.text(`Email: ${datosEmisor.email}`, 80, pageHeight - 10);
+
+    docPDF.save(`presupuesto-basico-${Date.now()}.pdf`);
+    return;
+  }
+  
+  // 💡 PDF para la suscripción GRATUITA (con condiciones de trabajo incluidas)
+  if (tipoPDF === "gratuita") {
+    const filas = [];
+    let costoBasePDF = 0;
+
+    // 1️⃣ Tareas principales
+    tareasSeleccionadas.forEach((t) => {
+      const sub = subtotalDeTarea(t);
+      costoBasePDF += sub;
+      filas.push([t.nombre || "Tarea sin nombre", $fmt(sub)]);
+    });
+
+    // 2️⃣ Extras globales (impacto incremental)
+    let acumuladoConExtras = costoBasePDF;
+    extrasSeleccionadosGlobal.forEach((id) => {
+      const extra = extrasGlobales.find((e) => e.id === id);
+      if (extra) {
+        const nuevoTotal = acumuladoConExtras * extra.multiplicador;
+        const impacto = nuevoTotal - acumuladoConExtras;
+        filas.push([`${extra.label}`, $fmt(impacto)]);
+        acumuladoConExtras = nuevoTotal;
+      }
+    });
+
+    // 3️⃣ Ajuste global (riel)
+    if (ajustePorcentaje !== 0) {
+      const montoAjuste = (acumuladoConExtras * ajustePorcentaje) / 100;
+      filas.push([
+        ajustePorcentaje > 0 ? "Herramientas/insumos" : "Descuento aplicado",
+        $fmt(montoAjuste),
+      ]);
+      acumuladoConExtras += montoAjuste;
+    }
+
+    // 4️⃣ Visita / Consulta
+    if (!incluirVisita) {
+      filas.push(["Visita / Consulta", "BONIFICADA"]);
+    } else if (costoVisita > 0) {
+      filas.push(["Visita / Consulta", $fmt(costoVisita)]);
+      acumuladoConExtras += costoVisita;
+    } else {
+      filas.push(["Visita / Consulta", "Bonificado"]);
+    }
+
+    // --- Encabezado ---
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(18);
+    docPDF.text("Presupuesto", 14, 18);
+
+    docPDF.setFont("helvetica", "normal");
+    docPDF.setFontSize(10);
+    docPDF.text(`Fecha: ${new Date().toLocaleDateString("es-AR")}`, 14, 25);
+    docPDF.text(`Versión gratuita`, 200 - 14, 25, { align: "right" });
+
+    docPDF.setDrawColor(180);
+    docPDF.line(10, 28, 200, 28);
+
+    // --- Tabla con encabezado gris ---
+    autoTable(docPDF, {
+      head: [["Concepto", "Subtotal"]],
+      body: filas,
+      startY: 35,
+      theme: "grid",
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 120, halign: "left" },
+        1: { cellWidth: 50, halign: "right" },
+      },
+      didParseCell: function (data) {
+        const txt = String(data.cell.text).trim();
+        if (txt === "BONIFICADA" || txt === "Bonificado") {
+          data.cell.styles.textColor = [34, 139, 34];
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [220, 255, 220];
+        }
+      },
+    });
+
+    // --- Total final ---
+    let totalPDF = costoBasePDF;
+    if (ajustePorcentaje !== 0) totalPDF += (totalPDF * ajustePorcentaje) / 100;
+    extrasSeleccionadosGlobal.forEach((id) => {
+      const extra = extrasGlobales.find((e) => e.id === id);
+      if (extra) totalPDF *= extra.multiplicador;
+    });
+    if (incluirVisita && costoVisita > 0) totalPDF += costoVisita;
+
+    const finalY = docPDF.lastAutoTable?.finalY || 40;
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(12);
+    docPDF.text(`TOTAL: ${$fmt(totalPDF)}`, 14, finalY + 10);
+
+    // --- Pie simple con leyenda promocional ---
+    const pageHeight = docPDF.internal.pageSize.height;
+    docPDF.setDrawColor(180);
+    docPDF.line(10, pageHeight - 20, 200, pageHeight - 20);
+
+    docPDF.setFont("helvetica", "italic");
+    docPDF.setFontSize(9);
+    docPDF.text(
+      "Versión gratuita del presupuesto. Actualizá tu plan para acceder al detalle completo y formato profesional.",
+      14,
+      pageHeight - 12,
+      { maxWidth: 180 }
+    );
+
+    docPDF.save(`presupuesto-gratuito-${Date.now()}.pdf`);
+    return;
+  }
 
   // --- Encabezado ---
   docPDF.setFont("helvetica", "bold");
@@ -352,8 +569,24 @@ export const exportarPresupuestoPDF = async ({
       docPDF.text(`Página ${i} de ${totalPages}`, 200 - 20, pageHeight - 10);
     }
 
+    // Al final, antes de guardar:
+      if (tipoPDF === "basico") {
+        // 👇 versión simplificada del PDF
+        docPDF.setFont("helvetica", "italic");
+        docPDF.setFontSize(10);
+        docPDF.text(
+          "Versión básica del presupuesto. Actualizá tu plan para acceder al PDF completo.",
+          14,
+          280
+        );
+      }
+
     // --- Guardar PDF ---
-    docPDF.save(`presupuesto-${Date.now()}.pdf`);
+    docPDF.save(
+      tipoPDF === "basico"
+        ? `presupuesto-basico-${Date.now()}.pdf`
+        : `presupuesto-completo-${Date.now()}.pdf`
+    );
 
     // --- Actualizar estadísticas ---
     try {

@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
             const usuarioDoc = docSnap.data();
             console.log("Usuario cargado en tiempo real:", usuarioDoc);
 
-            const suscripcion = usuarioDoc.suscripcion || "gratuita";
+            const suscripcion = usuarioDoc.suscripcion || usuarioDoc.plan || "gratuita";
             const nivelMaximo = mapaSuscripcionNivel[suscripcion];
 
             setUsuario({
