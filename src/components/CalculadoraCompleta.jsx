@@ -21,6 +21,7 @@ import Asistente from "./Asistente";  // 👈 ruta según donde guardes Asistent
 import ModalTutorial from "./ModalTutorial";
 import { BotonRenovacion } from "./BotonRenovacion";
 import { useAuth } from "../context/AuthContext";
+import BloqueoInteractivo from "./bloqueo/BloqueoInteractivo";
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
@@ -555,35 +556,10 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     );
   }
 
-  // Bloqueo de calculadora, excepto admin
-if (!esAdmin && config?.calculadoraHabilitada === false) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-gradient-to-b from-gray-50 to-blue-100 text-center px-6 py-10">
-      <div className="bg-white border border-yellow-300 shadow-lg rounded-2xl p-10 max-w-md relative overflow-hidden">
-        {/* Ícono animado */}
-        <div className="text-6xl text-yellow-400 mb-4 animate-bounce relative z-10">
-          ⚡
-        </div>
-
-        <h2 className="text-3xl font-extrabold text-blue-600 mb-3">
-          ¡Estamos calibrando la calculadora!
-        </h2>
-
-        <p className="text-gray-700 mb-4">
-          Volverá a estar disponible en breve. ¡Gracias por tu paciencia y buena energía!
-        </p>
-
-        <p className="text-sm text-gray-500">
-          <i>Ajustando conexiones para que tus presupuestos brillen.</i> 💡
-        </p>
-
-        {/* Efecto animado sutil (pulso bajo el rayo) */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-40 h-40 animate-lightning opacity-30 rounded-full"></div>
-      </div>
-
-    </div>
-  );
-}
+  // 🔒 Bloqueo de calculadora, excepto admin
+  if (!esAdmin && config?.calculadoraHabilitada === false) {
+    return <BloqueoInteractivo />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">
