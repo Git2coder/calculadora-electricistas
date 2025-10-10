@@ -10,7 +10,7 @@ import { useRef } from "react";
 import { TooltipInfo } from "./TooltipInfo";
 import { tareasPredefinidas } from "../utils/tareas";
 // 🚀 importamos Firebase
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, updateDoc, increment, where } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, updateDoc, increment, where, onSnapshot, getFirestore } from "firebase/firestore";
 import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
 import ConfiguracionTarifas from "./calculadora/ConfiguracionTarifas";
 import TareasSeleccionadas from "./calculadora/TareasSeleccionadas";
@@ -78,23 +78,15 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   }, []);
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const docRef = doc(db, "config", "app");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          console.log("CONFIG:", docSnap.data());
-          setConfig(docSnap.data());
-        } else {
-          console.log("❌ No existe el documento config/app");
-        }
-      } catch (error) {
-        console.error("Error cargando config:", error);
-      }
-    };
+  const db = getFirestore();
+  const unsub = onSnapshot(doc(db, "config", "app"), (snap) => {
+    if (snap.exists()) {
+      setConfig(snap.data());
+    }
+  });
+  return () => unsub();
+}, []);
 
-    fetchConfig();
-  }, []);
   
   // 👇 nuevo: cargar tarifas personalizadas del usuario
   useEffect(() => {
@@ -564,23 +556,34 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   }
 
   // Bloqueo de calculadora, excepto admin
-  if (!esAdmin && config?.calculadoraHabilitada === false) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-yellow-50 text-center px-6 py-10">
-        <div className="bg-white border border-yellow-300 shadow-md rounded-2xl p-8 max-w-md">
-          <h2 className="text-2xl font-bold text-yellow-600 mb-3">
-            🧰 Calculadora en mantenimiento
-          </h2>
-          <p className="text-gray-700 mb-4">
-            Estamos actualizando funciones para mejorar la calculadora de presupuestos.
-          </p>
-          <p className="text-sm text-gray-500">
-            Pronto podrás volver a usarla. ¡Gracias por tu comprensión!
-          </p>
+if (!esAdmin && config?.calculadoraHabilitada === false) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] bg-gradient-to-b from-gray-50 to-blue-100 text-center px-6 py-10">
+      <div className="bg-white border border-yellow-300 shadow-lg rounded-2xl p-10 max-w-md relative overflow-hidden">
+        {/* Ícono animado */}
+        <div className="text-6xl text-yellow-400 mb-4 animate-bounce relative z-10">
+          ⚡
         </div>
+
+        <h2 className="text-3xl font-extrabold text-blue-600 mb-3">
+          ¡Estamos calibrando la calculadora!
+        </h2>
+
+        <p className="text-gray-700 mb-4">
+          Volverá a estar disponible en breve. ¡Gracias por tu paciencia y buena energía!
+        </p>
+
+        <p className="text-sm text-gray-500">
+          <i>Ajustando conexiones para que tus presupuestos brillen.</i> 💡
+        </p>
+
+        {/* Efecto animado sutil (pulso bajo el rayo) */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-40 h-40 animate-lightning opacity-30 rounded-full"></div>
       </div>
-    );
-  }
+
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-100 py-5 px-4">

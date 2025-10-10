@@ -88,7 +88,7 @@ const ResumenPresupuesto = ({
 
      {/* Columna izquierda: Condiciones generales */}
       <div className="bg-white border rounded-lg p-4 shadow-sm">
-        <h3 className="font-semibold mb-4 text-black">⚙️ Condiciones generales</h3>
+        <h3 className="font-semibold mb-4 text-black">⚙️ Condiciones Globales</h3>
 
         <div className="space-y-3">
           {extrasGlobales.map((extra) => {

@@ -325,7 +325,10 @@ export function Home() {
       {/* Planes de suscripción */}
       {enPreLanzamiento ? (
         // === BLOQUE DE PRE-LANZAMIENTO ===
-        <section className="flex flex-col items-center justify-center text-center mt-20 py-20 px-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl shadow-xl mx-auto max-w-3xl">
+        <section
+          id="planes"
+          className="flex flex-col items-center justify-center text-center mt-32 py-20 px-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl shadow-xl mx-auto max-w-3xl"
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -333,7 +336,7 @@ export function Home() {
           >
             <h2 className="text-3xl font-extrabold mb-4">🚀 ¡Etapa de Pre-Lanzamiento!</h2>
             <p className="text-lg mb-6">
-              Accedé <span className="font-semibold text-yellow-300">gratis</span> a todas las funciones de la calculadora
+              Accedé <span className="font-semibold text-yellow-300">gratis</span> a las funciones de la calculadora
               durante esta etapa especial.
               <br />
               Disponible hasta el{" "}

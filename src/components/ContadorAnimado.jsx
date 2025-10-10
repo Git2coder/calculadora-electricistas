@@ -19,7 +19,7 @@ const ContadorAnimado = ({ valor }) => {
 
   return (
     <motion.div className="text-2xl font-bold text-green-700 bg-white p-4 rounded shadow text-center">
-      Total Estimado: ${valorMostrado}
+      Total: ${valorMostrado}
     </motion.div>
   );
 };
