@@ -10,10 +10,11 @@ export default function Configuracion() {
   const [precioProfesional, setPrecioProfesional] = useState("");
   const [porcentajeDescuentoRenovacion, setPorcentajeDescuentoRenovacion] = useState("");
 
-  // Campos de app (habilitaciones)
+  // Campos de app (habilitaciones + lanzamiento)
   const [calculadoraHabilitada, setCalculadoraHabilitada] = useState(true);
   const [habilitado, setHabilitado] = useState(true);
   const [registroHabilitado, setRegistroHabilitado] = useState(true);
+  const [fechaLanzamiento, setFechaLanzamiento] = useState("");
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -45,12 +46,14 @@ export default function Configuracion() {
           setCalculadoraHabilitada(data.calculadoraHabilitada ?? true);
           setHabilitado(data.habilitado ?? true);
           setRegistroHabilitado(data.registroHabilitado ?? true);
+          setFechaLanzamiento(data.fechaLanzamiento ?? "");
         } else {
           console.warn("⚠️ El documento config/app no existe. Creando uno nuevo...");
           await setDoc(appRef, {
             calculadoraHabilitada: true,
             habilitado: true,
             registroHabilitado: true,
+            fechaLanzamiento: "",
           });
         }
       } catch (error) {
@@ -74,12 +77,13 @@ export default function Configuracion() {
         porcentajeDescuentoRenovacion: Number(porcentajeDescuentoRenovacion) || 0,
       });
 
-      // 🔹 Guardar switches de habilitación
+      // 🔹 Guardar switches de habilitación y fecha
       const appRef = doc(db, "config", "app");
       await updateDoc(appRef, {
         calculadoraHabilitada,
         habilitado,
         registroHabilitado,
+        fechaLanzamiento,
       });
 
       alert("✅ Los cambios se guardaron correctamente.");
@@ -180,6 +184,21 @@ export default function Configuracion() {
             <span className="text-gray-700">Habilitar registro de nuevos usuarios</span>
           </label>
         </div>
+      </div>
+
+      {/* --- ETAPA DE LANZAMIENTO --- */}
+      <div className="space-y-4 mt-8">
+        <h3 className="text-lg font-semibold text-gray-800">🚀 Etapa de lanzamiento</h3>
+        <p className="text-sm text-gray-600 mb-2">
+          Define hasta qué fecha se mostrará el plan gratuito como exclusivo de pre-lanzamiento.
+        </p>
+
+        <input
+          type="date"
+          value={fechaLanzamiento || ""}
+          onChange={(e) => setFechaLanzamiento(e.target.value)}
+          className="border border-gray-300 rounded-lg p-2 w-full sm:w-1/2"
+        />
       </div>
 
       {/* --- BOTÓN GUARDAR --- */}

@@ -575,7 +575,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
             Estamos actualizando funciones para mejorar la calculadora de presupuestos.
           </p>
           <p className="text-sm text-gray-500">
-            Podrás volver a usarla en breve. ¡Gracias por tu comprensión!
+            Pronto podrás volver a usarla. ¡Gracias por tu comprensión!
           </p>
         </div>
       </div>
