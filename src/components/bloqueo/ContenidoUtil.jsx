@@ -6,18 +6,7 @@ export default function ContenidoUtil() {
 
   const recursos = [
     {
-      titulo: "Tips de seguridad eléctrica",
-      contenido: (
-        <ul className="list-disc pl-5 text-gray-700 text-sm space-y-1">
-          <li>Verificá la correcta conexión a tierra.</li>
-          <li>Usá guantes y herramientas aisladas.</li>
-          <li>Desenergizá antes de intervenir un circuito.</li>
-          <li>Comprobá el funcionamiento del diferencial.</li>
-        </ul>
-      ),
-    },
-    {
-      titulo: "5 Regla de oro",
+      titulo: "5 Reglas de oro",
       contenido: (
         <ol className="list-disc pl-5 text-gray-700 text-sm space-y-1">
           <li>Desconexión de fuentes de alimentación.</li>
@@ -28,6 +17,17 @@ export default function ContenidoUtil() {
         </ol>        
       ),
     },
+    {
+      titulo: "Tips de seguridad eléctrica",
+      contenido: (
+        <ul className="list-disc pl-5 text-gray-700 text-sm space-y-1">
+          <li>Verificá la correcta conexión a tierra.</li>
+          <li>Usá guantes y herramientas aisladas.</li>
+          <li>Desenergizá antes de intervenir un circuito.</li>
+          <li>Comprobá el funcionamiento del diferencial.</li>
+        </ul>
+      ),
+    },    
     {
       titulo: "Envejecimiento y obsolencia",
       contenido: (
