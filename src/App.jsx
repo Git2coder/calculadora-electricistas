@@ -30,6 +30,7 @@ import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from "firebase/fires
 import ModalTerminos from "./components/ModalTerminos";
 import VotacionTareas from "./pages/VotacionTareas";
 import ResultadosVotacion from "./pages/admin/ResultadosVotacion"
+import ResultadosEncuesta from "./pages/admin/ResultadosEncuesta";
 
 // versión vigente de T&C → solo actualizás este string al modificar tus términos
 const TERMINOS_VERSION = "2025-09-01";
@@ -319,6 +320,7 @@ useEffect(() => {
               <Route path="Jornales" element={<Jornales />} />
               <Route path="Estadisticas" element={<Estadisticas />} />
               <Route path="votacion-resultados" element={<ResultadosVotacion />} />
+              <Route path="/admin/encuestas" element={<ResultadosEncuesta />} />
 
               {/* Rutas adicionales se agregarán aquí */}
               <Route path="cargar-tareas" element={<CargarTareasManual />} />

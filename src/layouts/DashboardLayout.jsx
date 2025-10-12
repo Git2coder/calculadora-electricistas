@@ -9,7 +9,8 @@ const secciones = [
   { path: "/admin/votacion-resultados", label: "Votacion" },
   { path: "/admin/notificaciones", label: "Notificaciones" },
   { path: "/admin/permisos", label: "Permisos" },
- 
+  { path: "/admin/encuestas", label: "Encuestas" },
+
 ];
 
 export default function DashboardLayout() {
