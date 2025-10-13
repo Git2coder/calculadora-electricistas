@@ -1,25 +1,46 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Fuse from "fuse.js";
 import { tareasPredefinidas } from "../utils/tareas";
 import { normalizarTexto, reemplazarSinonimos } from "../utils/normalizarTexto";
 import { useAuth } from "../context/AuthContext";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-export default function Asistente({ agregarTarea }) {
+/**
+ * Asistente.jsx (UNIFICADO)
+ * - Mantiene ColaboraBot (buscador de tareas).
+ * - Agrega dos secciones de mensajería unificada:
+ *    💬 sugerencia  -> guarda en mensajesUsuarios tipo: 'sugerencia'
+ *    🆘 soporte     -> guarda en mensajesUsuarios tipo: 'soporte'
+ * - Solo usuarios autenticados pueden enviar mensajes (incluye email y uid).
+ * - Exposes window.openAsistente(mode, origin) to open the panel externally.
+ */
+
+export default function Asistente({ agregarTarea } = {}) {
   const { usuario } = useAuth();
   const db = getFirestore();
 
+  // ColaboraBot (mantener compatibilidad)
+  const fuse = new Fuse(tareasPredefinidas, {
+    keys: ["nombre"],
+    threshold: 0.35,
+  });
+
+  // UI / modos: "bot" | "sugerencia" | "soporte"
+  const [abierto, setAbierto] = useState(false);
+  const [modo, setModo] = useState("bot");
+  const [origen, setOrigen] = useState("asistente"); // de dónde se abrió
   const [consulta, setConsulta] = useState("");
   const [respuesta, setRespuesta] = useState(null);
-  const [abierto, setAbierto] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState([]);
-  const [modo, setModo] = useState("sugerencias");
-  const [feedback, setFeedback] = useState("");
-  const [sugerencia, setSugerencia] = useState("");
   const [faqAbierta, setFaqAbierta] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
-  const faqs = [    
+  // Mensajería
+  const [mensajeText, setMensajeText] = useState("");
+  const [confirmacion, setConfirmacion] = useState(null);
+
+  // FAQs (mantener)
+  const faqs = [
     {
       q: "¿Qué hago si no encuentro una tarea?",
       a: "Podés describir tu caso en el asistente para recibir sugerencias, o usar la opción 'añadir personalizada' ubicada dentro del botón 'ver listado' (con esta alternativa el precio lo fijas vos)."
@@ -44,16 +65,12 @@ export default function Asistente({ agregarTarea }) {
       q: "¿Qué significa cuando una tarea aparece con candado 🔒?",
       a: "Indica que tu suscripción actual no habilita esa tarea. Podés ver dentro de que plan esta incluida accediendo en el listado completo."
     },
-    
+    // ... mantené tus preguntas actuales
   ];
 
-  const fuse = new Fuse(tareasPredefinidas, {
-    keys: ["nombre"],
-    threshold: 0.35
-  });
-
+  // --- Handlers ColaboraBot (sin cambios funcionales importantes) ---
   const enviarConsulta = () => {
-    let texto = normalizarTexto(consulta);
+    let texto = normalizarTexto(consulta || "");
     texto = reemplazarSinonimos(texto);
     const keywords = texto.split(/\s+/).filter((p) => p.length > 3);
 
@@ -83,106 +100,136 @@ export default function Asistente({ agregarTarea }) {
   const agregarSeleccionadas = () => {
     const tareas = respuesta?.tareas?.filter((t) => seleccionadas.includes(t.id));
     if (tareas && tareas.length > 0) {
-      tareas.forEach((t) => agregarTarea(t));
+      tareas.forEach((t) => agregarTarea && agregarTarea(t));
       limpiarConsulta();
       alert("Tareas agregadas a la calculadora ✅");
     }
   };
 
-  const enviarFeedback = async (e) => {
-    e.preventDefault();
-    if (!feedback.trim()) return;
+  // --- Mensajería: guardar en mensajesUsuarios ---
+  const enviarMensaje = async (tipo) => {
+    if (!usuario || !usuario.uid) {
+      alert("Iniciá sesión para enviar mensajes. Solo usuarios registrados pueden enviar consultas.");
+      return;
+    }
+    if (!mensajeText.trim()) {
+      alert("Ingresá tu mensaje antes de enviar.");
+      return;
+    }
+
+    setEnviando(true);
     try {
-      setEnviando(true);
-      await addDoc(collection(db, "soporte"), {
-        usuarioId: usuario?.uid || "anonimo",
-        email: usuario?.email || "desconocido",
-        mensaje: feedback,
-        fecha: new Date()
+      const docRef = await addDoc(collection(db, "mensajesUsuarios"), {
+        tipo, // "sugerencia" | "soporte"
+        origen: origen || "asistente",
+        usuarioId: usuario.uid,
+        email: usuario.email || null,
+        mensaje: mensajeText.trim(),
+        fecha: serverTimestamp(),
+        estado: "pendiente",
       });
-      alert("Tu consulta fue enviada al soporte ✅");
-      setFeedback("");
+      setConfirmacion({ tipo, id: docRef.id });
+      setMensajeText("");
+      // feedback amigable sin recargar
+      setTimeout(() => setConfirmacion(null), 4000);
     } catch (err) {
-      console.error("Error enviando soporte:", err);
-      alert("Hubo un error al enviar el mensaje.");
+      console.error("Error guardando mensaje:", err);
+      alert("No se pudo enviar el mensaje. Revisá la consola.");
     } finally {
       setEnviando(false);
     }
   };
 
-  const enviarSugerencia = async (e) => {
-    e.preventDefault();
-    if (!sugerencia.trim()) return;
-    try {
-      setEnviando(true);
-      await addDoc(collection(db, "sugerencias"), {
-        usuarioId: usuario?.uid || "anonimo",
-        email: usuario?.email || "desconocido",
-        sugerencia,
-        fecha: new Date()
-      });
-      alert("¡Gracias por tu sugerencia!");
-      setSugerencia("");
-    } catch (err) {
-      console.error("Error enviando sugerencia:", err);
-      alert("Hubo un error al enviar la sugerencia.");
-    } finally {
-      setEnviando(false);
-    }
-  };
+  // --- Global opener (opcion A) ---
+  useEffect(() => {
+    // Handler escucha CustomEvent
+    const handler = (e) => {
+      const detail = e?.detail || {};
+      const modoInicial = detail.modo || "bot";
+      const origenInicial = detail.origen || "externo";
+      setModo(modoInicial);
+      setOrigen(origenInicial);
+      setAbierto(true);
+    };
 
+    // Exponer helper simple en window
+    window.openAsistente = (modoInicial = "bot", origenInicial = "externo") => {
+      const ev = new CustomEvent("abrir-asistente", { detail: { modo: modoInicial, origen: origenInicial } });
+      document.dispatchEvent(ev);
+    };
+
+    document.addEventListener("abrir-asistente", handler);
+    return () => {
+      document.removeEventListener("abrir-asistente", handler);
+      // cleanup window helper (opcional)
+      // delete window.openAsistente;
+    };
+  }, []);
+
+  // --- Small helpers UI ---
+  const abrirEnModo = (m) => { setModo(m); setOrigen("asistente"); setAbierto(true); };
+
+  // --- Render ---
   return (
     <>
       {/* Botón flotante */}
       <button
-        onClick={() => setAbierto(true)}
-        className="fixed bottom-6 right-6 bg-indigo-500 text-white rounded-full p-4 shadow-lg z-50 
-                   transition-transform duration-200 hover:scale-110"
+        onClick={() => abrirEnModo("bot")}
+        className="fixed bottom-6 right-6 bg-indigo-600 text-white rounded-full p-4 shadow-lg z-50 transition-transform duration-200 hover:scale-110"
+        title="Abrir Asistente"
       >
         🤖
       </button>
 
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-40 z-50 transition-opacity duration-300 ${
-          abierto ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-      >
-        {/* Panel lateral */}
+      {/* Overlay + Panel */}
+      <div className={`fixed inset-0 z-50 transition-opacity duration-200 ${abierto ? "visible opacity-100" : "invisible opacity-0"}`}>
         <div
-          className={`absolute top-0 right-0 w-96 h-full bg-white shadow-xl flex flex-col transform transition-transform duration-300 ${
-            abierto ? "translate-x-0" : "translate-x-full"
-          }`}
+          className="absolute inset-0 bg-black bg-opacity-40"
+          onClick={() => setAbierto(false)}
+        />
+        <aside
+          className={`absolute top-0 right-0 w-full sm:w-96 h-full bg-white shadow-2xl transform transition-transform duration-300 ${abierto ? "translate-x-0" : "translate-x-full"}`}
+          role="dialog"
+          aria-modal="true"
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Asistente interno</h2>
-            <button onClick={() => setAbierto(false)}>✖</button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Origen: {origen}</span>
+              <button onClick={() => setAbierto(false)} className="text-gray-600">✖</button>
+            </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b">
+          <div className="flex text-sm">
             <button
-              className={`flex-1 p-2 ${modo === "sugerencias" ? "bg-blue-100 font-semibold" : "bg-gray-100"}`}
-              onClick={() => setModo("sugerencias")}
+              onClick={() => setModo("bot")}
+              className={`flex-1 py-2 ${modo === "bot" ? "bg-gray-100 font-semibold" : "bg-white"}`}
             >
               🤖 ColaboraBot
             </button>
             <button
-              className={`flex-1 p-2 ${modo === "soporte" ? "bg-blue-100 font-semibold" : "bg-gray-100"}`}
-              onClick={() => setModo("soporte")}
+              onClick={() => setModo("sugerencia")}
+              className={`flex-1 py-2 ${modo === "sugerencia" ? "bg-blue-50 font-semibold" : "bg-white"}`}
             >
-              🆘 Soporte
+              💬 Opinión / Sugerencia
+            </button>
+            <button
+              onClick={() => setModo("soporte")}
+              className={`flex-1 py-2 ${modo === "soporte" ? "bg-red-50 font-semibold" : "bg-white"}`}
+            >
+              🆘 Soporte / Problemas
             </button>
           </div>
 
-          {/* Contenido */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {modo === "sugerencias" && (
+          {/* Content */}
+          <div className="p-4 overflow-y-auto h-[calc(100%-112px)] space-y-4">
+            {/* ColaboraBot */}
+            {modo === "bot" && (
               <>
                 <div className="text-sm text-gray-600 bg-gray-50 border p-2 rounded">
-                  🦻 El <b>asistente</b> te mostrará opciones que podrian estar
-                  relacionadas para armar tu presupuesto. Cabe aclarar que no cuenta con IA.
+                  🦻 El <b>ColaboraBot</b> sugiere tareas relacionadas según tu descripción.
                 </div>
 
                 <textarea
@@ -192,31 +239,17 @@ export default function Asistente({ agregarTarea }) {
                   onChange={(e) => setConsulta(e.target.value)}
                   placeholder="Describí el trabajo que vas a realizar..."
                 />
+
                 <div className="flex gap-2">
-                  <button
-                    onClick={enviarConsulta}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded"
-                  >
-                    Consultar
-                  </button>
-                  <button
-                    onClick={limpiarConsulta}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
-                  >
-                    Limpiar
-                  </button>
+                  <button onClick={enviarConsulta} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded">Consultar</button>
+                  <button onClick={limpiarConsulta} className="px-4 py-2 bg-gray-300 text-gray-800 rounded">Limpiar</button>
                 </div>
 
                 {respuesta && (
                   <div className="mt-2 p-2 bg-gray-50 border rounded">
                     <p className="font-medium">{respuesta.mensaje}</p>
                     {respuesta.tareas && (
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          agregarSeleccionadas();
-                        }}
-                      >
+                      <form onSubmit={(e) => { e.preventDefault(); agregarSeleccionadas(); }}>
                         <ul className="mt-2 text-sm space-y-1">
                           {respuesta.tareas.map((t) => {
                             const habilitado = t.nivel <= (usuario?.nivelMaximo || 1);
@@ -235,11 +268,7 @@ export default function Asistente({ agregarTarea }) {
                             );
                           })}
                         </ul>
-                        <button
-                          type="submit"
-                          className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
-                          disabled={seleccionadas.length === 0}
-                        >
+                        <button type="submit" className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400" disabled={seleccionadas.length === 0}>
                           Agregar seleccionadas
                         </button>
                       </form>
@@ -249,72 +278,96 @@ export default function Asistente({ agregarTarea }) {
               </>
             )}
 
-            {modo === "soporte" && (
+            {/* Sugerencia */}
+            {modo === "sugerencia" && (
               <>
-                {/* FAQ */}
-                <div>
-                  <h3 className="text-md font-semibold mb-2">❓ Preguntas frecuentes</h3>
-                  <ul className="space-y-2">
-                    {faqs.map((item, idx) => (
-                      <li key={idx} className="border rounded p-2">
-                        <button
-                          type="button"
-                          className="w-full text-left font-medium text-blue-700"
-                          onClick={() => setFaqAbierta(faqAbierta === idx ? null : idx)}
-                        >
-                          {item.q}
-                        </button>
-                        {faqAbierta === idx && (
-                          <p className="mt-1 text-sm text-gray-700">{item.a}</p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Dejar sugerencia */}
-                <div>
-                  <h3 className="text-md font-semibold mb-2">💡 Consulta o Comentario</h3>
-                  <form onSubmit={enviarSugerencia} className="space-y-2">
+                {!usuario ? (
+                  <div className="p-3 bg-yellow-50 border rounded text-sm text-gray-700">
+                    Iniciá sesión para enviar una sugerencia. 📥
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-sm text-gray-600 bg-blue-50 border p-2 rounded">
+                      💬 Enviá una sugerencia u opinión. Te contactaremos por email si necesitamos más info.
+                    </div>
                     <textarea
+                      rows={4}
+                      value={mensajeText}
+                      onChange={(e) => setMensajeText(e.target.value)}
+                      placeholder="Contanos qué mejorarías o qué te gustó (opcional)"
                       className="w-full p-2 border rounded"
-                      rows={2}
-                      value={sugerencia}
-                      onChange={(e) => setSugerencia(e.target.value)}
-                      placeholder="¿Tenés una duda?¿Que te pareció la herramienta?¿Mejorarias algo?"
                     />
-                    <button
-                      type="submit"
-                      disabled={enviando}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded disabled:bg-gray-400"
-                    >
-                      {enviando ? "Enviando..." : "Enviar sugerencia"}
-                    </button>
-                  </form>
-                </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => enviarMensaje("sugerencia")}
+                        disabled={enviando}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400"
+                      >
+                        {enviando ? "Enviando..." : "Enviar sugerencia"}
+                      </button>
+                      <button onClick={() => { setMensajeText(""); setConfirmacion(null); }} className="px-4 py-2 bg-gray-200 rounded">Limpiar</button>
+                    </div>
 
-                {/* Reportar problema */}
-                <div>
-                  <h3 className="text-md font-semibold mb-2">🆘 Reportar un problema</h3>
-                  <form onSubmit={enviarFeedback} className="space-y-2">
-                    <textarea
-                      className="w-full p-2 border rounded"
-                      rows={3}
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      placeholder="Contanos cual es tu inconveniente..."
-                    />
-                    <button
-                      type="submit"
-                      disabled={enviando}
-                      className="px-4 py-2 bg-red-600 text-white rounded disabled:bg-gray-400"
-                    >
-                      {enviando ? "Enviando..." : "Enviar a soporte"}
-                    </button>
-                  </form>
-                </div>
+                    {confirmacion && confirmacion.tipo === "sugerencia" && (
+                      <p className="text-sm text-green-600 mt-2">✅ Sugerencia enviada (id: {confirmacion.id})</p>
+                    )}
+                  </>
+                )}
               </>
             )}
+
+            {/* Soporte */}
+            {modo === "soporte" && (
+              <>
+                {!usuario ? (
+                  <div className="p-3 bg-yellow-50 border rounded text-sm text-gray-700">
+                    Iniciá sesión para reportar un problema. 🆘
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-sm text-gray-600 bg-red-50 border p-2 rounded">
+                      🆘 Reportá un problema, describí paso a paso lo que sucede. Te contactaremos por email.
+                    </div>
+                    <textarea
+                      rows={5}
+                      value={mensajeText}
+                      onChange={(e) => setMensajeText(e.target.value)}
+                      placeholder="Contanos cuál es tu inconveniente..."
+                      className="w-full p-2 border rounded"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => enviarMensaje("soporte")}
+                        disabled={enviando}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded disabled:bg-gray-400"
+                      >
+                        {enviando ? "Enviando..." : "Enviar a soporte"}
+                      </button>
+                      <button onClick={() => { setMensajeText(""); setConfirmacion(null); }} className="px-4 py-2 bg-gray-200 rounded">Limpiar</button>
+                    </div>
+
+                    {confirmacion && confirmacion.tipo === "soporte" && (
+                      <p className="text-sm text-green-600 mt-2">✅ Mensaje enviado a soporte (id: {confirmacion.id})</p>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+
+            {/* FAQ al final (útil para Soporte) */}
+            <div className="mt-2">
+              <h4 className="text-sm font-semibold mb-2">❓ Preguntas frecuentes</h4>
+              <ul className="space-y-2">
+                {faqs.map((f, idx) => (
+                  <li key={idx} className="border rounded p-2">
+                    <button className="w-full text-left font-medium text-blue-700" onClick={() => setFaqAbierta(faqAbierta === idx ? null : idx)}>
+                      {f.q}
+                    </button>
+                    {faqAbierta === idx && <p className="mt-1 text-sm text-gray-700">{f.a}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* Disclaimer */}
@@ -322,7 +375,7 @@ export default function Asistente({ agregarTarea }) {
             ⚠️ Las sugerencias son orientativas para la carga de la calculadora.
             El usuario es responsable de las decisiones tomadas.
           </div>
-        </div>
+        </aside>
       </div>
     </>
   );

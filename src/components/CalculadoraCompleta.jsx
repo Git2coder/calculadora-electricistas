@@ -17,11 +17,13 @@ import TareasSeleccionadas from "./calculadora/TareasSeleccionadas";
 import ResumenPresupuesto from "./calculadora/ResumenPresupuesto";
 import BuscadorTareas from "./calculadora/BuscadorTareas";
 import { getAuth } from "firebase/auth";
-import Asistente from "./Asistente";  // 👈 ruta según donde guardes Asistente.jsx
 import ModalTutorial from "./ModalTutorial";
 import { BotonRenovacion } from "./BotonRenovacion";
 import { useAuth } from "../context/AuthContext";
 import BloqueoInteractivo from "./bloqueo/BloqueoInteractivo";
+
+import EncuestaSatisfaccionModal from "../components/EncuestaSatisfaccionModal";
+
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
@@ -62,9 +64,19 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const [extrasSeleccionadosGlobal, setExtrasSeleccionadosGlobal] = useState([]);
   const [jornales, setJornales] = useState(null);
   const [jornalOficial, setJornalOficial] = useState(0);
+  const [mostrarEncuesta, setMostrarEncuesta] = useState(false);
+
   // dentro del componente:
   const { usuario } = useAuth();
   const esAdmin = usuario?.rol === "admin";
+
+  useEffect(() => {
+    const yaVotada = localStorage.getItem("encuestaSatisfaccionVotada");
+    if (yaVotada) return; // ✅ no repetir si ya votó
+
+    const timer = setTimeout(() => setMostrarEncuesta(true), 10000); // 3 minutos
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchJornales = async () => {
@@ -621,9 +633,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}  // 👈 aquí
               agregarTarea={agregarTarea}
               setMostrarModalSugerencia={setMostrarModalSugerencia}
-            />
-            {/* 👇 Nuevo bloque: Asistente interno */}
-            <Asistente agregarTarea={agregarTarea} />
+            />          
            
             {/* Leyenda informativa sobre tiempos */}
             <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
@@ -668,12 +678,16 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}  
               setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
             />
-
+              
              {/* ← Botón/banner de renovación (ubicado al final de la calculadora) */}
             <BotonRenovacion />
           </>
         )}
       </div>
-    </div>
+      <EncuestaSatisfaccionModal
+        visible={mostrarEncuesta}
+        onClose={() => setMostrarEncuesta(false)}
+      />
+    </div>    
   );
 };
