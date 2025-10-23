@@ -37,6 +37,7 @@ import ModalTerminos from "./components/ModalTerminos";
 import VotacionTareas from "./pages/VotacionTareas";
 import ResultadosVotacion from "./pages/admin/ResultadosVotacion";
 import ResultadosEncuesta from "./pages/admin/ResultadosEncuesta";
+import MensajesPanel from "./pages/admin/MensajesPanel";
 
 // 🧩 NUEVO: importar el Asistente unificado
 import Asistente from "./components/Asistente";
@@ -365,7 +366,7 @@ export default function App() {
               <Route path="Jornales" element={<Jornales />} />
               <Route path="Estadisticas" element={<Estadisticas />} />
               <Route path="votacion-resultados" element={<ResultadosVotacion />} />
-              <Route path="/admin/encuestas" element={<ResultadosEncuesta />} />
+              <Route path="/admin/mensajes" element={<MensajesPanel />} />
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>
 

@@ -65,17 +65,39 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const [jornales, setJornales] = useState(null);
   const [jornalOficial, setJornalOficial] = useState(0);
   const [mostrarEncuesta, setMostrarEncuesta] = useState(false);
+  const [versionEncuesta, setVersionEncuesta] = useState(null);
+  const [activa, setActiva] = useState(false);
 
   // dentro del componente:
   const { usuario } = useAuth();
   const esAdmin = usuario?.rol === "admin";
 
   useEffect(() => {
-    const yaVotada = localStorage.getItem("encuestaSatisfaccionVotada");
-    if (yaVotada) return; // ✅ no repetir si ya votó
+    const db = getFirestore();
+    const cfgRef = doc(db, "config", "app");
 
-    const timer = setTimeout(() => setMostrarEncuesta(true), 10000); // 3 minutos
-    return () => clearTimeout(timer);
+    const unsub = onSnapshot(cfgRef, (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const activa = !!data.encuestaSatisfaccionActiva;
+      const version = data.encuestaSatisfaccionVersion || 1;
+
+      setVersionEncuesta(version);
+      setActiva(activa);
+
+      // 🔹 Chequear si el usuario ya respondió esta versión
+      const yaVotada = localStorage.getItem(`encuesta_v${version}_votada`) === "true";
+
+      if (activa && !yaVotada) {
+        // Mostrar el modal luego de un pequeño delay
+        const timer = setTimeout(() => setMostrarEncuesta(true), 3000);
+        return () => clearTimeout(timer);
+      } else {
+        setMostrarEncuesta(false);
+      }
+    });
+
+    return () => unsub();
   }, []);
 
   useEffect(() => {
@@ -684,10 +706,12 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
           </>
         )}
       </div>
+      {/* Modal de satisfacción */}
       <EncuestaSatisfaccionModal
         visible={mostrarEncuesta}
         onClose={() => setMostrarEncuesta(false)}
-      />
+        version={versionEncuesta}
+      />    
     </div>    
   );
 };
