@@ -73,31 +73,110 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const esAdmin = usuario?.rol === "admin";
 
   useEffect(() => {
+    if (!usuario) return; // aún no logueado
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (key.startsWith("encuesta_v") && key.endsWith("_votada")) {
+        localStorage.removeItem(key);
+      }
+    });
+  }, [usuario?.uid]);
+
+  useEffect(() => {
     const db = getFirestore();
     const cfgRef = doc(db, "config", "app");
 
-    const unsub = onSnapshot(cfgRef, (snap) => {
+    let lastActiva = null;
+    let lastVersion = null;
+    let timer = null;
+    let mounted = true;
+
+    const limpiarTimer = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    const procesarSnapshot = async (snap) => {
       if (!snap.exists()) return;
       const data = snap.data();
       const activa = !!data.encuestaSatisfaccionActiva;
-      const version = data.encuestaSatisfaccionVersion || 1;
+      const version = data.encuestaSatisfaccionVersion ?? 1;
+
+      // DEBUG: quitar luego
+      console.log("[encuesta] snapshot recibida", { activa, version, lastActiva, lastVersion });
+
+      // Si no cambió ni activa ni version, ignoramos el snapshot
+      if (activa === lastActiva && version === lastVersion) {
+        // console.log("[encuesta] snapshot sin cambios reales. ignorando.");
+        return;
+      }
+
+      // Actualizamos memoria de valores
+      lastActiva = activa;
+      lastVersion = version;
+
+      if (!mounted) return;
 
       setVersionEncuesta(version);
       setActiva(activa);
 
-      // 🔹 Chequear si el usuario ya respondió esta versión
-      const yaVotada = localStorage.getItem(`encuesta_v${version}_votada`) === "true";
+      // Chequeo local rápido
+      const keyLocal = `encuesta_v${version}_votada`;
+      const yaVotadaLocal = localStorage.getItem(keyLocal) === "true";
 
-      if (activa && !yaVotada) {
-        // Mostrar el modal luego de un pequeño delay
-        const timer = setTimeout(() => setMostrarEncuesta(true), 3000);
-        return () => clearTimeout(timer);
-      } else {
+      // Si no está activa → ocultar (porque la campaña se cerró)
+      if (!activa) {
+        limpiarTimer();
         setMostrarEncuesta(false);
+        return;
       }
+
+      // Si ya votó localmente → ocultar
+      if (yaVotadaLocal) {
+        limpiarTimer();
+        setMostrarEncuesta(false);
+        return;
+      }
+
+      // **Verificación remota adicional**: por si votó desde otro dispositivo con mismo uid
+      try {
+        const respRef = doc(db, "encuestas", `v${version}`, "respuestas", userId);
+        const respSnap = await getDoc(respRef);
+        if (respSnap.exists()) {
+          localStorage.setItem(keyLocal, "true");
+          limpiarTimer();
+          setMostrarEncuesta(false);
+          console.log("[encuesta] ya existe respuesta remota para este userId -> no mostrar");
+          return;
+        }
+      } catch (err) {
+        // 🔹 Error de permisos o red -> ignorar, no bloquear la encuesta
+        console.warn("[encuesta] No se pudo verificar respuesta previa:", err);
+      }
+
+      // Llegamos acá: encuesta activa, no hay flag local ni respuesta remota -> mostrar modal
+      limpiarTimer();
+      timer = setTimeout(() => {
+        if (mounted) {
+          setMostrarEncuesta(true);
+          console.log("[encuesta] mostrando modal (delay completado)");
+        }
+      }, 3000);
+    };
+
+    const unsub = onSnapshot(cfgRef, (snap) => {
+      procesarSnapshot(snap);
+    }, (err) => {
+      console.error("Error escuchando config/app:", err);
     });
 
-    return () => unsub();
+    return () => {
+      mounted = false;
+      limpiarTimer();
+      try { unsub(); } catch (e) {}
+    };
   }, []);
 
   useEffect(() => {
