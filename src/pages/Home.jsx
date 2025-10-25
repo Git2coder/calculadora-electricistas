@@ -93,7 +93,9 @@ export function Home() {
   const fechaLanzamientoDate = config?.fechaLanzamiento
   ? new Date(`${config.fechaLanzamiento}T23:59:59`) // fuerza fin del día local
   : new Date("2025-11-01T23:59:59");
-  const enPreLanzamiento = hoy < fechaLanzamientoDate;
+  const enPreLanzamiento = config?.mostrarAnuncioLanzamiento && hoy < fechaLanzamientoDate;
+  const enModoSilencioso = !config?.mostrarAnuncioLanzamiento;
+
 
   return (
     <div className="space-y-0">
@@ -323,7 +325,37 @@ export function Home() {
       </section>
 
       {/* Planes de suscripción */}
-      {enPreLanzamiento ? (
+      {enModoSilencioso ? (
+        // === BLOQUE DE MODO SILENCIOSO ===
+        <section
+          id="planes"
+          className="flex flex-col items-center justify-center text-center mt-32 py-20 px-8 
+                    bg-gradient-to-r from-indigo-600 via-blue-600 to-green-400 
+                    text-white rounded-3xl shadow-2xl mx-auto max-w-3xl"
+        >
+          <h2 className="text-4xl font-extrabold mb-4 drop-shadow-lg">
+            🌱 Etapa de crecimiento 
+          </h2>
+
+          <p className="text-lg max-w-2xl mb-6 text-white/90 leading-relaxed">
+            Estamos creciendo y queremos que formes parte.  
+            En esta fase podés usar la herramienta sin compromiso, gratis y antes que nadie.
+          </p>
+
+          <button
+              onClick={() => {
+                setPlanSeleccionado("gratis");
+                setOrigen("suscripcion");
+                setModalAbierto(true);
+              }}
+              className="mt-4 bg-white text-blue-700 font-semibold px-10 py-3 rounded-xl shadow-lg 
+               hover:bg-blue-50 hover:scale-105 transition-transform duration-300"
+              >
+                ¡Probar ahora! ⚡
+            </button>
+        </section>
+
+      ) : enPreLanzamiento ? (
         // === BLOQUE DE PRE-LANZAMIENTO ===
         <section
           id="planes"

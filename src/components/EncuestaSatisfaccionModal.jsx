@@ -70,11 +70,33 @@ export default function EncuestaSatisfaccionModal({ visible, onClose, version })
     setEnviando(true);
     try {
       // Guardar en mensajesUsuarios (registro general)
+      const db = getFirestore();
+
+      let nombre = null;
+      let provincia = null;
+
+      // 🔹 Intentar obtener los datos del usuario desde Firestore (colección 'usuarios')
+      try {
+        const userDocRef = doc(db, "usuarios", userId);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          nombre = userData.nombre || null;
+          provincia = userData.provincia || null;
+        }
+      } catch (err) {
+        console.error("Error obteniendo datos del usuario:", err);
+      }
+
+      // 🔹 Ahora guardamos con los valores reales
       await addDoc(collection(db, "mensajesUsuarios"), {
         tipo: "satisfaccion",
         origen: "calculadora",
         usuarioId: userId,
         email: usuario?.email || null,
+        nombre,
+        provincia,
         nivelValor: seleccion.valor,
         nivelTexto: seleccion.texto,
         comentario: comentario.trim() || null,
@@ -82,6 +104,7 @@ export default function EncuestaSatisfaccionModal({ visible, onClose, version })
         estado: "pendiente",
         encuestaVersion: version,
       });
+
 
       // Guardar en encuestas/vX/respuestas/userId
       const respRef = doc(db, "encuestas", `v${version}`, "respuestas", userId);

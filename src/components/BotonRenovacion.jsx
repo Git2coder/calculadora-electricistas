@@ -24,6 +24,7 @@ export function BotonRenovacion({ compact = false }) {
   const [cargandoConfig, setCargandoConfig] = useState(true);
   const [diasRestantes, setDiasRestantes] = useState(null);
   const [configPlanes, setConfigPlanes] = useState(null);
+  const [config, setConfig] = useState(null);
 
   // leo configuración global (habilitaciones)
   useEffect(() => {
@@ -178,6 +179,8 @@ export function BotonRenovacion({ compact = false }) {
       setLoading(false);
     }
   };
+
+  if (!configPlanes?.mostrarDescuentoRenovacion) return null; // 👈 ocultar si está deshabilitado
 
   // si llegamos aquí: faltan <=7 días (o vencido)
   return (
