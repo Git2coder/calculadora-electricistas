@@ -22,6 +22,7 @@ export default function Configuracion() {
   const [fechaLanzamiento, setFechaLanzamiento] = useState("");
   const [mostrarAnuncioLanzamiento, setMostrarAnuncioLanzamiento] = useState(false);
 const [diasPrueba, setDiasPrueba] = useState(7);
+const [etapa, setEtapa] = useState("crecimiento");
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -44,6 +45,7 @@ const [diasPrueba, setDiasPrueba] = useState(7);
         const appSnap = await getDoc(appRef);
         if (appSnap.exists()) {
           const data = appSnap.data();
+          setEtapa(data.etapa || "crecimiento");
           setCalculadoraHabilitada(data.calculadoraHabilitada ?? true);
           setHabilitado(data.habilitado ?? true);
           setRegistroHabilitado(data.registroHabilitado ?? true);
@@ -92,6 +94,7 @@ if (trialSnap.exists()) {
           registroHabilitado,
           fechaLanzamiento,
           mostrarAnuncioLanzamiento,
+          etapa,
         },
         { merge: true }
       );
@@ -182,6 +185,21 @@ await setDoc(trialRef, { diasPrueba: Number(diasPrueba) }, { merge: true });
               </span>
             </label>
           </div>
+          <div className="mt-6">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Etapa actual del proyecto
+  </label>
+  <select
+    value={etapa}
+    onChange={(e) => setEtapa(e.target.value)}
+    className="border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-yellow-400"
+  >
+    <option value="crecimiento">🌱 Etapa de crecimiento (gratis indefinido)</option>
+    <option value="prelanzamiento">🚀 Pre-lanzamiento (gratis hasta fecha)</option>
+    <option value="lanzamiento">💼 Lanzamiento (días de prueba limitados)</option>
+  </select>
+</div>
+
         </div>
       </div>
 

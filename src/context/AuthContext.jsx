@@ -27,51 +27,58 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // 🔑 Función para evaluar el estado de acceso del usuario
-  const evaluarAcceso = (usuarioData) => {
-    if (!usuarioData) return { estadoAcceso: "sin-usuario", puedeAcceder: false };
+  // dentro de AuthContext.jsx
+const [configApp, setConfigApp] = useState(null);
 
-    const ahora = new Date();
-    const fechaFinBeta = new Date("2025-09-15T23:59:59-03:00");
-
-    // 1️⃣ Si fue suspendido manualmente
-    if (usuarioData.estado === "suspendido") {
-      return { estadoAcceso: "suspendido", puedeAcceder: false };
-    }
-
-    // 2️⃣ Si tiene suscripción activa con fecha válida
-    const fechaExp = usuarioData.fechaExpiracion?.toDate
-      ? usuarioData.fechaExpiracion.toDate()
-      : usuarioData.fechaExpiracion
-      ? new Date(usuarioData.fechaExpiracion)
-      : null;
-
-    if (usuarioData.suscripcionActiva === true && fechaExp && fechaExp > ahora) {
-      return { estadoAcceso: "suscripto", puedeAcceder: true };
-    }
-
-    // 3️⃣ Si está dentro del periodo BETA global
-    const creado = usuarioData.creadoEn?.toDate
-      ? usuarioData.creadoEn.toDate()
-      : usuarioData.creadoEn
-      ? new Date(usuarioData.creadoEn)
-      : null;
-
-    const esUsuarioBeta = creado && creado <= fechaFinBeta && ahora <= fechaFinBeta;
-    if (esUsuarioBeta) {
-      return { estadoAcceso: "beta", puedeAcceder: true };
-    }
-
-    // 4️⃣ Si fue creado después del beta y aún está dentro de los días de prueba configurados
-    if (creado && creado > fechaFinBeta) {
-      const diasDesdeCreacion = (ahora - creado) / (1000 * 60 * 60 * 24);
-      if (diasDesdeCreacion <= configTrial) {
-        return { estadoAcceso: "trial", puedeAcceder: true };
-      }
-    }
-
-    // 5️⃣ Caso contrario → vencido
-    return { estadoAcceso: "vencido", puedeAcceder: false };
+useEffect(() => {
+  const cargarConfigApp = async () => {
+    const appSnap = await getDoc(doc(db, "config", "app"));
+    if (appSnap.exists()) setConfigApp(appSnap.data());
   };
+  cargarConfigApp();
+}, []);
+
+const evaluarAcceso = (usuarioData, configApp, configTrial) => {
+  if (!usuarioData) return { estadoAcceso: "sin-usuario", puedeAcceder: false };
+  const ahora = new Date();
+
+  const etapa = configApp?.etapa || "crecimiento";
+  const fechaLanzamiento = configApp?.fechaLanzamiento
+    ? new Date(configApp.fechaLanzamiento)
+    : null;
+
+  // 1️⃣ Suspendido
+  if (usuarioData.estado === "suspendido")
+    return { estadoAcceso: "suspendido", puedeAcceder: false };
+
+  // 2️⃣ Suscripción activa
+  const fechaExp = usuarioData.fechaExpiracion?.toDate
+    ? usuarioData.fechaExpiracion.toDate()
+    : usuarioData.fechaExpiracion
+    ? new Date(usuarioData.fechaExpiracion)
+    : null;
+  if (usuarioData.suscripcionActiva && fechaExp && fechaExp > ahora)
+    return { estadoAcceso: "suscripto", puedeAcceder: true };
+
+  // 3️⃣ Etapa de crecimiento: acceso total sin límite
+  if (etapa === "crecimiento")
+    return { estadoAcceso: "crecimiento", puedeAcceder: true };
+
+  // 4️⃣ Pre-lanzamiento: gratis hasta la fecha de lanzamiento
+  if (etapa === "prelanzamiento" && fechaLanzamiento && ahora <= fechaLanzamiento)
+    return { estadoAcceso: "prelanzamiento", puedeAcceder: true };
+
+  // 5️⃣ Lanzamiento: aplica días de prueba
+  const creado = usuarioData.creadoEn?.toDate
+    ? usuarioData.creadoEn.toDate()
+    : new Date(usuarioData.creadoEn);
+  const diasDesdeCreacion = (ahora - creado) / (1000 * 60 * 60 * 24);
+  if (diasDesdeCreacion <= configTrial)
+    return { estadoAcceso: "trial", puedeAcceder: true };
+
+  return { estadoAcceso: "vencido", puedeAcceder: false };
+};
+
 
   // 🔹 Mapeo de planes
   const mapaSuscripcionNivel = {
@@ -97,15 +104,16 @@ export const AuthProvider = ({ children }) => {
             const nivelMaximo = mapaSuscripcionNivel[suscripcion];
 
             setUsuario({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              rol: usuarioDoc.rol || "usuario",
-              ...usuarioDoc,
-              suscripcion,
-              nivelMaximo,
-              ...evaluarAcceso(usuarioDoc),
-            });
+  uid: user.uid,
+  email: user.email,
+  displayName: user.displayName,
+  rol: usuarioDoc.rol || "usuario",
+  ...usuarioDoc,
+  suscripcion,
+  nivelMaximo,
+  ...evaluarAcceso(usuarioDoc, configApp, configTrial),
+});
+
           } else {
             // Crear documento base si no existe
             await setDoc(docRef, {
