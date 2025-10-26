@@ -1,22 +1,35 @@
-import CalculadoraCompleta from "../components/CalculadoraCompleta";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import CalculadoraCompleta from "../components/CalculadoraCompleta";
+
 
 export function Calculadora() {
   const { usuario, fechaCreacion, fechaExpiracion } = useAuth();
   const [diasRestantes, setDiasRestantes] = useState(null);
+  const [configTrial, setConfigTrial] = useState(7);
 
   useEffect(() => {
+    const cargarTrial = async () => {
+      const cfg = await getDoc(doc(db, "config", "trial"));
+      if (cfg.exists()) setConfigTrial(cfg.data().diasPrueba || 7);
+    };
+    cargarTrial();
+  }, []);
+
+  useEffect(() => {
+    if (!usuario) return;
+
+    const ahora = new Date();
     if (fechaExpiracion) {
-      const ahora = new Date();
       const dias = Math.ceil((new Date(fechaExpiracion) - ahora) / (1000 * 60 * 60 * 24));
       setDiasRestantes(dias);
     } else if (fechaCreacion) {
-      const ahora = new Date();
-      const dias = 7 - Math.floor((ahora - fechaCreacion) / (1000 * 60 * 60 * 24));
+      const dias = configTrial - Math.floor((ahora - fechaCreacion) / (1000 * 60 * 60 * 24));
       setDiasRestantes(dias);
     }
-  }, [fechaExpiracion, fechaCreacion]);
+  }, [fechaExpiracion, fechaCreacion, configTrial]);
 
   if (!usuario) return null;
 

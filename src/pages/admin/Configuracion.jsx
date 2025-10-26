@@ -15,13 +15,13 @@ export default function Configuracion() {
   const [mostrarDescuentoRenovacion, setMostrarDescuentoRenovacion] = useState(false);
   const [configPlanes, setConfigPlanes] = useState(false);
 
-
   // Campos de app
   const [calculadoraHabilitada, setCalculadoraHabilitada] = useState(true);
   const [habilitado, setHabilitado] = useState(true);
   const [registroHabilitado, setRegistroHabilitado] = useState(true);
   const [fechaLanzamiento, setFechaLanzamiento] = useState("");
   const [mostrarAnuncioLanzamiento, setMostrarAnuncioLanzamiento] = useState(false);
+const [diasPrueba, setDiasPrueba] = useState(7);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -56,6 +56,12 @@ export default function Configuracion() {
       } finally {
         setLoading(false);
       }
+      const trialRef = doc(db, "config", "trial");
+const trialSnap = await getDoc(trialRef);
+if (trialSnap.exists()) {
+  const data = trialSnap.data();
+  setDiasPrueba(data.diasPrueba ?? 7);
+}
     };
     cargarDatos();
   }, []);
@@ -95,6 +101,8 @@ export default function Configuracion() {
       console.error("❌ Error al guardar configuración:", error);
       alert("Error al guardar los cambios.");
     }
+    const trialRef = doc(db, "config", "trial");
+await setDoc(trialRef, { diasPrueba: Number(diasPrueba) }, { merge: true });
   };
 
   if (loading) return <p className="text-center text-gray-500">Cargando configuración...</p>;
@@ -341,6 +349,27 @@ export default function Configuracion() {
         </div>
 
       </div>
+
+      {/* === BLOQUE 4: PERIODO DE PRUEBA === */}
+<div className="bg-white border border-blue-300 rounded-2xl shadow-md p-8 mt-10 hover:shadow-xl transition-all">
+  <h3 className="text-2xl font-semibold text-blue-700 mb-4 flex items-center gap-2">
+    🕒 Periodo de prueba gratuita
+  </h3>
+  <p className="text-sm text-gray-600 mb-4">
+    Determina la cantidad de días que cada nuevo usuario podrá usar la calculadora sin suscripción.
+  </p>
+  <div className="flex items-center gap-3">
+    <input
+      type="number"
+      min="1"
+      value={diasPrueba}
+      onChange={(e) => setDiasPrueba(e.target.value)}
+      className="w-24 border border-gray-300 rounded-lg p-2 text-center font-semibold focus:ring-2 focus:ring-blue-400"
+    />
+    <span className="text-gray-700 font-medium">día(s)</span>
+  </div>
+</div>
+
 
       {/* === BOTÓN GUARDAR === */}
       <div className="flex justify-center pt-4">

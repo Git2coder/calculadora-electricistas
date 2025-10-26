@@ -19,7 +19,7 @@ export default function BloqueoInteractivo() {
         <div className="flex justify-center gap-3 mb-6">
           {[
             ["contenido", "📘 Datos útiles"],
-            ["encuesta", "🗳️ Encuesta"],
+          //["encuesta", "🗳️ Encuesta"],
             ["quiz", "🎯 Mini Quiz"],
           ].map(([id, label]) => (
             <button
