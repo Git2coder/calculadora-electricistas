@@ -202,9 +202,7 @@ export default function App() {
           }}
         />
       )}
-
-      {/* 🧩 NUEVO: Asistente unificado montado globalmente */}
-      <Asistente />
+      
     </Router>
   );
 }

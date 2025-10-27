@@ -160,29 +160,7 @@ export default function Navbar({ setModalAbierto }) {
           >
             Cables certificados
           </Link>
-          <Link
-            to="/novedades/noticias"
-            onClick={() => setMenuAbierto(false)}
-            className="hover:bg-blue-700 px-4 py-2 rounded w-11/12 text-center"
-          >
-            Noticias
-          </Link>
-          <Link
-            to="/acerca"
-            onClick={() => setMenuAbierto(false)}
-            className="hover:bg-blue-700 px-4 py-2 rounded w-11/12 text-center"
-          >
-            Acerca de
-          </Link>
-          <button
-            onClick={() => {
-              window.openAsistente("sugerencia", "navbar");
-              setMenuAbierto(false);
-            }}
-            className="hover:bg-blue-700 px-4 py-2 rounded w-11/12 text-center"
-          >
-            💬 Comentarios
-          </button>
+          
         </div>
       )}
     </nav>

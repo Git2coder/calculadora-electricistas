@@ -21,7 +21,7 @@ import ModalTutorial from "./ModalTutorial";
 import { BotonRenovacion } from "./BotonRenovacion";
 import { useAuth } from "../context/AuthContext";
 import BloqueoInteractivo from "./bloqueo/BloqueoInteractivo";
-
+import Asistente from "./Asistente"
 import EncuestaSatisfaccionModal from "../components/EncuestaSatisfaccionModal";
 
 
@@ -779,7 +779,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}  
               setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
             />
-              
+             
              {/* ← Botón/banner de renovación (ubicado al final de la calculadora) */}
             <BotonRenovacion />
           </>
@@ -791,6 +791,9 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
         onClose={() => setMostrarEncuesta(false)}
         version={versionEncuesta}
       />    
-    </div>    
+      {/* 🧩 NUEVO: Asistente montado solo en la calculadora habilitada  */}
+      <Asistente /> 
+    </div>
+        
   );
 };
