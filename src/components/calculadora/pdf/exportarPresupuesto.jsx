@@ -82,10 +82,15 @@ export const exportarPresupuestoPDF = async ({
     return valorPropio + valorSubtareas;
   };
 
-  const baseBoca = tareasPredefinidas.find((t) => t.nombre === "Boca");
+  // ✅ Tomar el valor real de "Boca" directamente de las tareas seleccionadas o precargadas
+  const tareaBoca =
+    tareasSeleccionadas.find((t) => t.nombre === "Boca") ||
+    tareasPredefinidas.find((t) => t.nombre === "Boca") ||
+    tareasActualizadas.find((t) => t.nombre === "Boca");
+
   const valorBoca =
-    baseBoca != null
-      ? (baseBoca.tiempo / 60) * tarifaHoraria * (baseBoca.multiplicador ?? 1)
+    tareaBoca != null
+      ? (tareaBoca.tiempo / 60) * tarifaHoraria * (tareaBoca.multiplicador ?? 1)
       : null;
 
   const subtotalDeTarea = (tarea) => {

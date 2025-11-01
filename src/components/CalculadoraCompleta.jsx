@@ -238,28 +238,29 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     const fetchTareas = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "tareas"));
-        const data = await Promise.all(
-          querySnapshot.docs.map(async (docSnap) => {
-            const tareaData = docSnap.data();
-            if (tareaData.usos === undefined) {
-              try {
-                await updateDoc(doc(db, "tareas", docSnap.id), { usos: 0 });
-                tareaData.usos = 0;
-              } catch (e) {
-                console.error("No se pudo inicializar usos:", e);
-              }
-            }
+        const tareasFirestore = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-            return {
-              idFirestore: docSnap.id, // 👈 guardamos id real de Firestore
-              ...tareaData,
-            };
-          })
-        );
+        // 🔹 Combinar tareas locales con las de Firestore (Firestore tiene prioridad)
+        const tareasFusionadas = tareasPredefinidas.map((tLocal) => {
+          const tRemota = tareasFirestore.find(
+            (t) => t.nombre === tLocal.nombre || t.id === tLocal.id
+          );
+          return tRemota ? { ...tLocal, ...tRemota } : tLocal;
+        });
 
-        setTareasDisponibles(data);
-      } catch (error) {
-        console.error("Error cargando tareas:", error);
+        // 🔹 Añadir cualquier tarea nueva que esté solo en Firestore
+        tareasFirestore.forEach((tRemota) => {
+          if (!tareasFusionadas.some((t) => t.nombre === tRemota.nombre)) {
+            tareasFusionadas.push(tRemota);
+          }
+        });
+
+        setTareasDisponibles(tareasFusionadas);
+      } catch (err) {
+        console.error("Error al cargar tareas:", err);
       }
     };
 
@@ -549,14 +550,17 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const tarifaSegura = isNaN(tarifaHoraria) || tarifaHoraria <= 0 ? 0 : tarifaHoraria;
   const visitaSegura = isNaN(costoConsulta) || costoConsulta < 0 ? 0 : costoConsulta;
   
-  // Buscar la definición de Boca en tareasPredefinidas
-  const baseBoca = tareasPredefinidas.find(t => t.nombre === "Boca");
+  // Buscar "Boca" entre las tareas cargadas desde Firestore (tareasDisponibles)
+  const baseBoca = tareasDisponibles.find(
+    (t) => t.nombre === "Boca" || t.id === "Boca" || t.idFirestore === "Boca"
+  );
   let valorBoca = null;
 
   if (baseBoca) {
     const factor = baseBoca.multiplicador ?? 1;
     valorBoca = (baseBoca.tiempo / 60) * tarifaHoraria * factor;
   }
+
 
   // 🔹 Toggle de extra en una tarea
   // ahora recibe (uid, extraId) y almacena solo el id en el array extras
@@ -688,7 +692,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               </h1>
               
               <ModalTutorial 
-                videoUrl="https://www.youtube.com/embed/u7RlPoLtqBA"
+                videoUrl="https://www.youtube.com/embed/34On76uUivw"
                 triggerText={
                   <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg 
                                   bg-red-600 text-white text-sm font-medium shadow-md 

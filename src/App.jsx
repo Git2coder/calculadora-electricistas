@@ -26,19 +26,15 @@ import { BotonRenovacion } from "./components/BotonRenovacion";
 import Configuracion from "./pages/admin/Configuracion";
 import { Jornales } from "./pages/admin/Jornales";
 import Estadisticas from "./pages/admin/Estadisticas";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  onSnapshot,
-  updateDoc,
-} from "firebase/firestore";
+import { getFirestore, doc, getDoc, onSnapshot, updateDoc, } from "firebase/firestore";
 import ModalTerminos from "./components/ModalTerminos";
 import VotacionTareas from "./pages/VotacionTareas";
 import ResultadosVotacion from "./pages/admin/ResultadosVotacion";
 import ResultadosEncuesta from "./pages/admin/ResultadosEncuesta";
 import MensajesPanel from "./pages/admin/MensajesPanel";
 import Navbar from "./components/Navbar"
+import Perfil from "./pages/Perfil";
+import Ayuda from "./pages/Ayuda";
 
 // 🧩 NUEVO: importar el Asistente unificado
 import Asistente from "./components/Asistente";
@@ -146,6 +142,8 @@ export default function App() {
             <Route path="/reglamentacion" element={<Reglamentacion />} />
             <Route path="/cables-certificados" element={<CablesCertificados />} />
             <Route path="/comentarios" element={<ComentariosPage />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/ayuda" element={<Ayuda />} />
 
             <Route path="/votacion" element={<ProtectedRoute> <VotacionTareas /> </ProtectedRoute>} />
 

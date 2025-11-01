@@ -100,18 +100,13 @@ export default function Navbar({ setModalAbierto }) {
                   >
                     🗳️ Votación
                   </Link>
-                  <button
-                    onClick={() => alert('Abrir perfil')}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    👤 Mi perfil
-                  </button>
-                  <button
-                    onClick={() => alert('Ayuda / info')}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    ❓ Ayuda / info
-                  </button>
+                  <Link to="/perfil" onClick={() => setMenuUsuario(false)} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+  👤 Mi perfil
+</Link>
+<Link to="/ayuda" onClick={() => setMenuUsuario(false)} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+  ❓ Ayuda / info
+</Link>
+
                   <hr className="my-1" />
                   <button
                     onClick={() => {
