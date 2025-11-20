@@ -5,7 +5,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import NavbarRecursos from "./NavbarRecursos";
-import RelojLogo from "../../public/icons/presupuesto1.png";
+
 
 export default function Navbar({ setModalAbierto }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -42,11 +42,8 @@ export default function Navbar({ setModalAbierto }) {
           className="flex items-center gap-2 hover:opacity-90 transition"
           onClick={() => setMenuAbierto(false)}
         >
-          <img
-            src={RelojLogo}
-            alt="Electricista+ Logo"
-            className="w-9 h-9 object-contain select-none"
-          />
+          <img src="/icons/presupuesto1.png" alt="Presupuesto" />
+
           <span className="font-bold text-lg hidden sm:inline">Presupuesto+</span>
         </Link>
 
