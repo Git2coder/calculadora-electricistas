@@ -15,11 +15,37 @@ export const exportarPresupuestoPDF = async ({
   tareasPredefinidas = [],
   titulo = "Presupuesto Eléctrico",
   validezDias = 15,
-  extrasGlobales = [],                 
+  extrasGlobales = [],
   extrasSeleccionadosGlobal = [],
-  tipoPDF = "completo", // 👈 nuevo parámetro    
-
+  tipoPDF = "completo",
+  valorBoca = null,
 }) => {
+  // ✅ Calcular costo de visita dentro de la función, según el switch actual
+  // Siempre convertir a número real
+const costoVisitaFinal = incluirVisita ? Number(costoVisita) || 0 : 0;
+
+
+  // 🔹 Fallback: si no hay tareas base, usar las seleccionadas
+  if (!tareasPredefinidas || tareasPredefinidas.length === 0) {
+    tareasPredefinidas = tareasSeleccionadas;
+  }
+
+  // 🔹 Obtener tareas actualizadas desde Firestore (solo respaldo)
+  let tareasActualizadas = [...(tareasPredefinidas || [])];
+
+  try {
+    const tareasSnap = await getDoc(doc(db, "config", "tareasCache"));
+    if (tareasSnap.exists()) {
+      const data = tareasSnap.data();
+      if (data.tareas && Array.isArray(data.tareas)) {
+        tareasActualizadas = data.tareas;
+      }
+    }
+  } catch (error) {
+    console.warn("⚠️ No se pudieron cargar tareas actualizadas:", error);
+  }
+
+  //Redondeo a favor del cliente
     function roundFavorCliente(valor) {
     // Multiplicamos por 100 para trabajar en centavos
     const centavos = valor * 100;
@@ -88,51 +114,22 @@ export const exportarPresupuestoPDF = async ({
     tareasPredefinidas.find((t) => t.nombre === "Boca") ||
     tareasActualizadas.find((t) => t.nombre === "Boca");
 
-  const valorBoca =
-    tareaBoca != null
-      ? (tareaBoca.tiempo / 60) * tarifaHoraria * (tareaBoca.multiplicador ?? 1)
-      : null;
+  // ✅ Recibir valorBoca desde afuera, sin depender de la tarea "Boca"
+  const valorBocaReal = valorBoca ?? null;
+
 
   const subtotalDeTarea = (tarea) => {
-    if (tarea.dependeDe === "Boca" && valorBoca !== null) {
-      let factor = tarea.factorBoca ?? 1;
-      if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-        factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
-      }
-      return valorBoca * factor * (tarea.cantidad || 1);
+    if (tarea.dependeDe === "Boca") {
+  const base = valorBocaReal ?? (20 / 60) * tarifaHoraria;
+    let factor = tarea.factorBoca ?? 1;
+    if (tarea.variante && tarea.opciones?.[tarea.variante]) {
+      factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
     }
+    return base * factor * (tarea.cantidad || 1);
+  }
 
     if (tarea.tipo === "administrativa") {
       return (tarea.valor || 0) * (tarea.cantidad || 1);
-    }
-
-    if (tarea.tipo === "paquete") {
-      const totalInterno = (tarea.originalIncluye || tarea.incluye || []).reduce(
-        (acc, sub) => acc + calcularTareaConSubtareas(sub),
-        0
-      );
-      return totalInterno * (tarea.cantidad || 1);
-    }
-
-    if (tarea.tipo === "composicion") {
-      const tiempoPorPolo = 10;
-      const multArmado = 2.7;
-      const multDiseno = 3.2;
-      const horas = ((tarea.cantidad || 1) * tiempoPorPolo) / 60;
-
-      const costoTotal =
-        horas *
-        tarifaHoraria *
-        ((tarea.opciones?.["Diseño + armado"]?.porcentajeDiseno || 0) *
-          multDiseno +
-          (tarea.opciones?.["Diseño + armado"]?.porcentajeArmado || 0) *
-            multArmado);
-
-      const variante = tarea.opciones?.[tarea.variante] || {};
-      const pDiseno = variante.porcentajeDiseno ?? 0;
-      const pArmado = variante.porcentajeArmado ?? 0;
-
-      return costoTotal * (pDiseno + pArmado);
     }
 
     if (
@@ -184,14 +181,13 @@ export const exportarPresupuestoPDF = async ({
       acumuladoConExtras += montoAjuste;
     }
 
-    if (!incluirVisita) {
-      filas.push(["Visita / Consulta", "BONIFICADA"]);
-    } else if (costoVisita > 0) {
-      filas.push(["Visita / Consulta", $fmt(costoVisita)]);
-      acumuladoConExtras += costoVisita;
-    } else {
-      filas.push(["Visita / Consulta", "Bonificado"]);
-    }
+    // --- VISITA / CONSULTA ---
+if (incluirVisita) {
+  filas.push(["Visita / Consulta", $fmt(costoVisitaFinal)]);
+  acumuladoConExtras += costoVisitaFinal;
+} else {
+  filas.push(["Visita / Consulta", "BONIFICADA"]);
+}
 
     // --- Encabezado ---
     docPDF.setFont("helvetica", "bold");
@@ -234,7 +230,8 @@ export const exportarPresupuestoPDF = async ({
       const extra = extrasGlobales.find((e) => e.id === id);
       if (extra) totalPDF *= extra.multiplicador;
     });
-    if (incluirVisita && costoVisita > 0) totalPDF += costoVisita;
+    if (incluirVisita && costoVisitaFinal > 0) totalPDF += costoVisitaFinal;
+
 
     const finalY = docPDF.lastAutoTable?.finalY || 40;
     docPDF.setFont("helvetica", "bold");
@@ -293,14 +290,13 @@ export const exportarPresupuestoPDF = async ({
     }
 
     // 4️⃣ Visita / Consulta
-    if (!incluirVisita) {
-      filas.push(["Visita / Consulta", "BONIFICADA"]);
-    } else if (costoVisita > 0) {
-      filas.push(["Visita / Consulta", $fmt(costoVisita)]);
-      acumuladoConExtras += costoVisita;
-    } else {
-      filas.push(["Visita / Consulta", "Bonificado"]);
-    }
+    // --- VISITA / CONSULTA ---
+if (incluirVisita) {
+  filas.push(["Visita / Consulta", $fmt(costoVisitaFinal)]);
+  acumuladoConExtras += costoVisitaFinal;
+} else {
+  filas.push(["Visita / Consulta", "BONIFICADA"]);
+}
 
     // --- Encabezado ---
     docPDF.setFont("helvetica", "bold");
@@ -344,7 +340,8 @@ export const exportarPresupuestoPDF = async ({
       const extra = extrasGlobales.find((e) => e.id === id);
       if (extra) totalPDF *= extra.multiplicador;
     });
-    if (incluirVisita && costoVisita > 0) totalPDF += costoVisita;
+    if (incluirVisita && costoVisitaFinal > 0) totalPDF += costoVisitaFinal;
+
 
     const finalY = docPDF.lastAutoTable?.finalY || 40;
     docPDF.setFont("helvetica", "bold");
@@ -406,7 +403,6 @@ export const exportarPresupuestoPDF = async ({
     filas.push([t.nombre, t.cantidad || 1, $fmt(sub)]);
   });
 
-
   // 👉 Extras globales: método acumulativo
   let acumuladoConExtras = costoBasePDF;
 
@@ -436,20 +432,13 @@ export const exportarPresupuestoPDF = async ({
     filas.push(filaAjuste);
   }
 
-  // --- Visita / Consulta ---
-  const conceptoVisita = "Visita / Consulta";
-  let subtotalVisita;
-
-  if (!incluirVisita) {
-    subtotalVisita = "BONIFICADA"; // 👈 palabra cuando está desactivado
-  } else if (costoVisita > 0) {
-    subtotalVisita = $fmt(costoVisita);
-    acumuladoConExtras += costoVisita;
-  } else {
-    subtotalVisita = "Bonificado";
-  }
-
-  filas.push([conceptoVisita, "", subtotalVisita]);
+  // --- VISITA / CONSULTA --- (versión final corregida)
+if (incluirVisita) {
+  filas.push(["Visita / Consulta", "", $fmt(costoVisitaFinal)]);
+  acumuladoConExtras += costoVisitaFinal;
+} else {
+  filas.push(["Visita / Consulta", "", "BONIFICADA"]);
+}
 
     autoTable(docPDF, {
       head: [["Concepto", "Cantidad", { content: "Subtotal", styles: { halign: "right" } }]],
@@ -511,9 +500,10 @@ export const exportarPresupuestoPDF = async ({
       totalPDF *= extra.multiplicador;
     }
   });
-  if (incluirVisita && costoVisita > 0) {
-    totalPDF += costoVisita;
-  }
+  if (incluirVisita && costoVisitaFinal > 0) {
+  totalPDF += costoVisitaFinal;
+}
+
 
   // --- Condiciones generales ---
   const condiciones = [

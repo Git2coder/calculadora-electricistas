@@ -160,7 +160,8 @@ const CablesCertificados = () => {
       {/* 🟨 Descargo */}
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-gray-700 rounded">
         <p>
-          <strong>Nota importante:</strong> Las marcas de cables certificados han sido
+          <strong>Nota importante:</strong> La información se recopila de fuentes públicas y se
+          comparte únicamente con fines informativos. APSE informa que las marcas de cables certificados han sido
           suministradas por los <strong>organismos de certificación</strong> que
           intervinieron en su obtención. En esta lista no se indican las
           categorías de cables que cada marca ha certificado, el organismo de

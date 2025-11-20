@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import NavbarRecursos from "./NavbarRecursos";
+import RelojLogo from "../../public/icons/presupuesto1.png";
 
 export default function Navbar({ setModalAbierto }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -25,7 +26,7 @@ export default function Navbar({ setModalAbierto }) {
   }, [menuUsuario]);
 
   return (
-    <nav className="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
         {/* Botón móvil */}
         <button
@@ -41,9 +42,14 @@ export default function Navbar({ setModalAbierto }) {
           className="flex items-center gap-2 hover:opacity-90 transition"
           onClick={() => setMenuAbierto(false)}
         >
-          <span className="text-3xl">⚡</span>
-          <span className="font-bold text-lg hidden sm:inline">Electricista+</span>
+          <img
+            src={RelojLogo}
+            alt="Electricista+ Logo"
+            className="w-9 h-9 object-contain select-none"
+          />
+          <span className="font-bold text-lg hidden sm:inline">Presupuesto+</span>
         </Link>
+
 
         {/* Links principales (desktop) */}
         <ul className="hidden sm:flex items-center gap-2">
@@ -101,11 +107,11 @@ export default function Navbar({ setModalAbierto }) {
                     🗳️ Votación
                   </Link>
                   <Link to="/perfil" onClick={() => setMenuUsuario(false)} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-  👤 Mi perfil
-</Link>
-<Link to="/ayuda" onClick={() => setMenuUsuario(false)} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-  ❓ Ayuda / info
-</Link>
+                    👤 Mi perfil
+                  </Link>
+                  <Link to="/ayuda" onClick={() => setMenuUsuario(false)} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    ❓ Ayuda / info
+                  </Link>
 
                   <hr className="my-1" />
                   <button

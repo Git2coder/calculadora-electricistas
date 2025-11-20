@@ -27,7 +27,7 @@ export default function NavbarRecursos() {
         onClick={toggleOnClick}
         className="flex items-center gap-1 py-2 px-3 rounded hover:bg-blue-700 transition"
       >
-        Recursos <FaChevronDown className="text-sm mt-[2px]" />
+        Complementos <FaChevronDown className="text-sm mt-[2px]" />
       </button>
 
       {submenuVisible && (

@@ -9,6 +9,7 @@ import EscalaRemuneracion from "../components/EscalaRemuneracion";
 import ModalAcceso from "../components/ModalAcceso";
 import { useAuth } from "../context/AuthContext";
 import { scrollToSection } from "../utils/scrollToSection";
+import SeccionEvolucion from "./home/SeccionEvolucion";
 
 export function Home() {
   const db = getFirestore();
@@ -174,97 +175,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Secciones progresivas con scroll */}
-      {/*<section className="max-w-5xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center text-blue-800 mb-12">Secciones destacadas</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link to="/noticias" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
-            <FaNewspaper className="text-4xl text-orange-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Noticias</h3>
-            <p className="text-gray-600">Actualizate con las novedades del rubro eléctrico y tendencias del sector.</p>
-          </Link>
-
-          <Link to="/calculadora" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
-            <FaCalculator className="text-4xl text-green-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Calculadora</h3>
-            <p className="text-gray-600">Cotizá tus trabajos con criterio, claridad y control total.</p>
-          </Link>
-
-          <Link to="/reglamentacion" className="bg-white shadow hover:shadow-md transition rounded-xl p-6 flex flex-col items-center text-center hover:bg-blue-50">
-            <FaBook className="text-4xl text-blue-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Indice</h3>
-            <p className="text-gray-600">Los reglamentos son muchos, fijate y ubica el que podias estar necesitando.</p>
-          </Link>
-        </div>
-      </section>*/}
-
-      <section className="bg-white py-16 space-y-24">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-blue-900">
-            3 motivos para usar esta herramienta 👌
-          </h2>
-        </div>
-
-        <div className="space-y-8">
-          {/* Bloque 1 */}
-          <motion.div
-            className="relative grid md:grid-cols-2 items-center max-w-6xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <div className="hidden md:block">
-              <div className="bg-cover bg-center clip-diagonal-left" style={{ backgroundImage: "url('/beneficio-tiempo.webp')" }} />
-            </div>
-            <div className="p-8 md:pl-16">
-              <h3 className="text-3xl font-bold text-green-700 mb-4">⏱️ Ganá tiempo</h3>
-              <p className="text-gray-700 text-lg">Con esta herramienta en minutos lo tenés resuelto. Más tiempo para trabajar y menos para calcular.</p>
-            </div>
-          </motion.div>
-
-          {/* Bloque 2 (invertido) */}
-          <motion.div
-            className="relative grid md:grid-cols-2 items-center max-w-6xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <div className="p-8 md:pr-16 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-blue-700 mb-4">💸 Aumentá tus ingresos</h3>
-              <p className="text-gray-700 text-lg">Cotizar con criterio es ganar dinero con cada proyecto. No más precios al azar, ahora sabés lo que vale tu tiempo.</p>
-            </div>
-            <div className="hidden md:block order-1 md:order-2">
-              <div className="bg-cover bg-center clip-diagonal-right" style={{ backgroundImage: "url('/beneficio-ganancia.webp')" }} />
-            </div>
-          </motion.div>
-
-          {/* Bloque 3 */}
-          <motion.div
-            className="relative grid md:grid-cols-2 items-center max-w-6xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            viewport={{ once: true }}
-          >
-            <div className="hidden md:block">
-              <div
-                className="bg-cover clip-diagonal-left"
-                style={{
-                  backgroundImage: "url('/beneficio-clientes.webp')",
-                  backgroundPosition: "top",
-                }}
-              />
-            </div>
-            <div className="p-8 md:pl-16">
-              <h3 className="text-3xl font-bold text-yellow-500 mb-4">📈 Generá mas oportunidades</h3>
-              <p className="text-gray-700 text-lg">Respondé más rápido a nuevos pedidos. Cotizando más y mejor vas a lograr cerrar más trabajos.</p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      <SeccionEvolucion />
 
       {/* TESTIMONIOS HORIZONTALES */}
       <section className="bg-gray py-8 px-3">
@@ -330,7 +241,7 @@ export function Home() {
         <section
           id="planes"
           className="flex flex-col items-center justify-center text-center mt-32 py-20 px-8 
-                    bg-gradient-to-r from-indigo-600 via-blue-600 to-green-400 
+                    bg-gradient-to-r from-blue-500 via-blue-400 to-rose-300 
                     text-white rounded-3xl shadow-2xl mx-auto max-w-3xl"
         >
           <h2 className="text-4xl font-extrabold mb-4 drop-shadow-lg">
@@ -348,7 +259,7 @@ export function Home() {
                 setOrigen("suscripcion");
                 setModalAbierto(true);
               }}
-              className="mt-4 bg-white text-blue-700 font-semibold px-10 py-3 rounded-xl shadow-lg 
+              className="mt-4 bg-white text-blue-600 font-semibold px-10 py-3 rounded-xl shadow-lg 
                hover:bg-blue-50 hover:scale-105 transition-transform duration-300"
               >
                 ¡Probar ahora! ⚡

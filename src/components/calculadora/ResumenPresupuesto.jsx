@@ -10,6 +10,7 @@ import { db } from "../../firebaseConfig";
 
 const ResumenPresupuesto = ({
   tareasSeleccionadas,
+  tareasActualizadas, // 👈 nuevo
   tiempoTotal,
   horasMargen,
   minutosMargen,
@@ -24,7 +25,8 @@ const ResumenPresupuesto = ({
   tareasPredefinidas,
   extrasGlobales,
   extrasSeleccionadosGlobal,
-  setExtrasSeleccionadosGlobal
+  setExtrasSeleccionadosGlobal,
+  costoVisita
 }) => {
   // 👇 nuevo estado para validez en días
   const { usuario } = useAuth();
@@ -41,30 +43,56 @@ const ResumenPresupuesto = ({
   const puedeDescargarGratuito = usuario?.suscripcion === "gratuita";
 
   const handleDescargarPDF = () => {
-    const confirmacion = window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?");
-    if (!confirmacion) return;
+  if (!window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?")) return;
 
-    const tipoPDF =
-      usuario.suscripcion === "gratuita"
-        ? "gratuita"
-        : usuario.suscripcion === "basica"
-        ? "basico"
-        : "completo";
+  const tipoPDF =
+    usuario.suscripcion === "gratuita"
+      ? "gratuita"
+      : usuario.suscripcion === "basica"
+      ? "basico"
+      : "completo";
 
-    exportarPresupuestoPDF({
-      tipoPDF,
-      tareasSeleccionadas,
-      tarifaHoraria,
-      ajustePorcentaje,
-      incluirVisita,
-      costoVisita: visitaSegura,
-      tareasPredefinidas,
-      titulo: "Presupuesto Eléctrico",
-      validezDias,
-      extrasGlobales,
-      extrasSeleccionadosGlobal,
-    });
-  };
+  const tareasSincronizadas = tareasSeleccionadas.map((t) => {
+  // 🔸 Mantener tareas administrativas sin modificar
+  if (t.tipo === "administrativa") return t;
+
+  // 🔸 Recalcular solo tareas normales o dependientes
+  const actualizada = tareasActualizadas.find((ta) => ta.id === t.id);
+  return actualizada
+    ? { ...actualizada, cantidad: t.cantidad, tipo: t.tipo ?? actualizada.tipo }
+    : t;
+});
+
+
+  // 🔹 Calcular valor base de “Boca” (aunque no esté seleccionada)
+  const baseBoca =
+    tareasActualizadas.find((t) => t.nombre === "Boca") ||
+    tareasPredefinidas.find((t) => t.nombre === "Boca") || { tiempo: 20, multiplicador: 1 };
+
+  const valorBocaReal = (baseBoca.tiempo / 60) * tarifaHoraria * (baseBoca.multiplicador ?? 1);
+
+  console.log("DEBUG costoVisita:", costoVisita);
+  console.log("DEBUG incluirVisita:", incluirVisita);
+  console.log("DEBUG tipo:", typeof costoVisita);
+
+
+  exportarPresupuestoPDF({
+    tipoPDF,
+    tareasSeleccionadas: tareasSincronizadas,
+    tarifaHoraria,
+    ajustePorcentaje,
+    incluirVisita,
+    costoVisita,
+    tareasPredefinidas,
+    titulo: "Presupuesto Eléctrico",
+    validezDias,
+    extrasGlobales,
+    extrasSeleccionadosGlobal,
+    valorBoca: valorBocaReal,
+  });
+};
+
+
 
   const handleValidezChange = async (e) => {
     const nuevoValor = Number(e.target.value);

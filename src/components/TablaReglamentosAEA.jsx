@@ -120,9 +120,9 @@ export function TablaReglamentosAEA() {
       {/* 🟨 Descargo */}
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-gray-700 rounded">
         <p>
-          <strong>Nota importante:</strong> Electricista+ no produce ni distribuye los documentos
-          aquí listados. La información se recopila de fuentes públicas o de la propia AEA, y se
-          comparte únicamente con fines informativos y educativos.  
+          <strong>Nota importante:</strong> Presupuesto+ no produce ni distribuye los documentos
+          aquí listados. La información se recopila de fuentes públicas y se
+          comparte únicamente con fines informativos.  
           Para obtener los textos completos o actualizados, consulte siempre los canales oficiales
           de AEA.
         </p>

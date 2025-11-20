@@ -766,6 +766,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
             {/* RESULTADO FINAL */}
             <ResumenPresupuesto
               tareasSeleccionadas={tareasSeleccionadas}
+              tareasActualizadas={tareasDisponibles} // 👈 nuevo
               tiempoTotal={tiempoTotal}
               horasMargen={horasMargen}
               minutosMargen={minutosMargen}
@@ -782,6 +783,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               extrasGlobales={extrasGlobales}
               extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}  
               setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
+              costoVisita={costoConsulta}  
             />
              
              {/* ← Botón/banner de renovación (ubicado al final de la calculadora) */}

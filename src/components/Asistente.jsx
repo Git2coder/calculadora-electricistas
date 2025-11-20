@@ -175,7 +175,7 @@ export default function Asistente({ agregarTarea } = {}) {
       {/* Botón flotante */}
       <button
         onClick={() => abrirEnModo("bot")}
-        className="fixed bottom-6 right-6 bg-indigo-600 text-white rounded-full p-4 shadow-lg z-50 transition-transform duration-200 hover:scale-110"
+        className="fixed bottom-6 right-6 bg-indigo-400 text-white rounded-full p-4 shadow-lg z-50 transition-transform duration-200 hover:scale-110"
         title="Abrir Asistente"
       >
         🤖
