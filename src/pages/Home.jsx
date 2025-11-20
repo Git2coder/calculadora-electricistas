@@ -100,131 +100,267 @@ export function Home() {
 
   return (
     <div className="space-y-0">
-      {/* Hero */}
       <section
-        className="bg-cover bg-center text-white py-28 px-6 relative"
-        style={{ backgroundImage: "url('/fondo-electricistas.webp')" }}
+        className="relative w-full px-6 pt-28 pb-32 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url("/fondo-electricistas.webp")',
+        }}
       >
-        <div className="relative max-w-4xl mx-auto text-center z-10">
-          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl -z-10" />
-          <div className="relative p-8 md:p-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">La calculadora de presupuestos</h1>
-            <p className="text-lg mb-6">
-              Una herramienta esencial si queres ganar tiempo y presupuestar con criterio.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <button
-                onClick={() =>
-                  document.getElementById("planes")?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  })
-                }
-                className="bg-green-600 hover:bg-green-500 px-5 py-3 rounded-xl text-white font-semibold"
+
+        {/* === CAPA BLUR SUTIL SOBRE LA IMAGEN === */}
+        <div className="absolute inset-0 backdrop-blur-sm"></div>
+        {/* Si querés más blur: backdrop-blur-md o lg */}
+
+        {/* === OVERLAY PROFESIONAL PARA LEGIBILIDAD === */}
+        <div className="absolute inset-0">
+          {/* Fade diagonal principal */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-black/45 to-transparent"></div>
+
+          {/* Capa de contraste */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent mix-blend-multiply"></div>
+        </div>
+
+        {/* === CONTENIDO DEL HERO === */}
+        <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+
+          {/* A — HEADLINE */}
+          <div className="lg:col-span-6 order-1">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="max-w-xl"
+            >
+              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white">
+                El oficio evoluciona.<br />
+                <span className="text-blue-400">Tu manera de presupuestar también.</span>
+              </h1>
+
+              <p className="mt-5 text-lg text-gray-200">
+                "Presupuesto+ no repite precios, los calcula según tu realidad.
+Tarifa, tiempo, complejidad y contexto… todo se ajusta para que cada presupuesto tenga sentido y responda a tu forma de trabajar."
+              </p>
+
+              {/* CTA */}
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link
+                  to="/calculadora"
+                  className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition"
+                >
+                  Probar ahora (gratis)
+                </Link>
+
+                <button
+                  onClick={() => setModalAbierto(true)}
+                  className="inline-flex items-center gap-2 border border-white/40 hover:bg-white/10 text-white px-5 py-3 rounded-full transition"
+                >
+                  Iniciar sesión
+                </button>
+              </div>
+
+              {/* Microventajas */}
+              <div className="mt-6 flex flex-wrap gap-3 items-center text-sm text-gray-300">
+                <span>✅ Es más que una referencia es una herramienta pensada para adaptarse a vos.</span>
+                <span className="hidden sm:inline"></span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* B — Columna derecha vacía para balance */}
+          <div className="lg:col-span-6 order-2 relative hidden lg:block">
+
+            {/* SEMICIRCUNFERENCIA PERFECTA + PASOS MEJORADOS */}
+            <div className="absolute right-0 top-10 h-[380px] w-[280px] pointer-events-auto">
+
+              {/* Fondo glow del arco */}
+              <div className="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full"></div>
+
+              {/* Curva semicircular precisa (según tu centro y radio) */}
+              <svg
+                viewBox="-200 180 160 200"
+                className="absolute right-0 top-0 w-full h-full"
               >
-                ¡Empezá ahora!
-              </button>
+                <defs>
+                  <filter id="glow">
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.4"/>
+                  </filter>
+                </defs>
+
+                <path
+                  d="M-90.219 145 
+                    A230 120 15 0 0 450.219 500"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeDasharray="8 8"
+                  opacity="0.35"
+                />
+
+              </svg>
+
+              {/* Pasos alineados geométricamente */}
+              {(() => {
+                const radius = -225;
+                const centerX = 265;
+                const centerY = 175;
+
+                // Ángulos de la semicircunferencia visible hacia la izquierda
+                const angles = [ 60, 20, -20, -60 ];
+
+                const labels = [
+                  "Definí tu tarifa",
+                  "Buscá la tarea",
+                  "Ajustá cantidades",
+                  "Descargá PDF"
+                ];
+
+                const icons = ["✏️", "🔍", "🔢", "📄"];
+
+                return angles.map((deg, i) => {
+                  const rad = (deg * Math.PI) / 180;
+
+                  const x = centerX + radius * Math.cos(rad);
+                  const y = centerY + radius * Math.sin(rad);
+
+                  return (
+                    <motion.div
+                      key={i}
+                      className="absolute flex items-center gap-3 cursor-pointer select-none"
+                      style={{
+                        left: x - 20,
+                        top: y - 20
+                      }}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.15, duration: 0.5 }}
+                      whileHover={{
+                        scale: 1.16,
+                        x: -10,
+                        transition: { type: "spring", stiffness: 180 }
+                      }}
+                    >
+                      {/* Glow detrás del punto */}
+                      <div className="absolute w-10 h-10 bg-blue-500/30 blur-xl rounded-full -z-10"></div>
+
+                      {/* Punto + ícono */}
+                      <div className="w-9 h-9 rounded-full bg-green-500/50 shadow-xl flex items-center justify-center text-lg text-white">
+                        {icons[i]}
+                      </div>
+
+                      {/* Texto */}
+                      <span className="text-white text-sm font-medium drop-shadow-lg whitespace-nowrap">
+                        {labels[i]}
+                      </span>
+
+                    </motion.div>
+                  );
+                });
+              })()}
             </div>
+          </div>
+
+
+        </div>
+      </section>
+  
+      {/* =========================================================
+      NUEVA SECCIÓN — "El camino del electricista moderno" (Premium)
+      ========================================================= */}
+      <section className="relative bg-gradient-to-b from-white to-blue-50 py-28 overflow-hidden">
+
+        {/* Fondo decorativo geométrico */}
+        <div className="absolute inset-0 opacity-[0.18] pointer-events-none">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M60 0H0V60" fill="none" stroke="#c8d7f0" strokeWidth="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+
+        {/* Contenido principal */}
+        <div className="relative max-w-7xl mx-auto px-8 z-10">
+
+          {/* Título */}
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-extrabold text-slate-900 leading-tight">
+                  Evolucionar no es cambiar lo que hacés<br />
+                  <span className="text-blue-700"> es mejorar cómo lo resolvés.</span>
+                </h2>      
+          </div>
+
+          {/* ======================
+              TIMELINE CENTRAL
+            ====================== */}
+          <div className="max-w-3xl mx-auto relative">
+
+            {/* Línea vertical */}
+            <div className="absolute left-1/2 -translate-x-1/2 h-full w-[3px] bg-gradient-to-b from-blue-200 to-blue-100"></div>
+
+            {[
+              {
+                title: "De la intuición al criterio",
+                text: "Precios basados en tu tiempo real y tu tarifa personal.",
+                icon: (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2v20M2 12h20" stroke="#1d4ed8" strokeWidth="2" />
+                  </svg>
+                )
+              },
+              {
+                title: "De la lista fija al cálculo inteligente",
+                text: "Adaptado a vos. No a promedios generales.",
+                icon: (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="#1d4ed8" strokeWidth="2"/>
+                    <path d="M12 6v6l4 2" stroke="#1d4ed8" strokeWidth="2"/>
+                  </svg>
+                )
+              },
+              {
+                title: "De la incertidumbre a la realidad",
+                text: "Con resultados más consistentes, rentables y competitivos.",
+                icon: (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 17l4-4 3 3 7-7" stroke="#1d4ed8" strokeWidth="2" />
+                  </svg>
+                )
+              }
+            ].map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: i * 0.15 }}
+                viewport={{ once: true }}
+                className="relative mb-28 flex items-start gap-10"
+              >
+                {/* Punto circular */}
+                <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-blue-700 rounded-full shadow-lg flex items-center justify-center text-white">
+                  {step.icon}
+                </div>
+
+                {/* Bloques intercalados */}
+                <div
+                  className={`w-1/2 ${
+                    i % 2 === 0
+                      ? "text-right pr-12 ml-auto"
+                      : "text-left pl-12 mr-auto"
+                  }`}
+                >
+                  <h3 className="text-2xl font-bold text-slate-800 mb-2">{step.title}</h3>
+                  <p className="text-slate-600 text-lg">{step.text}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Paso a paso en horizontal con animación al hacer scroll */}
-      <section className="bg-gradient-to-r from-blue-50 to-blue-100 py-20 px-6">
-        <div className="max-w-6xl mx-auto text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-blue-900">
-            ⚡ Tu presupuesto en 4 pasos
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 text-center relative">
-          {/* Línea de conexión */}
-          <div className="hidden md:block absolute top-16 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-green-400 via-yellow-400 to-red-400"></div>
-
-          {[
-            { num: 1, color: "text-blue-600", icon: "✏️", titulo: "Definí tu base", texto: "Establecé tu tarifa horaria. Podés calcularla o ajustarla a mano." },
-            { num: 2, color: "text-green-600", icon: "🔍", titulo: "Buscá tareas", texto: "Encontrá la tarea con el buscador o explorá la lista." },
-            { num: 3, color: "text-yellow-500", icon: "🔢", titulo: "Ajustá las cantidades", texto: "Configuralas y aplicá extras, según sea la situación." },
-            { num: 4, color: "text-red-600", icon: "💸", titulo: "Mirá los resultados", texto: "Colocá tiempo de validez y descargá el presupuesto." },
-          ].map((step, i) => (
-            <motion.div
-              key={step.num}
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }} // 👈 arranca al 30% visible
-              transition={{ delay: i * 0.4, duration: 0.9, ease: "easeOut" }}
-              className="relative"
-            >
-              <div className="flex flex-col items-center">
-                {/* Número con efecto bounce */}
-                <motion.div
-                  initial={{ scale: 0.5 }}
-                  whileInView={{ scale: [1, 1.2, 1] }}
-                  transition={{ delay: i * 0.4 + 0.6, duration: 0.6, ease: "easeOut" }}
-                  className={`text-6xl font-extrabold ${step.color} mb-2`}
-                >
-                  {step.num}
-                </motion.div>
-
-                <div className="text-5xl">{step.icon}</div>
-                <h4 className="text-lg font-bold mt-3">{step.titulo}</h4>
-                <p className="text-gray-600 mt-2 text-sm">{step.texto}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
       <SeccionEvolucion />
-
-      {/* TESTIMONIOS HORIZONTALES */}
-      <section className="bg-gray py-8 px-3">
-        <h2 className="text-2xl font-bold text-center text-blue-800 mb-12">Lo que dicen los profesionales</h2>
-
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6">
-          {/* Testimonio 1 */}
-          <motion.div
-            className="bg-blue-50 p-6 rounded-xl shadow text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <FaUserCircle className="text-4xl text-blue-500 mx-auto mb-2" />
-            <p className="text-gray-700 italic text-sm">"...."</p>
-            <p className="mt-2 text-sm font-medium text-gray-600">N1</p>
-            <p className="text-xs text-gray-500"></p>
-          </motion.div>
-
-          {/* Testimonio 2 */}
-          <motion.div
-            className="bg-blue-50 p-6 rounded-xl shadow text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <FaUserCircle className="text-4xl text-orange-400 mx-auto mb-2" />
-            <p className="text-gray-700 italic text-sm">"...."</p>
-            <p className="mt-2 text-sm font-medium text-gray-600">N2</p>
-            <p className="text-xs text-gray-500"></p>
-          </motion.div>
-
-          {/* Testimonio 3 */}
-          <motion.div
-            className="bg-blue-50 p-6 rounded-xl shadow text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.7 }}
-            viewport={{ once: true }}
-          >
-            <FaUserCircle className="text-4xl text-green-500 mx-auto mb-2" />
-            <p className="text-gray-700 italic text-sm">"...."</p>
-            <p className="mt-2 text-sm font-medium text-gray-600">N3</p>
-            <p className="text-xs text-gray-500"></p>
-          </motion.div>
-        </div>
-      </section>
 
       <section className="bg-gray-100 py-8 px-4">
         <div className="max-w-5xl mx-auto">

@@ -10,8 +10,8 @@ import { motion } from "framer-motion";
 
 export default function EvolucionPremium() {
   return (
-    <section className="relative py-24 bg-gradient-to-b from-white to-blue-50 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="relative py-14 bg-gradient-to-b from-white to-blue-50 overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6">
 
         {/* ------- TITULO ------- */}
         <motion.div
@@ -21,14 +21,11 @@ export default function EvolucionPremium() {
           transition={{ duration: 0.7 }}
           className="text-center mb-20"
         >
-          <h2 className="text-5xl font-extrabold text-slate-900 leading-tight">
-            El oficio evoluciona. <br />
-            <span className="text-blue-700">Tu manera de presupuestar también</span>
+          <h2 className="text-4xl font-extrabold text-slate-900 leading-tight">
+            No reemplaza tu criterio profesional<br />
+            <span className="text-blue-700"> lo potencia.</span>
           </h2>
-
-          <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-            Dos formas de trabajar. Una depende del hábito, la otra depende de los datos. <br /> <i>"Consistencia, realidad y precisión."</i>
-          </p>
+        
         </motion.div>
 
         {/* ========================================
@@ -61,7 +58,7 @@ export default function EvolucionPremium() {
                   {/* barra 3D */}
                   <motion.div
                     initial={{ width: 0 }}
-                    whileInView={{ width: "65%" }}
+                    whileInView={{ width: "60%" }}
                     transition={{ duration: 1 }}
                     className="h-full rounded-xl bg-gradient-to-r 
                     from-gray-600 to-gray-400 shadow-[0_4px_10px_rgba(128,128,128,0.4)] 
@@ -82,7 +79,7 @@ export default function EvolucionPremium() {
                     whileInView={{ width: "96%" }}
                     transition={{ duration: 1.2 }}
                     className="h-full rounded-xl bg-gradient-to-r 
-                    from-blue-500 via-blue-400 to-green-400 shadow-[0_4px_12px_rgba(0,112,255,0.45)] 
+                    from-blue-600 via-blue-400 to-green-400 shadow-[0_4px_12px_rgba(0,112,255,0.45)] 
                     border border-blue-300"
                   />
                 </div>
@@ -92,76 +89,28 @@ export default function EvolucionPremium() {
           </motion.div>
 
           {/* DERECHA — BENEFICIOS RESUMIDOS */}
-      <motion.div
-        initial={{ opacity: 0, x: 40 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7 }}
-        viewport={{ once: true }}
-        className="flex flex-col justify-center"
-      >
-        <h3 className="text-4xl font-bold text-slate-900 leading-snug mb-6">
-          La diferencia se nota en tus resultados
-        </h3>
+          <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7 }}
+              viewport={{ once: true }}
+              className="flex flex-col justify-center"
+          >
+              <h3 className="text-3xl font-bold text-slate-900 leading-snug mb-6">
+              La diferencia se nota en los resultados:
+              </h3>
 
-        <ul className="space-y-4 text-lg text-slate-700">
-          <li>✔ Más consistencia entre presupuesto y realidad</li>
-          <li>✔ Menos pérdidas en trabajos pequeños</li>
-          <li>✔ Más competitividad sin bajar tus precios</li>
-          <li>✔ Respuestas rápidas que generan confianza</li>
-          <li>✔ Una base sólida para crecer como marca personal</li>
-        </ul>
-      </motion.div>
+              <ul className="space-y-4 text-lg text-slate-700">
+              <li>✔ Más consistencia entre presupuesto y realidad</li>
+              <li>✔ Menos pérdidas en trabajos pequeños</li>
+              <li>✔ Más competitividad sin bajar tus precios</li>
+              <li>✔ Respuestas rápidas que generan confianza</li>
+              <li>✔ Una base sólida para crecer con tu marca personal</li>
+              </ul>
+          </motion.div>
         </div>
 
-        {/* ========================================
-           BLOQUE 2: GAUGES (Indicadores semi-realistas)
-           ======================================== */}
-        <div className="grid md:grid-cols-3 gap-10 mb-28">
-
-          {/* --- indicador 1 --- */}
-          <motion.div
-            initial={{ scale: 0.7, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="bg-white p-8 rounded-3xl shadow-xl border flex flex-col items-center"
-          >
-            <Gauge value={30} label="+30%" color="#10B981" />
-            <p className="text-md text-slate-600 mt-3 text-center">
-              Margen promedio ganado
-            </p>
-          </motion.div>
-
-          {/* --- indicador 2 --- */}
-          <motion.div
-            initial={{ scale: 0.7, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.15 }}
-            viewport={{ once: true }}
-            className="bg-white p-8 rounded-3xl shadow-xl border flex flex-col items-center"
-          >
-            <Gauge value={300} label="3×" color="#3B82F6" />
-            <p className="text-md text-slate-600 mt-3 text-center">
-              Presupuestos por día
-            </p>
-          </motion.div>
-
-          {/* --- indicador 3 --- */}
-          <motion.div
-            initial={{ scale: 0.7, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            viewport={{ once: true }}
-            className="bg-white p-8 rounded-3xl shadow-xl border flex flex-col items-center"
-          >
-            <Gauge value={20} label="+20%" color="#F59E0B" />
-            <p className="text-md text-slate-600 mt-3 text-center">
-              Tasa de cierre
-            </p>
-          </motion.div>
-
-        </div>
-
+        
         {/* ========================================
            BLOQUE DE CIERRE
            ======================================== */}
@@ -172,12 +121,7 @@ export default function EvolucionPremium() {
           transition={{ duration: 1 }}
           className="text-center mt-20"
         >
-          <h3 className="text-3xl font-extrabold text-blue-800">
-            No reemplaza tu criterio profesional: lo potencia.
-          </h3>
-          <p className="text-lg text-slate-600 mt-4">
-            La herramienta que te acompaña a presupuestar como los profesionales del futuro.
-          </p>
+          
         </motion.div>
 
       </div>
