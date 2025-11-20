@@ -42,11 +42,14 @@ export default function Navbar({ setModalAbierto }) {
           className="flex items-center gap-2 hover:opacity-90 transition"
           onClick={() => setMenuAbierto(false)}
         >
-          <img src="/icons/presupuesto1.png" alt="Presupuesto" />
+          <img
+            src="./public/icons/presupuesto1.png"
+            alt="Presupuesto"
+            className="h-9 w-auto"   // 👈 Ajustá aquí
+          />
 
           <span className="font-bold text-lg hidden sm:inline">Presupuesto+</span>
         </Link>
-
 
         {/* Links principales (desktop) */}
         <ul className="hidden sm:flex items-center gap-2">

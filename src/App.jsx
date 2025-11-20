@@ -171,11 +171,14 @@ export default function App() {
           </Routes>
         </main>
 
-        <footer className="bg-blue-600 text-white py-4">
+        <footer className="bg-blue-800 text-white py-4">
           <div className="max-w-6xl mx-auto flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
-              <img src="/icons/presupuesto1.png" alt="Presupuesto" />
-
+              <img
+                src="./public/icons/presupuesto1.png"
+                alt="Presupuesto"
+                className="h-7 w-auto"   // 👈 Ajustá aquí  
+              />
               <span className="font-semibold text-lg">Presupuesto+</span>
             </div>
 

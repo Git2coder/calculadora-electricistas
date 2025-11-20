@@ -139,7 +139,7 @@ export function Home() {
 
               <p className="mt-5 text-lg text-gray-200">
                 "Presupuesto+ no repite precios, los calcula según tu realidad.
-Tarifa, tiempo, complejidad y contexto… todo se ajusta para que cada presupuesto tenga sentido y responda a tu forma de trabajar."
+                 Tarifa, tiempo, complejidad y contexto… todo se ajusta en 4 simples pasos para que cada presupuesto tenga sentido y responda a tu forma de trabajar."
               </p>
 
               {/* CTA */}
@@ -267,7 +267,7 @@ Tarifa, tiempo, complejidad y contexto… todo se ajusta para que cada presupues
       {/* =========================================================
       NUEVA SECCIÓN — "El camino del electricista moderno" (Premium)
       ========================================================= */}
-      <section className="relative bg-gradient-to-b from-white to-blue-50 py-28 overflow-hidden">
+      <section className="relative bg-gradient-to-b from-white to-blue-50 py-16 overflow-hidden">
 
         {/* Fondo decorativo geométrico */}
         <div className="absolute inset-0 opacity-[0.18] pointer-events-none">
@@ -282,7 +282,7 @@ Tarifa, tiempo, complejidad y contexto… todo se ajusta para que cada presupues
         </div>
 
         {/* Contenido principal */}
-        <div className="relative max-w-7xl mx-auto px-8 z-10">
+        <div className="relative max-w-6xl mx-auto px-8 z-10">
 
           {/* Título */}
           <div className="text-center mb-20">
@@ -296,7 +296,7 @@ Tarifa, tiempo, complejidad y contexto… todo se ajusta para que cada presupues
               TIMELINE CENTRAL
             ====================== */}
           <div className="max-w-3xl mx-auto relative">
-
+            
             {/* Línea vertical */}
             <div className="absolute left-1/2 -translate-x-1/2 h-full w-[3px] bg-gradient-to-b from-blue-200 to-blue-100"></div>
 
@@ -329,26 +329,57 @@ Tarifa, tiempo, complejidad y contexto… todo se ajusta para que cada presupues
                   </svg>
                 )
               }
-            ].map((step, i) => (
+            ].map((step, i, arr) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: i * 0.15 }}
                 viewport={{ once: true }}
-                className="relative mb-28 flex items-start gap-10"
+                className={`relative flex items-start gap-10 ${
+                  i === arr.length - 1 ? "mb-12" : "mb-28"
+                }`}
               >
+                {/* ============================================
+                  ÍCONO FANTASMA EN ZIG-ZAG (FONDO)
+                  ============================================ */}
+                <div
+                  className={`
+                    absolute top-1/2 -translate-y-1/2 w-64 h-64 opacity-[0.15] 
+                    pointer-events-none z-0
+                    ${i % 2 === 0 ? "-left-[180px]" : "-right-[180px]"}
+                  `}
+                >
+                  {/* Cambia el icono fantasma según el paso */}
+                  {i === 0 && (
+                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" viewBox="0 0 24 24">
+                      <path d="M12 2v20M2 12h20"/>
+                    </svg>
+                  )}
+
+                  {i === 1 && (
+                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M12 6v6l4 2"/>
+                    </svg>
+                  )}
+
+                  {i === 2 && (
+                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" viewBox="0 0 24 24">
+                      <path d="M4 17l4-4 3 3 7-7" />
+                    </svg>
+                  )}
+                </div>
+
                 {/* Punto circular */}
-                <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-blue-700 rounded-full shadow-lg flex items-center justify-center text-white">
+                <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-blue-700 rounded-full shadow-lg flex items-center justify-center text-white z-10">
                   {step.icon}
                 </div>
 
                 {/* Bloques intercalados */}
                 <div
                   className={`w-1/2 ${
-                    i % 2 === 0
-                      ? "text-right pr-12 ml-auto"
-                      : "text-left pl-12 mr-auto"
+                    i % 2 === 0 ? "text-right pr-12 ml-auto" : "text-left pl-12 mr-auto"
                   }`}
                 >
                   <h3 className="text-2xl font-bold text-slate-800 mb-2">{step.title}</h3>

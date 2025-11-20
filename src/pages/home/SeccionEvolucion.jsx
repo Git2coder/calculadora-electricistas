@@ -10,7 +10,8 @@ import { motion } from "framer-motion";
 
 export default function EvolucionPremium() {
   return (
-    <section className="relative py-14 bg-gradient-to-b from-white to-blue-50 overflow-hidden">
+    <section className="relative pt-14 pb-8 bg-gradient-to-b from-white to-blue-50 overflow-hidden">
+
       <div className="max-w-6xl mx-auto px-6">
 
         {/* ------- TITULO ------- */}
@@ -31,7 +32,7 @@ export default function EvolucionPremium() {
         {/* ========================================
            BLOQUE 1: COMPARATIVA VISUAL (Barras 3D)
            ======================================== */}
-        <div className="grid lg:grid-cols-2 gap-16 mb-28">
+        <div className="grid lg:grid-cols-2 gap-16 mb-12">
 
           {/* Gráfico visual */}
           <motion.div
@@ -109,20 +110,6 @@ export default function EvolucionPremium() {
               </ul>
           </motion.div>
         </div>
-
-        
-        {/* ========================================
-           BLOQUE DE CIERRE
-           ======================================== */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-          className="text-center mt-20"
-        >
-          
-        </motion.div>
 
       </div>
     </section>
