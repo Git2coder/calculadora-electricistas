@@ -35,7 +35,7 @@ import MensajesPanel from "./pages/admin/MensajesPanel";
 import Navbar from "./components/Navbar"
 import Perfil from "./pages/Perfil";
 import Ayuda from "./pages/Ayuda";
-import RelojLogo from "../public/icons/presupuesto1.png";
+
 
 // 🧩 NUEVO: importar el Asistente unificado
 import Asistente from "./components/Asistente";
@@ -174,11 +174,8 @@ export default function App() {
         <footer className="bg-blue-600 text-white py-4">
           <div className="max-w-6xl mx-auto flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
-              <img
-                src={RelojLogo}
-                alt="Electricista+ Logo"
-                className="w-7 h-7 object-contain select-none"
-              />
+              <img src="/icons/presupuesto1.png" alt="Presupuesto" />
+
               <span className="font-semibold text-lg">Presupuesto+</span>
             </div>
 
