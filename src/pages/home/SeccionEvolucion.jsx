@@ -23,7 +23,7 @@ export default function EvolucionPremium() {
         >
           <h2 className="text-5xl font-extrabold text-slate-900 leading-tight">
             El oficio evoluciona. <br />
-            <span className="text-blue-700">Tu manera de presupuestar también.</span>
+            <span className="text-blue-700">Tu manera de presupuestar también</span>
           </h2>
 
           <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
