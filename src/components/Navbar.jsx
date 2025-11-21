@@ -43,7 +43,7 @@ export default function Navbar({ setModalAbierto }) {
           onClick={() => setMenuAbierto(false)}
         >
           <img
-  src="/icons/presupuesto1.png"
+  src="/icons/Presupuesto1.png"
   alt="Presupuesto"
   className="h-9 w-auto"
 />

@@ -175,10 +175,10 @@ export default function App() {
           <div className="max-w-6xl mx-auto flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
               <img
-  src="/icons/presupuesto1.png"
-  alt="Presupuesto+"
-  className="h-7 w-auto"
-/>
+                src="/icons/Presupuesto1.png"
+                alt="Presupuesto+"
+                className="h-7 w-auto"
+              />
 
               <span className="font-semibold text-lg">Presupuesto+</span>
             </div>
