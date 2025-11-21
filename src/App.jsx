@@ -120,7 +120,7 @@ export default function App() {
           </p>
           <div className="text-yellow-400 text-6xl animate-electric mb-2">⚡</div>
           <p className="text-black-600 font-extrabold text-xl tracking-wide">
-            Electricista+
+            Presupuesto+
           </p>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               <img
                 src="./public/icons/presupuesto1.png"
-                alt="Presupuesto"
+                alt="Presupuesto+"
                 className="h-7 w-auto"   // 👈 Ajustá aquí  
               />
               <span className="font-semibold text-lg">Presupuesto+</span>

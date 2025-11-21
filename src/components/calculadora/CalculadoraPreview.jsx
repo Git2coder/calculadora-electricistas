@@ -13,7 +13,7 @@ export default function CalculadoraPreview() {
       {/* Overlay de aviso */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="bg-black/60 text-white px-6 py-4 rounded-lg shadow-lg">
-          👀 Vista previa (solo lectura)
+          ✔️ Registrate y empezá a usarla.
         </div>
       </div>
     </div>

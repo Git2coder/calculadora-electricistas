@@ -138,8 +138,8 @@ export function Home() {
               </h1>
 
               <p className="mt-5 text-lg text-gray-200">
-                "Presupuesto+ no repite precios, los calcula según tu realidad.
-                 Tarifa, tiempo, complejidad y contexto… todo se ajusta en 4 simples pasos para que cada presupuesto tenga sentido y responda a tu forma de trabajar."
+                <span className="text-yellow-300/80"><i><b>Presupuesto+</b></i></span> no repite precios, los calcula según tu realidad.
+                Se ajusta en 4 simples pasos para que cada presupuesto tenga sentido.
               </p>
 
               {/* CTA */}
@@ -161,8 +161,8 @@ export function Home() {
 
               {/* Microventajas */}
               <div className="mt-6 flex flex-wrap gap-3 items-center text-sm text-gray-300">
-                <span>✅ Es más que una referencia es una herramienta pensada para adaptarse a vos.</span>
-                <span className="hidden sm:inline"></span>
+                <span>✅ Es más que una referencia, es una herramienta pensada para adaptarse a vos.</span>
+                <span className="hidden sm:inline">Tarifa, tiempo, complejidad y más...</span>
               </div>
             </motion.div>
           </div>
@@ -298,7 +298,7 @@ export function Home() {
           <div className="max-w-3xl mx-auto relative">
             
             {/* Línea vertical */}
-            <div className="absolute left-1/2 -translate-x-1/2 h-full w-[3px] bg-gradient-to-b from-blue-200 to-blue-100"></div>
+            <div className="absolute left-1/2 -translate-x-1/2 h-full w-[3px] bg-gradient-to-b from-green-200 to-green-100"></div>
 
             {[
               {
@@ -395,7 +395,7 @@ export function Home() {
 
       <section className="bg-gray-100 py-8 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-center text-blue-800 mb-8">Escala orientativa de remuneración</h2>
+          <h3 className="text-3xl text-center font-extrabold text-blue-700 leading-tight">Escala orientativa</h3>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} viewport={{ once: true }}>
             <EscalaRemuneracion />
           </motion.div>
@@ -408,7 +408,7 @@ export function Home() {
         <section
           id="planes"
           className="flex flex-col items-center justify-center text-center mt-32 py-20 px-8 
-                    bg-gradient-to-r from-blue-500 via-blue-400 to-rose-300 
+                    bg-gradient-to-r from-blue-500 via-blue-400 to-green-300 
                     text-white rounded-3xl shadow-2xl mx-auto max-w-3xl"
         >
           <h2 className="text-4xl font-extrabold mb-4 drop-shadow-lg">
