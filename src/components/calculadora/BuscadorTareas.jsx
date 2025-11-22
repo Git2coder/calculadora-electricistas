@@ -96,13 +96,15 @@ const BuscadorTareas = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow space-y-4">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
       <h2 className="text-xl font-semibold">📋 Buscar y Agregar Tarea</h2>
 
       {/* 🔎 Input de búsqueda */}
       <input
         type="text"
-        className="w-full p-2 border rounded"
+        className="w-full p-2 border border-gray-300 dark:border-gray-600 
+                  rounded bg-white dark:bg-gray-700
+                  text-gray-800 dark:text-gray-100"
         placeholder="Buscar tarea..."
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
@@ -137,11 +139,18 @@ const BuscadorTareas = ({
               return (
                 <div
                   key={tarea.id}
-                  className={`p-2 relative ${
-                    puedeAcceder
-                      ? "cursor-pointer hover:bg-gray-100"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  } ${i === indiceSeleccionado ? "bg-blue-100 font-semibold" : ""}`}
+                  className={`p-2 relative
+                    ${
+                      puedeAcceder
+                        ? "cursor-pointer dark:bg-gray-600 bgtext-gray-900 dark:text-gray-100 hover:bg-blue-200 dark:hover:bg-blue-800/60"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                    }
+                    ${
+                      i === indiceSeleccionado
+                        ? "bg-blue-100 dark:bg-blue-900/40 font-semibold"
+                        : ""
+                    }
+                  `}
                   onClick={() => {
                     if (puedeAcceder) {
                       handleAgregar(tarea);
@@ -199,8 +208,10 @@ const BuscadorTareas = ({
       <div className="mt-4">
         <button
           onClick={() => setMostrarTodas((prev) => !prev)}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
+          className="flex items-center gap-2 px-4 py-2 
+                      bg-gray-200 dark:bg-gray-700 
+                      text-gray-800 dark:text-gray-100 
+                      rounded hover:bg-gray-300 dark:hover:bg-gray-600">
           <FaListUl />
           {mostrarTodas ? "Ocultar todas las tareas" : "Ver listado"}
         </button>
@@ -209,13 +220,17 @@ const BuscadorTareas = ({
         {mostrarTodas && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
             {/* Fondo oscuro */}
-            <div
-              className="absolute inset-0 bg-black/50"
+            <div className="absolute inset-0 bg-black/50 dark:bg-black/70"
               onClick={() => setMostrarTodas(false)}
             />
-            <div className="relative z-50 w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="relative z-50 w-full max-w-4xl 
+                            bg-white dark:bg-gray-800 
+                            rounded-2xl shadow-2xl overflow-hidden flex flex-col">
               {/* Cabecera */}
-              <div className="p-5 border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white flex justify-between items-center">
+              <div className="p-5 border-b border-blue-700/40 dark:border-blue-300/30 
+                              bg-gradient-to-r from-blue-500 to-blue-600 
+                              text-white dark:text-gray-100 
+                              flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold">Gestión de tareas</h3>
                   <p className="text-sm opacity-90">
@@ -233,39 +248,47 @@ const BuscadorTareas = ({
               <div className="p-6 overflow-y-auto max-h-[75vh] space-y-8">
                 {/* Formulario nueva personalizada */}
                 {mostrarFormCustom && (
-                  <div className="bg-blue-50 p-4 rounded-xl shadow-inner border border-blue-200">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-700">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 
+                                  p-4 rounded-xl shadow-inner 
+                                  border border-blue-200 dark:border-blue-700">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-700 dark:text-blue-200">
                       <FaPlus /> Nueva tarea personalizada
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-600">
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
                           Nombre
                         </label>
                         <input
-                          className="w-full p-2 border rounded-lg"
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 
+                                    rounded-lg bg-white dark:bg-gray-700 
+                                    text-gray-800 dark:text-gray-100"
                           placeholder="Ej: Armado tablero"
                           value={nuevoNombre}
                           onChange={(e) => setNuevoNombre(e.target.value)}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
                           Tiempo (min)
                         </label>
                         <input
-                          className="w-full p-2 border rounded-lg"
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 
+                                    rounded-lg bg-white dark:bg-gray-700 
+                                    text-gray-800 dark:text-gray-100"
                           placeholder="Ej: 60"
                           value={nuevoTiempo}
                           onChange={(e) => setNuevoTiempo(e.target.value)}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
                           Valor fijo ($)
                         </label>
                         <input
-                          className="w-full p-2 border rounded-lg"
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 
+                                    rounded-lg bg-white dark:bg-gray-700 
+                                    text-gray-800 dark:text-gray-100"
                           placeholder="Ej: 12000"
                           value={nuevoValor}
                           onChange={(e) => setNuevoValor(e.target.value)}
@@ -279,15 +302,16 @@ const BuscadorTareas = ({
                       <div className="flex gap-3">
                         <button
                           onClick={() => setMostrarFormCustom(false)}
-                          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-                        >
+                          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 
+                                    text-gray-800 dark:text-gray-100 
+                                    rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
                           Cancelar
                         </button>
                         <button
                           onClick={handleAgregarCustom}
                           disabled={customTasks.length >= 3 || creditos <= 0}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                        >
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg 
+                                    hover:bg-blue-700 disabled:opacity-50">
                           Añadir tarea
                         </button>
                       </div>
@@ -328,7 +352,10 @@ const BuscadorTareas = ({
                       {customTasks.map((t) => (
                         <div
                           key={t.id}
-                          className="flex items-center justify-between p-3 rounded-lg border shadow-sm bg-green-50 hover:bg-green-100 cursor-pointer"
+                          className="flex items-center justify-between p-3 rounded-lg 
+                                    border border-gray-300 dark:border-gray-600 
+                                    shadow-sm bg-green-50 dark:bg-green-900/20 
+                                    hover:bg-green-100 dark:hover:bg-green-800 cursor-pointer"
                           onClick={() => handleAgregar(t)} // 👈 ahora se añade a la calculadora
                         >
                           <div>
@@ -354,7 +381,7 @@ const BuscadorTareas = ({
 
                 {/* Listado completo */}
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-3">
+                  <h4 className="font-semibold text-gray-700 dark:text-gray-200 mb-3">
                     Listado de tareas disponibles
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -362,7 +389,9 @@ const BuscadorTareas = ({
                       const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
 
                       {!puedeAcceder ? (
-                        <div className="flex justify-between items-center w-full px-2 py-1 bg-gray-50 rounded">
+                        <div className="flex justify-between items-center w-full px-2 py-1 
+                                        bg-gray-50 dark:bg-gray-800 
+                                        text-gray-600 dark:text-gray-300 rounded">
                           <span className="truncate">{tarea.nombre}</span>
                           <div className="flex items-center text-xs text-gray-500 ml-2">
                             <span className="text-yellow-500">👑</span>
@@ -378,7 +407,9 @@ const BuscadorTareas = ({
                       return (
                         <div
                           key={tarea.id ?? tarea.uid}
-                          className={`p-4 border rounded-lg shadow-sm relative transition ${
+                          className={`p-4 border border-gray-300 dark:border-gray-600 
+                                      rounded-lg shadow-sm bg-white dark:bg-gray-700 
+                                      relative transition ${
                             puedeAcceder
                               ? "bg-white hover:bg-blue-50 cursor-pointer"
                               : "bg-gray-100 text-gray-500 cursor-not-allowed"

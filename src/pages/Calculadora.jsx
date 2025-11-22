@@ -5,6 +5,7 @@ import { db } from "../firebaseConfig";
 import CalculadoraCompleta from "../components/CalculadoraCompleta";
 
 export function Calculadora() {
+  const [darkMode, setDarkMode] = useState(false);
   const { usuario } = useAuth();
   const [configApp, setConfigApp] = useState(null);
   const [configTrial, setConfigTrial] = useState(7);
@@ -84,7 +85,9 @@ export function Calculadora() {
   // 🔴 Si el usuario ya no tiene acceso
   if (etapa === "lanzamiento" && diasRestantes !== null && diasRestantes < 0) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-20">
+      <div className="max-w-2xl mx-auto text-center py-20 
+                      text-gray-800 dark:text-gray-100
+                      bg-white dark:bg-gray-900 transition-colors">
         <h2 className="text-2xl font-bold text-red-600 mb-4">
           Tu período de prueba ha finalizado
         </h2>
@@ -98,7 +101,9 @@ export function Calculadora() {
 // 🔴 Si el usuario está suspendido
 if (diasRestantes === -999) {
   return (
-    <div className="max-w-2xl mx-auto text-center py-20">
+    <div className="max-w-2xl mx-auto text-center py-20
+                    text-gray-800 dark:text-gray-100
+                    bg-white dark:bg-gray-900 transition-colors">
       <h2 className="text-2xl font-bold text-red-600 mb-4">
         Tu cuenta está suspendida temporalmente
       </h2>
@@ -112,7 +117,10 @@ if (diasRestantes === -999) {
 // 🔹 Si el usuario tiene suscripción activa → acceso pleno
 if (usuario.suscripcionActiva && diasRestantes > 0) {
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4">
+    <div className="max-w-6xl mx-auto py-6 px-4
+                bg-white dark:bg-gray-900 
+                text-gray-800 dark:text-gray-100
+                transition-colors">
       <div className="bg-green-50 text-green-800 border-l-4 border-green-700 px-4 py-3 rounded mb-6 text-sm shadow">
         💼 Tenés una <strong>suscripción activa</strong>. Te quedan {diasRestantes} día(s).
       </div>
@@ -121,32 +129,54 @@ if (usuario.suscripcionActiva && diasRestantes > 0) {
   );
 }
 
-  // ✅ Mostrar calculadora según etapa
+  // ✅ Mostrar calculadora según etapa - CAPA/PLANO 2 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4">
+    <div className="max-w-6xl mx-auto py-6 px-4
+                    bg-white dark:bg-gray-900 
+                    text-gray-800 dark:text-gray-100 rounded-xl
+                    transition-colors">
+
       {/* Etapa de crecimiento */}
       {etapa === "crecimiento" && (
-        <div className="bg-blue-50 text-blue-800 border-l-4 border-blue-700 px-4 py-3 rounded mb-6 text-sm shadow">
+        <div className="
+          bg-blue-50 dark:bg-blue-900 
+          text-blue-800 dark:text-blue-100 
+          border-l-4 border-blue-700 dark:border-blue-300 
+          px-4 py-3 rounded mb-6 text-sm shadow
+          transition-colors
+        ">
           🌱 Estás usando la <strong>Etapa de crecimiento</strong>: acceso gratuito ilimitado mientras ajustamos los detalles finales.
         </div>
       )}
 
       {/* Etapa de pre-lanzamiento */}
       {etapa === "prelanzamiento" && diasRestantes !== null && (
-        <div className="bg-indigo-50 text-indigo-800 border-l-4 border-indigo-700 px-4 py-3 rounded mb-6 text-sm shadow">
-          🚀 <strong>Pre-lanzamiento:</strong> acceso gratuito disponible durante {diasRestantes} día(s) hasta el lanzamiento oficial.
+        <div className="
+          bg-indigo-50 dark:bg-indigo-900 
+          text-indigo-800 dark:text-indigo-100 
+          border-l-4 border-indigo-700 dark:border-indigo-300
+          px-4 py-3 rounded mb-6 text-sm shadow
+          transition-colors
+        ">
+          🚀 <strong>Pre-lanzamiento:</strong> acceso gratuito disponible durante {diasRestantes} día(s).
         </div>
       )}
 
-      {/* Etapa de lanzamiento (trial activo) */}
+      {/* Etapa de lanzamiento */}
       {etapa === "lanzamiento" && diasRestantes !== null && diasRestantes >= 0 && (
-        <div className="bg-green-100 text-green-800 border-l-4 border-green-800 px-4 py-3 rounded mb-6 text-sm shadow">
-          ⏳ Te quedan <strong>{diasRestantes} día(s)</strong> de prueba gratuita. Si esta herramienta te ayuda, ¡suscribite y seguí aprovechándola! ⚡
+        <div className="
+          bg-green-100 dark:bg-green-900 
+          text-green-800 dark:text-green-100 
+          border-l-4 border-green-800 dark:border-green-500
+          px-4 py-3 rounded mb-6 text-sm shadow
+          transition-colors
+        ">
+          ⏳ Te quedan <strong>{diasRestantes} día(s)</strong> de prueba gratuita.
         </div>
       )}
 
-      {/* Calculadora principal */}
       <CalculadoraCompleta />
     </div>
   );
+
 }

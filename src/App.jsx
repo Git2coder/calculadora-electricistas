@@ -53,6 +53,7 @@ export function ComentariosPage() {
 }
 
 export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [menuUsuario, setMenuUsuario] = useState(false);
@@ -101,36 +102,12 @@ export default function App() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuUsuario]);
 
-  if (!config) return <p>Cargando...</p>;
-  const esAdmin = usuario?.rol === "admin";
-
-  if (!esAdmin && config?.habilitado === false) {
-    return (
-      // 🔹 bloque de mantenimiento (sin cambios)
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 text-center p-8">
-        <div className="bg-white shadow-lg rounded-2xl p-10 max-w-lg border border-blue-200 relative overflow-hidden flex flex-col items-center">
-          <h1 className="text-4xl font-extrabold text-blue-700 mb-3">
-            ¡Estamos recargando energía!
-          </h1>
-          <p className="text-gray-700 text-lg mb-6">
-            Realizando mejoras para brindarte un servicio de calidad 🧱
-          </p>
-          <p className="text-gray-500 text-sm mb-6">
-            Pronto volveremos para seguir trabajando con vos.
-          </p>
-          <div className="text-yellow-400 text-6xl animate-electric mb-2">⚡</div>
-          <p className="text-black-600 font-extrabold text-xl tracking-wide">
-            Presupuesto+
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Router>
-      <div className="min-h-screen flex flex-col">        
-        {/* NAVBAR */}
+      {/* 🌓 Contenedor global con soporte dark */}
+      <div className={`${darkMode ? "dark" : ""} min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950 transition-colors`}>
+        
+        {/* NAVBAR — también necesita recibir darkMode si lo querés adaptar */}
         <Navbar setModalAbierto={setModalAbierto} />
 
         <ModalAcceso
@@ -138,11 +115,19 @@ export default function App() {
           onClose={() => setModalAbierto(false)}
         />
 
-        {/* RESTO DEL CÓDIGO SIGUE IGUAL */}
-        <main className="flex-grow p-4 bg-gray-50">
+        {/* --- MAIN --- */}
+        {/* Quité bg-gray-50 porque forzaba siempre fondo claro */}
+        <main className="flex-grow p-4 bg-gray-100 dark:bg-gray-800 transition-colors">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/calculadora" element={<ProtectedRoute> <Calculadora /> </ProtectedRoute>} />
+            <Route
+              path="/calculadora"
+              element={
+                <ProtectedRoute>
+                  <Calculadora />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/acerca" element={<Acerca />} />
             <Route path="/novedades/noticias" element={<Noticias />} />
             <Route path="/reglamentacion" element={<Reglamentacion />} />
@@ -151,9 +136,23 @@ export default function App() {
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/ayuda" element={<Ayuda />} />
 
-            <Route path="/votacion" element={<ProtectedRoute> <VotacionTareas /> </ProtectedRoute>} />
+            <Route
+              path="/votacion"
+              element={
+                <ProtectedRoute>
+                  <VotacionTareas />
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/admin" element={<AdminRoute> <DashboardLayout /> </AdminRoute>}>
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <DashboardLayout />
+                </AdminRoute>
+              }
+            >
               <Route path="usuarios" element={<UsuariosAdmin />} />
               <Route path="tareas" element={<TareasAdmin />} />
               <Route path="Configuracion" element={<Configuracion />} />
@@ -163,7 +162,7 @@ export default function App() {
               <Route path="/admin/mensajes" element={<MensajesPanel />} />
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
             </Route>
-          
+
             <Route path="/gracias" element={<Gracias />} />
             <Route path="/error" element={<ErrorPago />} />
             <Route path="/espera" element={<Espera />} />
@@ -171,32 +170,72 @@ export default function App() {
           </Routes>
         </main>
 
-        <footer className="bg-blue-800 text-white py-4">
+        {/* --- FOOTER --- */}
+        <footer className="bg-blue-800 dark:bg-blue-900 text-white py-4 transition-colors">
           <div className="max-w-6xl mx-auto flex flex-col items-center gap-2">
+
             <div className="flex items-center gap-2">
               <img
                 src="/icons/Presupuesto1.png"
                 alt="Presupuesto+"
                 className="h-7 w-auto"
               />
-
               <span className="font-semibold text-lg">Presupuesto+</span>
             </div>
 
             <p className="text-sm opacity-90">
               &copy; {new Date().getFullYear()} Todos los derechos reservados.
             </p>
+
+            {/* ⭐ Nuevo switch elegante en footer */}
+            <div className="mt-3 flex items-center gap-3 text-sm opacity-90">
+
+              <span className="text-white">Modo oscuro</span>
+
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="
+                  relative inline-flex items-center
+                  h-6 w-12 rounded-full
+                  bg-gray-300 dark:bg-gray-600
+                  transition-colors duration-300 shadow-inner
+                "
+              >
+                <span
+                  className={`absolute left-1 text-gray-700 dark:text-gray-300 text-[10px] transition-opacity ${
+                    darkMode ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  🌙
+                </span>
+
+                <span
+                  className={`absolute right-1 text-yellow-300 text-[10px] transition-opacity ${
+                    darkMode ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  ☀️
+                </span>
+
+                <span
+                  className={`
+                    inline-block h-4 w-4 bg-white dark:bg-gray-200 rounded-full shadow 
+                    transform transition-transform duration-300
+                    ${darkMode ? "translate-x-6" : "translate-x-1"}
+                  `}
+                ></span>
+              </button>
+            </div>
           </div>
         </footer>
-
       </div>
 
-      {/* Modal de acceso */}
+      {/* Modal acceso */}
       {setModalAbierto && (
         <ModalAcceso isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
       )}
 
-      {/* Modal bloqueante de T&C */}
+      {/* Modal T&C */}
       {mostrarModalTerminos && (
         <ModalTerminos
           usuario={usuario}
@@ -214,12 +253,9 @@ export default function App() {
             }
             setMostrarModalTerminos(false);
           }}
-          onVerTerminos={() => {
-            window.open("/terminos", "_blank");
-          }}
+          onVerTerminos={() => window.open("/terminos", "_blank")}
         />
       )}
-      
     </Router>
   );
 }

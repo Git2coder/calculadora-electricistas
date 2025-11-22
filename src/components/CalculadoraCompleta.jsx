@@ -50,6 +50,7 @@ const extrasGlobales = [
 ];
 
 export default function CalculadoraCompleta({ modoPreview = false }) {
+  
   const [busqueda, setBusqueda] = useState("");
   const [tareasSeleccionadas, setTareasSeleccionadas] = useState([]);
   const [tarifaHoraria, setTarifaHoraria] = useState(null);
@@ -679,31 +680,32 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-5 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* 👇 chequeo si los datos de Firestore ya cargaron */}
+    <>
+      <div className="max-w-4xl mx-auto space-y-8 text-gray-800 dark:text-gray-100">
+
         {(!modoPreview && (tarifaHoraria === null || costoConsulta === null)) ? (
-          <p className="text-center text-gray-500">Cargando configuración...</p>
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            Cargando configuración...
+          </p>
         ) : (
-          <>          
+          <>
             <div className="flex items-center justify-center gap-4 mt-4">
-              <h1 className="text-4xl font-bold text-center text-gray-800">
+              <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-100">
                 💡 Calculadora de Presupuestos
               </h1>
-              
-              <ModalTutorial 
+
+              <ModalTutorial
                 videoUrl="https://www.youtube.com/embed/34On76uUivw"
                 triggerText={
                   <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg 
                                   bg-red-600 text-white text-sm font-medium shadow-md 
-                                  hover:bg-red-700 transition">
+                                  hover:bg-red-700 dark:hover:bg-red-500 transition">
                     🎥 Ver tutorial
                   </span>
                 }
               />
-            </div>       
+            </div>
 
-            {/* MODAL TARIFA */}
             {mostrarModalTarifa && (
               <ModalTarifa
                 tarifaHoraria={tarifaHoraria}
@@ -722,12 +724,10 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               onOpen={() => setMostrarModalTarifa(true)}
             />
 
-            {/* MODAL SUGERENCIA */}
             {mostrarModalSugerencia && (
               <ModalSugerencia onClose={() => setMostrarModalSugerencia(false)} />
             )}
-              
-            {/* BUSCADOR Y TAREAS POPULARES */}
+
             <BuscadorTareas
               busqueda={busqueda}
               setBusqueda={setBusqueda}
@@ -735,18 +735,22 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               setIndiceSeleccionado={setIndiceSeleccionado}
               tareasFiltradas={tareasFiltradas}
               tareasPopulares={tareasPopulares}
-              todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}  // 👈 aquí
+              todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}
               agregarTarea={agregarTarea}
               setMostrarModalSugerencia={setMostrarModalSugerencia}
-            />          
-           
-            {/* Leyenda informativa sobre tiempos */}
-            <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-md shadow text-sm mb-6">
+            />
+
+            {/* Leyenda azul */}
+            <div className="
+              bg-blue-50 dark:bg-blue-900 
+              border-l-4 border-blue-400 dark:border-blue-300 
+              text-blue-800 dark:text-blue-100 
+              p-4 rounded-md shadow text-sm mb-6
+            ">
               ℹ️ <strong>Los tiempos sobre las tarea son estimados</strong>.  
               Aquellos con mayor experiencia podrán resolver las tareas más rápido o por el contrario a otros tomar mas tiempo.
             </div>
 
-            {/* TAREAS SELECCIONADAS */}
             <TareasSeleccionadas
               tareasSeleccionadas={tareasSeleccionadas}
               modificarTarea={modificarTarea}
@@ -754,19 +758,30 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               eliminarTarea={eliminarTarea}
               limpiarTareas={limpiarTareas}
               setTareasSeleccionadas={setTareasSeleccionadas}
-              extrasDisponibles={extrasDisponibles}   // 👈 pasamos esto
-              toggleExtra={toggleExtra}               // 👈 y esto también
+              extrasDisponibles={extrasDisponibles}
+              toggleExtra={toggleExtra}
             />
 
-            {/* Leyenda informativa sobre desarrollo de la app */}
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow text-sm mb-6">
-              ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong> Si querés sugerir una mejora, podés dejarnos tu mensaje en la <Link to="/comentarios" className="underline text-blue-700 hover:text-blue-900">sección de comentarios</Link>.
+            {/* Leyenda amarilla */}
+            <div className="
+              bg-yellow-100 dark:bg-yellow-900 
+              border-l-4 border-yellow-500 dark:border-yellow-300 
+              text-yellow-800 dark:text-yellow-100 
+              p-4 rounded-md shadow text-sm mb-6
+            ">
+              ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong>
+              Si querés sugerir una mejora, podés dejarnos tu mensaje en la{" "}
+              <Link
+                to="/comentarios"
+                className="underline text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400"
+              >
+                sección de comentarios
+              </Link>.
             </div>
 
-            {/* RESULTADO FINAL */}
             <ResumenPresupuesto
               tareasSeleccionadas={tareasSeleccionadas}
-              tareasActualizadas={tareasDisponibles} // 👈 nuevo
+              tareasActualizadas={tareasDisponibles}
               tiempoTotal={tiempoTotal}
               horasMargen={horasMargen}
               minutosMargen={minutosMargen}
@@ -776,30 +791,27 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               setIncluirVisita={setIncluirVisita}
               sonidoMonedas={sonidoMonedas}
               costoFinal={costoFinal}
-              // 👇 nuevas
               tarifaHoraria={tarifaHoraria}
               visitaSegura={visitaSegura}
               tareasPredefinidas={tareasPredefinidas}
               extrasGlobales={extrasGlobales}
-              extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}  
+              extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}
               setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
-              costoVisita={costoConsulta}  
+              costoVisita={costoConsulta}
             />
-             
-             {/* ← Botón/banner de renovación (ubicado al final de la calculadora) */}
+
             <BotonRenovacion />
           </>
         )}
       </div>
-      {/* Modal de satisfacción */}
+
       <EncuestaSatisfaccionModal
         visible={mostrarEncuesta}
         onClose={() => setMostrarEncuesta(false)}
         version={versionEncuesta}
-      />    
-      {/* 🧩 NUEVO: Asistente montado solo en la calculadora habilitada  */}
-      <Asistente /> 
-    </div>
-        
+      />
+
+      <Asistente />
+    </>
   );
 };
