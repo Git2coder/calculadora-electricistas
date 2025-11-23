@@ -120,11 +120,12 @@ export function TablaReglamentosAEA() {
     {/* 🟨 Descargo */}
     <div className="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-gray-700 dark:text-gray-200 rounded">
       <p>
-        <strong>Nota importante:</strong> Presupuesto+ no produce ni distribuye los documentos
-        aquí listados. La información se recopila de fuentes públicas y se
-        comparte únicamente con fines informativos.  
-        Para obtener los textos completos o actualizados, consulte los canales oficiales.
-      </p>
+          <strong>Nota importante:</strong> Presupuesto+ no produce ni distribuye los documentos
+          aquí listados. La información se recopila de fuentes públicas y se
+          comparte únicamente con fines informativos.  
+          Para obtener los textos completos o actualizados, consulte siempre los canales oficiales
+          de AEA.
+        </p>
     </div>
 
     {/* 🔍 Buscador */}

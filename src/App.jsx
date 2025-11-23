@@ -139,7 +139,7 @@ export default function App() {
 
         {/* --- MAIN --- */}
         {/* Quité bg-gray-50 porque forzaba siempre fondo claro */}
-        <main className="flex-grow p-4 bg-gray-100 dark:bg-gray-800 transition-colors">
+        <main className="flex-grow pb-10 bg-gray-100 dark:bg-gray-800 transition-colors">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route

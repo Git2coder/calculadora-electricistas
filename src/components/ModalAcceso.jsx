@@ -9,6 +9,8 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
 
   const db = getFirestore();
   const [registroHabilitado, setRegistroHabilitado] = useState(true);
+  // === ESTADO DE FASE ===
+  const [fase, setFase] = useState("crecimiento");
 
   // Leer configuración global
   useEffect(() => {
@@ -104,13 +106,62 @@ export default function ModalAcceso({ isOpen, onClose, plan, origen }) {
   };
 
   // === Acciones ===
+  useEffect(() => {
+    const ref = doc(db, "config", "app");
+    const unsub = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setFase(data.etapa || "crecimiento"); 
+      }
+    });
+    return () => unsub();
+  }, [db]);
+
+  // === ACCIÓN POST LOGIN CORREGIDA ===
   const postLoginAccion = async (uid) => {
-    if (plan === "gratis") {
-      await activarPlanGratis(uid);
-    } else if (origen === "suscripcion") {
-      setEstado("redirigiendo");
-      await iniciarPago(uid, plan);
-    } else {
+    
+    // 🌱 FASE 1 — CRECIMIENTO
+    // Acceso totalmente libre, NO crear suscripción ni expiración.
+    if (fase === "crecimiento") {
+      navigate("/calculadora");
+      onClose();
+      return;
+    }
+
+    // 🚀 FASE 2 — PRELANZAMIENTO
+    // Acceso gratuito hasta una fecha global definida en config/app
+    if (fase === "prelanzamiento") {
+      const ref = await getDoc(doc(db, "config", "app"));
+      const data = ref.exists() ? ref.data() : null;
+
+      const fechaLimite = data?.fechaLanzamiento
+        ? new Date(data.fechaLanzamiento)
+        : new Date("2025-02-01"); // fallback seguro
+
+      await updateDoc(doc(db, "usuarios", uid), {
+        suscripcionActiva: true,
+        fechaExpiracion: Timestamp.fromDate(fechaLimite),
+      });
+
+      navigate("/calculadora");
+      onClose();
+      return;
+    }
+
+    // 💰 FASE 3 — LANZAMIENTO
+    // Aquí sí funcionan planes (gratis o pago)
+    if (fase === "lanzamiento") {
+      if (plan === "gratis") {
+        await activarPlanGratis(uid);
+        return;
+      }
+      if (origen === "suscripcion") {
+        setEstado("redirigiendo");
+        await iniciarPago(uid, plan);
+        return;
+      }
+
+      // Login normal durante el lanzamiento
       navigate("/calculadora");
       onClose();
     }

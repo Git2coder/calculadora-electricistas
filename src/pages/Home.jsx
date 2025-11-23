@@ -100,24 +100,24 @@ export function Home() {
 
   return (
     <div className="space-y-0">
-      <section
-        className="relative w-full px-6 pt-28 pb-32 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url("/fondo-electricistas.webp")',
-        }}
-      >
+      <section className="relative w-full px-6 pt-28 pb-32 overflow-hidden">
+        {/* === VIDEO DE FONDO === */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          src="/videos/video-azul.mp4"   /* <-- poné tu archivo de video aquí */
+        />
 
-        {/* === CAPA BLUR SUTIL SOBRE LA IMAGEN === */}
-        <div className="absolute inset-0 backdrop-blur-sm"></div>
-        {/* Si querés más blur: backdrop-blur-md o lg */}
+        {/* === CAPA DE SUAVIZADO === */}
+        <div className="absolute inset-0 bg-black/30"></div>
 
-        {/* === OVERLAY PROFESIONAL PARA LEGIBILIDAD === */}
+        {/* === GRADIENTES SUAVES (MUCHO MÁS SUTILES QUE ANTES) === */}
         <div className="absolute inset-0">
-          {/* Fade diagonal principal */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-black/45 to-transparent"></div>
-
-          {/* Capa de contraste */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/25 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent mix-blend-overlay"></div>
         </div>
 
         {/* === CONTENIDO DEL HERO === */}
