@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import CalculadoraCompleta from "../components/CalculadoraCompleta";
+import Loader from "../components/Loader";
+
 
 export function Calculadora() {
   const [darkMode, setDarkMode] = useState(false);
@@ -10,6 +12,12 @@ export function Calculadora() {
   const [configApp, setConfigApp] = useState(null);
   const [configTrial, setConfigTrial] = useState(7);
   const [diasRestantes, setDiasRestantes] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 🔹 Cargar configuración global
   useEffect(() => {
@@ -76,6 +84,14 @@ export function Calculadora() {
   }
 }, [usuario, configApp, configTrial]);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-40 min-h-screen 
+                      bg-gray-100 dark:bg-gray-900 transition-colors">
+        <Loader />
+      </div>
+    );
+  }
 
   if (!usuario) return null;
   if (!configApp) return <p className="text-center mt-20 text-gray-500">Cargando configuración...</p>;

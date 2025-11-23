@@ -184,20 +184,23 @@ export default function Asistente({ agregarTarea } = {}) {
       {/* Overlay + Panel */}
       <div className={`fixed inset-0 z-50 transition-opacity duration-200 ${abierto ? "visible opacity-100" : "invisible opacity-0"}`}>
         <div
-          className="absolute inset-0 bg-black bg-opacity-40"
+          className="absolute inset-0 bg-black bg-opacity-40 dark:bg-opacity-60"
           onClick={() => setAbierto(false)}
         />
         <aside
-          className={`absolute top-0 right-0 w-full sm:w-96 h-full bg-white shadow-2xl transform transition-transform duration-300 ${abierto ? "translate-x-0" : "translate-x-full"}`}
+          className={`absolute top-0 right-0 w-full sm:w-96 h-full 
+          bg-white dark:bg-gray-900 
+          shadow-2xl transform transition-transform duration-300 
+          ${abierto ? "translate-x-0" : "translate-x-full"}`}
           role="dialog"
           aria-modal="true"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">Asistente interno</h2>
+          <div className="flex items-center justify-between p-4 border-b border-gray-300 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Asistente interno</h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Origen: {origen}</span>
-              <button onClick={() => setAbierto(false)} className="text-gray-600">✖</button>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Origen: {origen}</span>
+              <button onClick={() => setAbierto(false)} className="text-gray-600 dark:text-gray-300">✖</button>
             </div>
           </div>
 
@@ -205,19 +208,27 @@ export default function Asistente({ agregarTarea } = {}) {
           <div className="flex text-sm">
             <button
               onClick={() => setModo("bot")}
-              className={`flex-1 py-2 ${modo === "bot" ? "bg-gray-100 font-semibold" : "bg-white"}`}
+              className={`flex-1 py-2 
+                ${modo === "bot" ? "bg-gray-100 dark:bg-gray-700 font-semibold" : "bg-white dark:bg-gray-800"} 
+                text-gray-800 dark:text-gray-200`}
             >
               🤖 ColaboraBot
             </button>
+
             <button
               onClick={() => setModo("sugerencia")}
-              className={`flex-1 py-2 ${modo === "sugerencia" ? "bg-blue-50 font-semibold" : "bg-white"}`}
+              className={`flex-1 py-2 
+                ${modo === "sugerencia" ? "bg-blue-50 dark:bg-blue-900 font-semibold" : "bg-white dark:bg-gray-800"}
+                text-gray-800 dark:text-gray-200`}
             >
               💬 Opinión / Sugerencia
             </button>
+
             <button
               onClick={() => setModo("soporte")}
-              className={`flex-1 py-2 ${modo === "soporte" ? "bg-red-50 font-semibold" : "bg-white"}`}
+              className={`flex-1 py-2 
+                ${modo === "soporte" ? "bg-red-50 dark:bg-red-900 font-semibold" : "bg-white dark:bg-gray-800"}
+                text-gray-800 dark:text-gray-200`}
             >
               🆘 Soporte / Problemas
             </button>
@@ -225,15 +236,19 @@ export default function Asistente({ agregarTarea } = {}) {
 
           {/* Content */}
           <div className="p-4 overflow-y-auto h-[calc(100%-112px)] space-y-4">
+            
             {/* ColaboraBot */}
             {modo === "bot" && (
               <>
-                <div className="text-sm text-gray-600 bg-gray-50 border p-2 rounded">
+                <div className="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 rounded">
                   🦻 El <b>ColaboraBot</b> sugiere tareas relacionadas según tu descripción.
                 </div>
 
                 <textarea
-                  className="w-full p-2 border rounded mb-2"
+                  className="w-full p-2 border mb-2 rounded 
+                  bg-gray-50 dark:bg-gray-800 
+                  text-gray-800 dark:text-gray-200 
+                  border-gray-300 dark:border-gray-600"
                   rows={3}
                   value={consulta}
                   onChange={(e) => setConsulta(e.target.value)}
@@ -241,13 +256,14 @@ export default function Asistente({ agregarTarea } = {}) {
                 />
 
                 <div className="flex gap-2">
-                  <button onClick={enviarConsulta} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded">Consultar</button>
-                  <button onClick={limpiarConsulta} className="px-4 py-2 bg-gray-300 text-gray-800 rounded">Limpiar</button>
+                  <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded">Consultar</button>
+                  <button className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded">Limpiar</button>
                 </div>
 
                 {respuesta && (
-                  <div className="mt-2 p-2 bg-gray-50 border rounded">
-                    <p className="font-medium">{respuesta.mensaje}</p>
+                  <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded">
+                    <p className="font-medium text-gray-800 dark:text-gray-100">{respuesta.mensaje}</p>
+
                     {respuesta.tareas && (
                       <form onSubmit={(e) => { e.preventDefault(); agregarSeleccionadas(); }}>
                         <ul className="mt-2 text-sm space-y-1">
@@ -261,14 +277,20 @@ export default function Asistente({ agregarTarea } = {}) {
                                   checked={seleccionadas.includes(t.id)}
                                   onChange={() => toggleSeleccion(t.id)}
                                 />
-                                <label className={!habilitado ? "text-gray-400" : ""}>
+                                <label className={!habilitado 
+                                  ? "text-gray-400 dark:text-gray-600" 
+                                  : "text-gray-800 dark:text-gray-200"}>
                                   {t.nombre} {!habilitado && "🔒"}
                                 </label>
                               </li>
                             );
                           })}
                         </ul>
-                        <button type="submit" className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400" disabled={seleccionadas.length === 0}>
+                        <button
+                          type="submit"
+                          className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400 dark:disabled:bg-gray-700"
+                          disabled={seleccionadas.length === 0}
+                        >
                           Agregar seleccionadas
                         </button>
                       </form>
@@ -282,34 +304,43 @@ export default function Asistente({ agregarTarea } = {}) {
             {modo === "sugerencia" && (
               <>
                 {!usuario ? (
-                  <div className="p-3 bg-yellow-50 border rounded text-sm text-gray-700">
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-900 border border-gray-300 dark:border-gray-700 rounded text-sm text-gray-700 dark:text-gray-200">
                     Iniciá sesión para enviar una sugerencia. 📥
                   </div>
                 ) : (
                   <>
-                    <div className="text-sm text-gray-600 bg-blue-50 border p-2 rounded">
+                    <div className="text-sm text-gray-600 dark:text-gray-300 bg-blue-50 dark:bg-blue-900 border border-gray-300 dark:border-gray-700 p-2 rounded">
                       💬 Enviá una sugerencia u opinión. Te contactaremos por email si necesitamos más info.
                     </div>
+
                     <textarea
                       rows={4}
                       value={mensajeText}
                       onChange={(e) => setMensajeText(e.target.value)}
                       placeholder="Contanos qué mejorarías o qué te gustó (opcional)"
-                      className="w-full p-2 border rounded"
+                      className="w-full p-2 border rounded 
+                      bg-gray-50 dark:bg-gray-800 
+                      text-gray-800 dark:text-gray-200 
+                      border-gray-300 dark:border-gray-600"
                     />
+
                     <div className="flex gap-2">
                       <button
                         onClick={() => enviarMensaje("sugerencia")}
                         disabled={enviando}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400"
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-400 dark:disabled:bg-gray-700"
                       >
                         {enviando ? "Enviando..." : "Enviar sugerencia"}
                       </button>
-                      <button onClick={() => { setMensajeText(""); setConfirmacion(null); }} className="px-4 py-2 bg-gray-200 rounded">Limpiar</button>
+                      <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded">
+                        Limpiar
+                      </button>
                     </div>
 
                     {confirmacion && confirmacion.tipo === "sugerencia" && (
-                      <p className="text-sm text-green-600 mt-2">✅ Sugerencia enviada (id: {confirmacion.id})</p>
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+                        ✅ Sugerencia enviada (id: {confirmacion.id})
+                      </p>
                     )}
                   </>
                 )}
@@ -320,50 +351,64 @@ export default function Asistente({ agregarTarea } = {}) {
             {modo === "soporte" && (
               <>
                 {!usuario ? (
-                  <div className="p-3 bg-yellow-50 border rounded text-sm text-gray-700">
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-900 border border-gray-300 dark:border-gray-700 rounded text-sm text-gray-700 dark:text-gray-200">
                     Iniciá sesión para reportar un problema. 🆘
                   </div>
                 ) : (
                   <>
-                    <div className="text-sm text-gray-600 bg-red-50 border p-2 rounded">
-                      🆘 Reportá un problema, describí paso a paso lo que sucede. Te contactaremos por email.
+                    <div className="text-sm text-gray-600 dark:text-gray-300 bg-red-50 dark:bg-red-900 border border-gray-300 dark:border-gray-700 p-2 rounded">
+                      🆘 Reportá un problema, describí paso a paso lo que sucede.
                     </div>
+
                     <textarea
                       rows={5}
                       value={mensajeText}
                       onChange={(e) => setMensajeText(e.target.value)}
                       placeholder="Contanos cuál es tu inconveniente..."
-                      className="w-full p-2 border rounded"
+                      className="w-full p-2 border rounded 
+                      bg-gray-50 dark:bg-gray-800 
+                      text-gray-800 dark:text-gray-200 
+                      border-gray-300 dark:border-gray-600"
                     />
+
                     <div className="flex gap-2">
                       <button
                         onClick={() => enviarMensaje("soporte")}
                         disabled={enviando}
-                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded disabled:bg-gray-400"
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded disabled:bg-gray-400 dark:disabled:bg-gray-700"
                       >
                         {enviando ? "Enviando..." : "Enviar a soporte"}
                       </button>
-                      <button onClick={() => { setMensajeText(""); setConfirmacion(null); }} className="px-4 py-2 bg-gray-200 rounded">Limpiar</button>
+                      <button className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded">
+                        Limpiar
+                      </button>
                     </div>
 
                     {confirmacion && confirmacion.tipo === "soporte" && (
-                      <p className="text-sm text-green-600 mt-2">✅ Mensaje enviado a soporte (id: {confirmacion.id})</p>
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+                        ✅ Mensaje enviado a soporte (id: {confirmacion.id})
+                      </p>
                     )}
                   </>
                 )}
               </>
             )}
 
-            {/* FAQ al final (útil para Soporte) */}
+            {/* FAQ */}
             <div className="mt-2">
-              <h4 className="text-sm font-semibold mb-2">❓ Preguntas frecuentes</h4>
+              <h4 className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">❓ Preguntas frecuentes</h4>
               <ul className="space-y-2">
                 {faqs.map((f, idx) => (
-                  <li key={idx} className="border rounded p-2">
-                    <button className="w-full text-left font-medium text-blue-700" onClick={() => setFaqAbierta(faqAbierta === idx ? null : idx)}>
+                  <li key={idx} className="border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-800">
+                    <button
+                      className="w-full text-left font-medium text-blue-700 dark:text-blue-400"
+                      onClick={() => setFaqAbierta(faqAbierta === idx ? null : idx)}
+                    >
                       {f.q}
                     </button>
-                    {faqAbierta === idx && <p className="mt-1 text-sm text-gray-700">{f.a}</p>}
+                    {faqAbierta === idx && (
+                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{f.a}</p>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -371,7 +416,7 @@ export default function Asistente({ agregarTarea } = {}) {
           </div>
 
           {/* Disclaimer */}
-          <div className="p-3 border-t text-xs text-gray-500">
+          <div className="p-3 border-t border-gray-300 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
             ⚠️ Las sugerencias son orientativas para la carga de la calculadora.
             El usuario es responsable de las decisiones tomadas.
           </div>

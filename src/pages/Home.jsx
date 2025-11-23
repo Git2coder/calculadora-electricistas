@@ -267,7 +267,12 @@ export function Home() {
       {/* =========================================================
       NUEVA SECCIÓN — "El camino del electricista moderno" (Premium)
       ========================================================= */}
-      <section className="relative bg-gradient-to-b from-white to-blue-50 py-16 overflow-hidden">
+      <section className="
+        relative 
+        bg-gradient-to-b from-white to-blue-50
+        dark:bg-gradient-to-b dark:from-gray-900 dark:to-gray-800
+        py-16 overflow-hidden
+      ">
 
         {/* Fondo decorativo geométrico */}
         <div className="absolute inset-0 opacity-[0.18] pointer-events-none">
@@ -286,10 +291,12 @@ export function Home() {
 
           {/* Título */}
           <div className="text-center mb-20">
-            <h2 className="text-4xl font-extrabold text-slate-900 leading-tight">
-                  Evolucionar no es cambiar lo que hacés<br />
-                  <span className="text-blue-700"> es mejorar cómo lo resolvés.</span>
-                </h2>      
+            <h2 className="text-4xl font-extrabold leading-tight text-slate-900 dark:text-white">
+              Evolucionar no es cambiar lo que hacés<br />
+              <span className="text-blue-700 dark:text-blue-400">
+                es mejorar cómo lo resolvés.
+              </span>
+            </h2>
           </div>
 
           {/* ======================
@@ -298,7 +305,11 @@ export function Home() {
           <div className="max-w-3xl mx-auto relative">
             
             {/* Línea vertical */}
-            <div className="absolute left-1/2 -translate-x-1/2 h-full w-[3px] bg-gradient-to-b from-green-200 to-green-100"></div>
+            <div className="
+              absolute left-1/2 -translate-x-1/2 h-full w-[3px] 
+              bg-gradient-to-b from-green-200 to-green-100
+              dark:from-green-800 dark:to-green-700
+            "></div>
 
             {[
               {
@@ -352,27 +363,27 @@ export function Home() {
                 >
                   {/* Cambia el icono fantasma según el paso */}
                   {i === 0 && (
-                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" viewBox="0 0 24 24">
+                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" className="dark:stroke-blue-300" viewBox="0 0 24 24">
                       <path d="M12 2v20M2 12h20"/>
                     </svg>
                   )}
 
                   {i === 1 && (
-                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" viewBox="0 0 24 24">
+                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" className="dark:stroke-blue-300" viewBox="0 0 24 24">
                       <circle cx="12" cy="12" r="9"/>
                       <path d="M12 6v6l4 2"/>
                     </svg>
                   )}
 
                   {i === 2 && (
-                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" viewBox="0 0 24 24">
+                    <svg fill="none" stroke="#1d4ed8" strokeWidth="1.2" className="dark:stroke-blue-300" viewBox="0 0 24 24">
                       <path d="M4 17l4-4 3 3 7-7" />
                     </svg>
                   )}
                 </div>
 
                 {/* Punto circular */}
-                <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-blue-700 rounded-full shadow-lg flex items-center justify-center text-white z-10">
+                <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-blue-700 dark:bg-blue-500 rounded-full shadow-lg flex items-center justify-center text-white z-10">
                   {step.icon}
                 </div>
 
@@ -382,8 +393,8 @@ export function Home() {
                     i % 2 === 0 ? "text-right pr-12 ml-auto" : "text-left pl-12 mr-auto"
                   }`}
                 >
-                  <h3 className="text-2xl font-bold text-slate-800 mb-2">{step.title}</h3>
-                  <p className="text-slate-600 text-lg">{step.text}</p>
+                  <h3 className="text-2xl font-bold text-slate-800 dark:text-gray-200 mb-2">{step.title}</h3>
+                    <p className="text-slate-600 dark:text-gray-400 text-lg">{step.text}</p>
                 </div>
               </motion.div>
             ))}
@@ -393,9 +404,9 @@ export function Home() {
 
       <SeccionEvolucion />
 
-      <section className="bg-gray-100 py-8 px-4">
+      <section className="bg-gray-100 dark:bg-gray-800 py-8 px-4">
         <div className="max-w-5xl mx-auto">
-          <h3 className="text-3xl text-center font-extrabold text-blue-700 leading-tight">Escala orientativa</h3>
+          <h3 className="text-3xl text-center font-extrabold text-blue-700 dark:text-white leading-tight">Escala orientativa</h3>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} viewport={{ once: true }}>
             <EscalaRemuneracion />
           </motion.div>

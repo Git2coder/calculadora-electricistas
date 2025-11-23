@@ -62,6 +62,28 @@ export default function App() {
   const menuRef = useRef(null);
   const [mostrarModalTerminos, setMostrarModalTerminos] = useState(false);
 
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      setDarkMode(true);
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newValue = !darkMode;
+    setDarkMode(newValue);
+
+    if (newValue) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
   useEffect(() => {
     const checkTerminos = async () => {
       if (!usuario) return;
@@ -192,8 +214,8 @@ export default function App() {
 
               <span className="text-white">Modo oscuro</span>
 
-              <button
-                onClick={() => setDarkMode(!darkMode)}
+              <button onClick={toggleDarkMode}
+
                 className="
                   relative inline-flex items-center
                   h-6 w-12 rounded-full

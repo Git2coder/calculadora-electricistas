@@ -98,87 +98,93 @@ export function TablaReglamentosAEA() {
       doc.detalle.toLowerCase().includes(filtro.toLowerCase())
   );
 
-  return (
-    <section className="max-w-6xl mx-auto px-4 py-10">
-      <h2 className="text-3xl font-bold text-blue-800 mb-4 text-center">
-        📘 Índice de Reglamentos AEA
-      </h2>
+ return (
+  <section className="max-w-6xl mx-auto px-4 py-10">
 
-      <p className="text-gray-700 text-center mb-6">
-        Listado de reglamentaciones eléctricas emitidas por la{" "}
-        <a
-          href="https://www.aea.org.ar"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-          Asociación Electrotécnica Argentina (AEA)
-        </a>
-        .  
+    <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-300 mb-4 text-center">
+      📘 Índice de Reglamentos AEA
+    </h2>
+
+    <p className="text-gray-700 dark:text-gray-300 text-center mb-6">
+      Listado de reglamentaciones eléctricas emitidas por la{" "}
+      <a
+        href="https://www.aea.org.ar"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 dark:text-blue-400 hover:underline"
+      >
+        Asociación Electrotécnica Argentina (AEA)
+      </a>.
+    </p>
+
+    {/* 🟨 Descargo */}
+    <div className="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-gray-700 dark:text-gray-200 rounded">
+      <p>
+        <strong>Nota importante:</strong> Presupuesto+ no produce ni distribuye los documentos
+        aquí listados. La información se recopila de fuentes públicas y se
+        comparte únicamente con fines informativos.  
+        Para obtener los textos completos o actualizados, consulte los canales oficiales.
       </p>
+    </div>
 
-      {/* 🟨 Descargo */}
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-sm text-gray-700 rounded">
-        <p>
-          <strong>Nota importante:</strong> Presupuesto+ no produce ni distribuye los documentos
-          aquí listados. La información se recopila de fuentes públicas y se
-          comparte únicamente con fines informativos.  
-          Para obtener los textos completos o actualizados, consulte siempre los canales oficiales
-          de AEA.
-        </p>
-      </div>
+    {/* 🔍 Buscador */}
+    <input
+      type="text"
+      placeholder="Buscar por código, año o título..."
+      className="w-full p-3 border rounded mb-6 
+                 bg-white dark:bg-gray-800 
+                 text-gray-800 dark:text-gray-200
+                 border-gray-300 dark:border-gray-600
+                 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600"
+      value={filtro}
+      onChange={(e) => setFiltro(e.target.value)}
+    />
 
-      {/* 🔍 Buscador */}
-      <input
-        type="text"
-        placeholder="Buscar por código, año o título..."
-        className="w-full p-3 border rounded mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        value={filtro}
-        onChange={(e) => setFiltro(e.target.value)}
-      />
-
-      {/* 📋 Tabla */}
-      <div className="max-h-[500px] overflow-y-auto border rounded-xl shadow">
-        <table className="w-full table-auto border-collapse bg-white shadow rounded-xl">
-          <thead className="bg-blue-800 text-white sticky top-0 z-10">
-            <tr>
-              <th className="p-3 text-left">Código</th>
-              <th className="p-3 text-left">Edición</th>
-              <th className="p-3 text-left">Detalle</th>
+    {/* 📋 Tabla */}
+    <div className="max-h-[500px] overflow-y-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow">
+      <table className="w-full table-auto border-collapse bg-white dark:bg-gray-900 shadow rounded-xl">
+        <thead className="bg-blue-800 dark:bg-blue-900 text-white sticky top-0 z-10">
+          <tr>
+            <th className="p-3 text-left">Código</th>
+            <th className="p-3 text-left">Edición</th>
+            <th className="p-3 text-left">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {documentosFiltrados.map((doc, index) => (
+            <tr
+              key={index}
+              className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-800"
+            >
+              <td className="p-3 font-mono text-gray-800 dark:text-gray-200">{doc.codigo}</td>
+              <td className="p-3 text-gray-800 dark:text-gray-200">{doc.edicion}</td>
+              <td className="p-3 text-gray-800 dark:text-gray-200">{doc.detalle}</td>
             </tr>
-          </thead>
-          <tbody>
-            {documentosFiltrados.map((doc, index) => (
-              <tr key={index} className="border-t hover:bg-blue-50">
-                <td className="p-3 font-mono">{doc.codigo}</td>
-                <td className="p-3">{doc.edicion}</td>
-                <td className="p-3">{doc.detalle}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
+    </div>
 
-      <p className="mt-4 text-sm text-gray-500 text-center">
-        Comunicate con los sitios oficiales de AEA para adquirir la reglamentación correspondiente.
+    <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+      Comunicate con los sitios oficiales de AEA para adquirir la reglamentación correspondiente.
+    </p>
+
+    {/* 📎 PDF descargable */}
+    <div className="text-center mt-8">
+      <a
+        href="/docs/LISTADO DE DOCUMENTOS AEA.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block bg-blue-700 dark:bg-blue-800 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 dark:hover:bg-blue-700 transition"
+      >
+        📄 Descargar índice oficial (PDF AEA)
+      </a>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        Fuente: Asociación Electrotécnica Argentina — publicación oficial vigente (27/10/2025).
       </p>
-
-      {/* 📎 PDF descargable */}
-      <div className="text-center mt-8">
-        <a
-          href="/docs/LISTADO DE DOCUMENTOS AEA.pdf"  
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block bg-blue-700 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition"
-        >
-          📄 Descargar índice oficial (PDF AEA)
-        </a>
-        <p className="text-xs text-gray-500 mt-2">
-          Fuente: Asociación Electrotécnica Argentina — publicación oficial vigente (27/10/2025).
-        </p>
-      </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
 
 export default TablaReglamentosAEA;
