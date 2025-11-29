@@ -22,6 +22,53 @@ export function Home() {
   const { usuario } = useAuth();
 
   const planesRef = useRef(null);
+  const [audioOn, setAudioOn] = useState(false);
+  const [countdown, setCountdown] = useState(31); 
+  const [progress, setProgress] = useState(100); // porcentaje del círculo
+  const audioRef = useRef(null);
+  let timerRef = useRef(null);
+
+
+  // Encender / apagar manualmente
+  const toggleAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!audioOn) {
+      audio.volume = 0.25;
+      audio.play().catch(() => {});
+      
+      setAudioOn(true);
+      setCountdown(30);
+      setProgress(100);
+
+      // Si había un timer previo, lo limpiamos
+      if (timerRef.current) clearInterval(timerRef.current);
+
+      // Iniciar cuenta regresiva de 10s
+      timerRef.current = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            setAudioOn(false);
+            audio.pause();
+            setProgress(0);
+            return 0;
+          }
+          return prev - 1;
+        });
+
+        setProgress(prev => Math.max(prev - (100 / 30), 0));
+      }, 1000);
+
+    } else {
+      audio.pause();
+      setAudioOn(false);
+      setProgress(100);
+      setCountdown(10);
+      clearInterval(timerRef.current);
+    }
+  };
 
   // Suscripción en tiempo real a Firestore
   useEffect(() => {
@@ -98,9 +145,57 @@ export function Home() {
   const enModoSilencioso = !config?.mostrarAnuncioLanzamiento;
 
 
+
   return (
     <div className="space-y-0">
+      {/* === SONIDO DE FONDO === */}
+      <audio ref={audioRef} src="/sounds/spot-fondo.mp3" loop />
+
+
       <section className="relative w-full px-6 pt-28 pb-32 overflow-hidden">
+        {/* === BOTÓN DE AUDIO === */}
+        <button
+          onClick={toggleAudio}
+          className="absolute top-6 right-6 z-30 bg-black/40 hover:bg-black/60 
+                    text-white px-4 py-2 rounded-full backdrop-blur-md shadow-lg 
+                    transition flex items-center gap-3"
+        >
+          {/* Texto */}
+          {audioOn ? "🔊 Sonido ON" : "🔇 Sonido OFF"}
+
+          {/* Círculo regresivo */}
+          {audioOn && (
+            <div className="relative w-6 h-6">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="rgba(255,255,255,0.2)"
+                  strokeWidth="3"
+                  fill="none"
+                />
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="white"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeDasharray={2 * Math.PI * 10}
+                  strokeDashoffset={(2 * Math.PI * 10 * progress) / 100}
+                  style={{ transition: "stroke-dashoffset 1s linear" }}
+                />
+              </svg>
+
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                {countdown}
+              </span>
+            </div>
+          )}
+        </button>
+
         {/* === VIDEO DE FONDO === */}
         <video
           autoPlay
