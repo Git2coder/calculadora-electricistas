@@ -23,6 +23,7 @@ import { useAuth } from "../context/AuthContext";
 import BloqueoInteractivo from "./bloqueo/BloqueoInteractivo";
 import Asistente from "./Asistente"
 import EncuestaSatisfaccionModal from "../components/EncuestaSatisfaccionModal";
+import { calcularSubtotalTarea, calcularTotal } from "../utils/calculoTareas";
 
 
 // 🔹 Extras elegantes que multiplican el costo/tiempo
@@ -580,76 +581,20 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     );
   };
 
-  // --- Calcular subtotal de cada tarea seleccionada ---
-  const subtotalDeTarea = (tarea) => {
-    let base = 0;
+  const valorBocaReal = valorBoca;
 
-    if (tarea.nombre === "Boca" && valorBoca !== null) {
-      base = valorBoca * (tarea.cantidad || 1);
-    } else if (tarea.tipo === "base") {
-      base = (tarea.tiempo / 60) * tarifaHoraria * (tarea.multiplicador ?? 1) * (tarea.cantidad || 1);
-    } else if (tarea.dependeDe === "Boca" && valorBoca !== null) {
-      let factor = tarea.factorBoca ?? 1;
-      if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-        factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
-      }
-      base = valorBoca * factor * (tarea.cantidad || 1);
-    } else if (tarea.tipo === "administrativa") {
-      // 👇 si el usuario editó el valor, se respeta ese número
-      if (typeof tarea.valor === "number" && tarea.valor > 0) {
-        base = tarea.valor * (tarea.cantidad || 1);   // ✅ ahora multiplica por cantidad
-      } else {
-        // respaldo: usar cálculo sugerido
-        let factor = tarea.factorJornal ?? 0;
-        if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-          factor = tarea.opciones[tarea.variante].factorJornal ?? factor;
-        }
-        base = (jornalOficial || 0) * factor * (tarea.cantidad || 1);
-      }
-      
-    } else if (tarea.tipo === "calculada") {
-      const cantidad = tarea.cantidad || 1;
-      const valorUnidad = tarea.valorUnidad || 0;
-      const porcentaje = tarea.porcentaje || 0;
-      base = ((valorUnidad * porcentaje) / 100) * cantidad;
-    } else {
-      const factor = tarea.multiplicador ?? 1;
-      base = (tarea.tiempo / 60) * tarifaHoraria * (tarea.cantidad || 1) * factor;
-    }
+const { costoBase, total: costoFinal } = calcularTotal({
+  tareasSeleccionadas,
+  tarifaHoraria: tarifaSegura,
+  ajustePorcentaje,
+  incluirVisita,
+  costoVisita: visitaSegura,
+  extrasGlobales,
+  extrasSeleccionadosGlobal,
+  valorBocaReal,
+  jornalOficial
+});
 
-    // 👇 aplicar extras (solo si no es administrativa)
-    if (tarea.tipo !== "administrativa") {
-      const extraFactor = (tarea.extras || []).reduce((acc, eId) => {
-        const ed = extrasDisponibles.find((x) => x.id === eId);
-        return acc * (ed?.multiplicador ?? 1);
-      }, 1);
-      return base * extraFactor;
-    }
-
-    return base;
-  };
-
-
-  // --- Calcular costo base total ---
-  const costoBase = tareasSeleccionadas.reduce(
-    (acc, tarea) => acc + subtotalDeTarea(tarea),
-    0
-  );
-
-  let total = costoBase;  // 👈 corregido
-
-  // Aplicar multiplicadores globales
-  extrasSeleccionadosGlobal.forEach((id) => {
-    const extra = extrasGlobales.find((e) => e.id === id);
-    if (extra) {
-      total *= extra.multiplicador;
-    }
-  });
-
-  // Sumar visita + ajustes
-  const costoFinal = isNaN(total)
-    ? 0
-    : (total + (incluirVisita ? visitaSegura : 0)) + (total * ajustePorcentaje) / 100;
 
 
   // Botones + y - adiciona o disminuyen la cantidad de la tarea

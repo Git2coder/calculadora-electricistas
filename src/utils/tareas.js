@@ -340,7 +340,14 @@ export const tareasPredefinidas = [
     descripcion: "Montaje y conexionado de cargador para vehículo eléctrico.",
     nivel: 3
   },
-
+  {
+    id: 46,
+    nombre: "Caja moldeada ",
+    tiempo: 90,              
+    dependeDe: "Boca",
+    factorBoca: 2.5,          
+    nivel: 2
+  },
 
   // 🔌 3) SIMPLES CON OPCIONES
   {

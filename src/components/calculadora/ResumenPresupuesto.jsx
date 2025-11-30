@@ -52,16 +52,8 @@ const ResumenPresupuesto = ({
       ? "basico"
       : "completo";
 
-  const tareasSincronizadas = tareasSeleccionadas.map((t) => {
-  // 🔸 Mantener tareas administrativas sin modificar
-  if (t.tipo === "administrativa") return t;
+  const tareasSincronizadas = tareasSeleccionadas;
 
-  // 🔸 Recalcular solo tareas normales o dependientes
-  const actualizada = tareasActualizadas.find((ta) => ta.id === t.id);
-  return actualizada
-    ? { ...actualizada, cantidad: t.cantidad, tipo: t.tipo ?? actualizada.tipo }
-    : t;
-});
 
 
   // 🔹 Calcular valor base de “Boca” (aunque no esté seleccionada)
@@ -264,7 +256,7 @@ const ResumenPresupuesto = ({
 
           <p className="text-center mt-2 font-semibold text-gray-800 dark:text-gray-100">
             {ajustePorcentaje > 0
-              ? `+${ajustePorcentaje}% (recargo)`
+              ? `+${ajustePorcentaje}% (Herramientas/Insumos)`
               : ajustePorcentaje < 0
               ? `${ajustePorcentaje}% (descuento)`
               : "0% (sin ajuste)"}

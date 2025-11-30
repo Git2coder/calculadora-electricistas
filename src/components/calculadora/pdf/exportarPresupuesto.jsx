@@ -5,6 +5,7 @@ import { db } from "../../../firebaseConfig";
 import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { extrasDisponibles } from "../../CalculadoraCompleta";
+import { calcularSubtotalTarea, calcularTotal } from "../../../utils/calculoTareas";
 
 export const exportarPresupuestoPDF = async ({
   tareasSeleccionadas = [],
@@ -30,20 +31,7 @@ const costoVisitaFinal = incluirVisita ? Number(costoVisita) || 0 : 0;
     tareasPredefinidas = tareasSeleccionadas;
   }
 
-  // 🔹 Obtener tareas actualizadas desde Firestore (solo respaldo)
-  let tareasActualizadas = [...(tareasPredefinidas || [])];
-
-  try {
-    const tareasSnap = await getDoc(doc(db, "config", "tareasCache"));
-    if (tareasSnap.exists()) {
-      const data = tareasSnap.data();
-      if (data.tareas && Array.isArray(data.tareas)) {
-        tareasActualizadas = data.tareas;
-      }
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudieron cargar tareas actualizadas:", error);
-  }
+  
 
   //Redondeo a favor del cliente
     function roundFavorCliente(valor) {
@@ -84,68 +72,14 @@ const costoVisitaFinal = incluirVisita ? Number(costoVisita) || 0 : 0;
     console.error("Error obteniendo datos del emisor:", error);
   }
 
-  // --- helpers ---
-  const calcularTareaConSubtareas = (subTarea) => {
-    const base = tareasPredefinidas.find((t) => t.id === subTarea.id);
-    if (!base) return 0;
+  
 
-    const variante = subTarea.variante || base.variante;
-    const baseConfig =
-      variante && base.opciones?.[variante] ? base.opciones[variante] : base;
-
-    const tiempo = baseConfig.tiempo || 0;
-    const multiplicador = baseConfig.multiplicador ?? 1;
-    const cantidad = subTarea.cantidad || 1;
-
-    const valorPropio = (tiempo / 60) * tarifaHoraria * multiplicador * cantidad;
-
-    const incluye = baseConfig.incluye || [];
-    const valorSubtareas = incluye.reduce(
-      (acc, sub) => acc + calcularTareaConSubtareas(sub),
-      0
-    );
-
-    return valorPropio + valorSubtareas;
-  };
-
-  // ✅ Tomar el valor real de "Boca" directamente de las tareas seleccionadas o precargadas
-  const tareaBoca =
-    tareasSeleccionadas.find((t) => t.nombre === "Boca") ||
-    tareasPredefinidas.find((t) => t.nombre === "Boca") ||
-    tareasActualizadas.find((t) => t.nombre === "Boca");
 
   // ✅ Recibir valorBoca desde afuera, sin depender de la tarea "Boca"
   const valorBocaReal = valorBoca ?? null;
 
 
-  const subtotalDeTarea = (tarea) => {
-    if (tarea.dependeDe === "Boca") {
-  const base = valorBocaReal ?? (20 / 60) * tarifaHoraria;
-    let factor = tarea.factorBoca ?? 1;
-    if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-      factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
-    }
-    return base * factor * (tarea.cantidad || 1);
-  }
-
-    if (tarea.tipo === "administrativa") {
-      return (tarea.valor || 0) * (tarea.cantidad || 1);
-    }
-
-    if (
-      tarea.tipo === "calculada" &&
-      tarea.valorUnidad !== undefined &&
-      tarea.porcentaje !== undefined
-    ) {
-      const cantidad = tarea.cantidad || 1;
-      const valorUnidad = tarea.valorUnidad || 0;
-      const porcentaje = tarea.porcentaje || 25;
-      return ((valorUnidad * porcentaje) / 100) * cantidad;
-    }
-
-    const factor = tarea.multiplicador ?? 1;
-    return (tarea.tiempo / 60) * tarifaHoraria * (tarea.cantidad || 1) * factor;
-  };
+  
 
   // --- Armar PDF ---
   const docPDF = new jsPDF();
@@ -156,7 +90,15 @@ const costoVisitaFinal = incluirVisita ? Number(costoVisita) || 0 : 0;
     let costoBasePDF = 0;
 
     tareasSeleccionadas.forEach((t) => {
-      const sub = subtotalDeTarea(t);
+      const sub = calcularSubtotalTarea(
+  t,
+  tarifaHoraria,
+  valorBocaReal,
+  datosEmisor?.jornalOficial ?? 0
+);
+
+
+
       costoBasePDF += sub;
       filas.push([t.nombre || "Tarea sin nombre", $fmt(sub)]);
     });
@@ -224,13 +166,18 @@ if (incluirVisita) {
     });
 
     // --- Total ---
-    let totalPDF = costoBasePDF;
-    if (ajustePorcentaje !== 0) totalPDF += (totalPDF * ajustePorcentaje) / 100;
-    extrasSeleccionadosGlobal.forEach((id) => {
-      const extra = extrasGlobales.find((e) => e.id === id);
-      if (extra) totalPDF *= extra.multiplicador;
-    });
-    if (incluirVisita && costoVisitaFinal > 0) totalPDF += costoVisitaFinal;
+    const { total: totalPDF } = calcularTotal({
+  tareasSeleccionadas,
+  tarifaHoraria,
+  ajustePorcentaje,
+  incluirVisita,
+  costoVisita: costoVisitaFinal,
+  extrasGlobales,
+  extrasSeleccionadosGlobal,
+  valorBocaReal,
+});
+
+    
 
 
     const finalY = docPDF.lastAutoTable?.finalY || 40;
@@ -262,7 +209,15 @@ if (incluirVisita) {
 
     // 1️⃣ Tareas principales
     tareasSeleccionadas.forEach((t) => {
-      const sub = subtotalDeTarea(t);
+      const sub = calcularSubtotalTarea(
+  t,
+  tarifaHoraria,
+  valorBocaReal,
+  datosEmisor?.jornalOficial ?? 0
+);
+
+
+
       costoBasePDF += sub;
       filas.push([t.nombre || "Tarea sin nombre", $fmt(sub)]);
     });
@@ -334,13 +289,18 @@ if (incluirVisita) {
     });
 
     // --- Total final ---
-    let totalPDF = costoBasePDF;
-    if (ajustePorcentaje !== 0) totalPDF += (totalPDF * ajustePorcentaje) / 100;
-    extrasSeleccionadosGlobal.forEach((id) => {
-      const extra = extrasGlobales.find((e) => e.id === id);
-      if (extra) totalPDF *= extra.multiplicador;
-    });
-    if (incluirVisita && costoVisitaFinal > 0) totalPDF += costoVisitaFinal;
+    const { total: totalPDF } = calcularTotal({
+  tareasSeleccionadas,
+  tarifaHoraria,
+  ajustePorcentaje,
+  incluirVisita,
+  costoVisita: costoVisitaFinal,
+  extrasGlobales,
+  extrasSeleccionadosGlobal,
+  valorBocaReal,
+});
+
+    
 
 
     const finalY = docPDF.lastAutoTable?.finalY || 40;
@@ -387,7 +347,14 @@ if (incluirVisita) {
 
   tareasSeleccionadas.forEach((t) => {
     // subtotal base de la tarea
-    let sub = subtotalDeTarea(t);
+    let sub = calcularSubtotalTarea(
+  t,
+  tarifaHoraria,
+  valorBocaReal,
+  datosEmisor?.jornalOficial ?? 0
+);
+
+
 
     // aplicar extras individuales (array de IDs en t.extras)
     if (t.extras && t.extras.length > 0) {
@@ -490,19 +457,20 @@ if (incluirVisita) {
   const pageHeight = docPDF.internal.pageSize.height;
 
   // --- Calcular el total ---
-  let totalPDF = costoBasePDF;
-  if (ajustePorcentaje !== 0) {
-    totalPDF += (totalPDF * ajustePorcentaje) / 100;
-  }
-  extrasSeleccionadosGlobal.forEach((id) => {
-    const extra = extrasGlobales.find((e) => e.id === id);
-    if (extra) {
-      totalPDF *= extra.multiplicador;
-    }
-  });
-  if (incluirVisita && costoVisitaFinal > 0) {
-  totalPDF += costoVisitaFinal;
-}
+  const { total: totalPDF } = calcularTotal({
+  tareasSeleccionadas,
+  tarifaHoraria,
+  ajustePorcentaje,
+  incluirVisita,
+  costoVisita: costoVisitaFinal,
+  extrasGlobales,
+  extrasSeleccionadosGlobal,
+  valorBocaReal,
+  jornalOficial: datosEmisor?.jornalOficial ?? 0
+});
+
+
+  
 
 
   // --- Condiciones generales ---
