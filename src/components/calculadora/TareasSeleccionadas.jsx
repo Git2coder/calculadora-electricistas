@@ -1,5 +1,6 @@
 // TareasSeleccionadas.jsx
 import React, { useState, useRef, useEffect } from "react";
+import { extrasDisponibles } from "../../utils/extras";
 import { FaTrash, FaBroom, FaPen } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReactDOM from "react-dom";
@@ -11,7 +12,6 @@ const TareasSeleccionadas = ({
   eliminarTarea,
   limpiarTareas,
   setTareasSeleccionadas,
-  extrasDisponibles,
   toggleExtra
 }) => {
   

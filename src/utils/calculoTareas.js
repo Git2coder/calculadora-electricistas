@@ -1,6 +1,7 @@
 // src/utils/calculoTareas.js
 
-import { extrasDisponibles } from "../components/CalculadoraCompleta";
+import { extrasDisponibles } from "../utils/extras";
+
 
 // --------- CALCULAR SUBTOTAL INDIVIDUAL ---------
 
@@ -11,18 +12,28 @@ export function calcularSubtotalTarea(
   jornalOficial = 0
 ) {
 
-  // --- 1) TAREAS QUE DEPENDEN DE BOCA ---
-  if (tarea.dependeDe === "Boca") {
-    const base = valorBocaReal ?? (20 / 60) * tarifaHoraria;
+ // --- 1) TAREAS QUE DEPENDEN DE BOCA ---
+if (tarea.dependeDe === "Boca") {
+  const base = valorBocaReal ?? (20 / 60) * tarifaHoraria;
 
-    let factor = tarea.factorBoca ?? 1;
+  let factor = tarea.factorBoca ?? 1;
 
-    if (tarea.variante && tarea.opciones?.[tarea.variante]) {
-      factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
-    }
-
-    return base * factor * (tarea.cantidad || 1);
+  if (tarea.variante && tarea.opciones?.[tarea.variante]) {
+    factor = tarea.opciones[tarea.variante].factorBoca ?? factor;
   }
+
+  let subtotal = base * factor * (tarea.cantidad || 1);
+
+  // 🔹 Aplicar EXTRAS
+  if (Array.isArray(tarea.extras) && tarea.extras.length > 0) {
+    tarea.extras.forEach((extraId) => {
+      const extra = extrasDisponibles.find((e) => e.id === extraId);
+      if (extra) subtotal *= extra.multiplicador;
+    });
+  }
+
+  return subtotal;
+}
 
   // --- 2) ADMINISTRATIVAS ---
   if (tarea.tipo === "administrativa") {

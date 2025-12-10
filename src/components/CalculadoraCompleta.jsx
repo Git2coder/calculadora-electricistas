@@ -25,7 +25,6 @@ import Asistente from "./Asistente"
 import EncuestaSatisfaccionModal from "../components/EncuestaSatisfaccionModal";
 import { calcularSubtotalTarea, calcularTotal } from "../utils/calculoTareas";
 
-
 // 🔹 Extras elegantes que multiplican el costo/tiempo
 
 {/*En altura → +50% tiempo (más de 3 m, escaleras, techos, fachadas).
@@ -35,13 +34,7 @@ import { calcularSubtotalTarea, calcularTotal } from "../utils/calculoTareas";
 - Trabajo nocturno / fuera de horario → +50% (disponibilidad y seguridad).
 - Instalación en servicio (sin corte) → +40% (maniobra con tensión, riesgo eléctrico).*/}
 
-// CalculadoraCompleta.jsx
-export const extrasDisponibles = [
-  { id: "altura", nombre: "Altura/dificil acceso ", multiplicador: 1.25 },
-  { id: "doble", nombre: "Refuerzo de personal", multiplicador: 1.15 },
-  { id: "riesgo", nombre: "Instalación en servicio", multiplicador: 1.3 },
-  
-];
+import { extrasDisponibles } from "../utils/extras";
 
 const extrasGlobales = [
   { id: "altura", label: "Altura / Dificil acceso", multiplicador: 1.25, icon: <RiExpandHeightFill /> },
@@ -194,15 +187,14 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   }, []);
 
   useEffect(() => {
-  const db = getFirestore();
-  const unsub = onSnapshot(doc(db, "config", "app"), (snap) => {
-    if (snap.exists()) {
-      setConfig(snap.data());
-    }
-  });
-  return () => unsub();
-}, []);
-
+    const db = getFirestore();
+    const unsub = onSnapshot(doc(db, "config", "app"), (snap) => {
+      if (snap.exists()) {
+        setConfig(snap.data());
+      }
+    });
+    return () => unsub();
+  }, []);
   
   // 👇 nuevo: cargar tarifas personalizadas del usuario
   useEffect(() => {
@@ -583,19 +575,17 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
 
   const valorBocaReal = valorBoca;
 
-const { costoBase, total: costoFinal } = calcularTotal({
-  tareasSeleccionadas,
-  tarifaHoraria: tarifaSegura,
-  ajustePorcentaje,
-  incluirVisita,
-  costoVisita: visitaSegura,
-  extrasGlobales,
-  extrasSeleccionadosGlobal,
-  valorBocaReal,
-  jornalOficial
-});
-
-
+  const { costoBase, total: costoFinal } = calcularTotal({
+    tareasSeleccionadas,
+    tarifaHoraria: tarifaSegura,
+    ajustePorcentaje,
+    incluirVisita,
+    costoVisita: visitaSegura,
+    extrasGlobales,
+    extrasSeleccionadosGlobal,
+    valorBocaReal,
+    jornalOficial
+  });
 
   // Botones + y - adiciona o disminuyen la cantidad de la tarea
   const actualizarCantidad = (id, nuevaCantidad) => {
@@ -703,7 +693,7 @@ const { costoBase, total: costoFinal } = calcularTotal({
               eliminarTarea={eliminarTarea}
               limpiarTareas={limpiarTareas}
               setTareasSeleccionadas={setTareasSeleccionadas}
-              extrasDisponibles={extrasDisponibles}
+              
               toggleExtra={toggleExtra}
             />
 

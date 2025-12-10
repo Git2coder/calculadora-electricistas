@@ -349,6 +349,123 @@ export const tareasPredefinidas = [
     nivel: 2
   },
 
+  // --- 47 Relevamiento y diagnóstico de instalación empotrada
+  {
+    id: 47,
+    nombre: "Relevamiento y diagnóstico de instalación empotrada",
+    dependeDe: "Boca",
+    unidad: "bocas",
+    factorBoca: 0.1,    // por ambiente. Trabajo técnico: destape, análisis, trazado mental del circuito.
+    tiempo: 10,         // estimado por ambiente
+    descripcion: "Destape de bocas, análisis de canalizaciones existentes, reconocimiento de distribución de circuitos y evaluación de factibilidad de modificaciones.",
+    nivel: 2
+  },
+
+  // --- 48 Replanteo eléctrico con láser y chocla
+  {
+    id: 48,
+    nombre: "Replanteo eléctrico",
+    dependeDe: "Boca",
+    unidad: "bocas",
+    factorBoca: 0.1,    // marcación, nivelación, definición estética. Suele tomar 30–60 min.
+    tiempo: 10,
+    descripcion: "Marcado de líneas, alturas y recorridos usando láser nivelante y chocla. Incluye definición de posiciones de cajas nuevas.",
+    nivel: 2
+  },
+
+  // --- 49 Rastreos y canaletas nuevas en muros
+  {
+    id: 49,
+    nombre: "Rastreos y canaletas nuevas",
+    dependeDe: "Boca",
+    unidad: "m",
+    factorBoca: 0.15,  // por metro. Trabajo físico, ruido, polvo. Es de las tareas más demandantes.
+    tiempo: 15,
+    descripcion: "Apertura de canaletas nuevas en muros para nuevas rutas de cañería.",
+    nivel: 2
+  },
+
+  // --- 70 Roturas puntuales de acceso o liberación de caños
+  {
+    id: 70,
+    nombre: "Roturas puntuales de acceso",
+    dependeDe: "Boca",
+    unidad: "intervenciones",
+    factorBoca: 0.65,   // cada rotura chica lleva tiempo, decisión y reparación previa al punteo
+    tiempo: 45,
+    descripcion: "Roturas localizadas para liberar tramos de caño, acceder a cajas, corregir obstrucciones o generar acceso puntual.",
+    nivel: 2
+  },
+
+  // --- 71 Instalación de cañería embutida con punteo
+  {
+    id: 71,
+    nombre: "Instalación de cañería embutida (con punteo)",
+    dependeDe: "Boca",
+    unidad: "m",
+    factorBoca: 0.1,   // por metro instalado, incluye curvas, fijación, alineación y punteo
+    tiempo: 10,
+    descripcion: "Colocación de caño corrugado o sintético en canaletas nuevas, con fijación por punteo. No incluye tapado ni revoque.",
+    nivel: 1
+  },
+
+  // --- 72 Instalación de caja embutida con conexión a cañería
+  {
+    id: 72,
+    nombre: "Instalación de caja embutida con conexión a cañería",
+    dependeDe: "Boca",
+    unidad: "punto",
+    factorBoca: 1.4,   // correcta equivalencia: abrir hueco + fijar + conectar caño
+    tiempo: 25,
+    descripcion: "Instalación de caja embutida, apertura del hueco, fijación, alineación y conexión de la nueva cañería al sistema existente. Incluye punteo inicial.",
+    nivel: 2
+  },
+
+  // --- 73 Reemplazo de tablero embutido
+  {
+    id: 73,
+    nombre: "Reemplazo de tablero embutido",
+    dependeDe: "Boca",
+    unidad: "tablero",
+    variante: "Hasta 12 polos",
+    opciones: {
+      "Hasta 12 polos": { factorBoca: 3.5, tiempo: 120 },
+      "24 polos": { factorBoca: 5.0, tiempo: 150 },
+      "48 polos": { factorBoca: 7.0, tiempo: 180 },
+    },
+    descripcion: "Reemplazo del gabinete del tablero embutido. Incluye retiro del tablero existente, adecuación del hueco, fijación del nuevo gabinete y reorganización interna básica.",
+    nivel: 3
+  },
+
+  // --- 74 Acomodamiento interno del tablero existente
+  {
+    id: 74,
+    nombre: "Acomodamiento interno del tablero existente",
+    dependeDe: "Boca",
+    unidad: "tablero",
+    variante: "Hasta 12 polos",
+    opciones: {
+      "Hasta 12 polos": { factorBoca: 1.5, tiempo: 75 },
+      "24 polos": { factorBoca: 2.2, tiempo: 95 },
+      "48 polos": { factorBoca: 3.0, tiempo: 130 },
+      "72 polos o más": { factorBoca: 4.5, tiempo: 300 }
+    },
+    descripcion: "Reordenamiento y adecuación de protecciones dentro del tablero existente, sin reemplazo del gabinete.",
+    nivel: 2
+  },
+
+  // --- 75 Resolución de imprevistos ocultos
+  {
+    id: 75,
+    nombre: "Resolución de imprevistos ocultos",
+    dependeDe: "Boca",
+    unidad: "intervenciones",
+    factorBoca: 0.5,   // problemas típicos: caño tapado, codo muerto, doble muro, caja colapsada
+    tiempo: 60,
+    descripcion: "Corrección de situaciones inesperadas: cañerías tapadas o rotas, obstrucciones, desvíos obligados, cajas deterioradas o inaccesibles.",
+    nivel: 2
+  },
+
   // 🔌 3) SIMPLES CON OPCIONES
   {
     id: 1,
@@ -435,6 +552,35 @@ export const tareasPredefinidas = [
     descripcion: "Excavación y tendido subterráneo. La opción con cañería incluye colocación de caño/corrugado, tendido de conductores y relleno. La opción sin cañería contempla tendido directo del cable con cama de arena/protección y relleno.",
     nivel: 2
   },
+  // --- 8 Reemplazo de circuito terminal
+  {
+    id: 8,
+    nombre: "Reemplazo de circuito terminal",
+    dependeDe: "Boca",         // precio: baseBoca * factorBoca * cantidad
+    unidad: "circuitos",       // input: cantidad de circuitos a recablear (1,2,...)
+    opciones: {
+      "Corto (≤ 20 m)": { factorBoca: 2, tiempo: 180 },   // factorBoca relativo a una Boca
+      "Intermedio (20-40 m)": { factorBoca: 2.8, tiempo: 300 },
+      "Largo (> 40 m)": { factorBoca: 3.6, tiempo: 420 }
+    },
+    variante: "Corto (≤ 20 m)",
+    descripcion: "Recableado completo de un circuito desde el tablero seccional hasta la última boca. Incluye retiro de cable viejo, paso por cajas existentes, pruebas y etiquetado. Precio calculado por 'recorrido' (cantidad de circuitos). Tiempo solo para estimado.",
+    nivel: 2
+  },
+
+  // --- 9 Reemplazo de línea seccional (depende de Boca)
+  {
+    id: 9,
+    nombre: "Reemplazo de línea seccional",
+    dependeDe: "Boca",        // mantiene la misma lógica de cálculo (base * factorBoca * cantidad)
+    opciones: {      
+      "Montante (≤ 5 pisos)": { factorBoca: 2.2, tiempo: 60 },             // factor por metro (más esfuerzo)
+      "Montante (> 5 pisos / difícil)": { factorBoca: 3, tiempo: 120 }
+    },
+    variante: "Canalización accesible",
+    descripcion: "Reemplazo o instalación de la seccional que alimenta al tablero del departamento. Se cobra por metro y se ajusta según accesibilidad/altura. El precio resultará de baseBoca * factorBoca * metros. Tiempo por metro para estimado.",
+    nivel: 3
+  },
 
   // 🔌 4) ADMINISTRATIVAS
   {
@@ -503,7 +649,7 @@ export const tareasPredefinidas = [
   {
     id: 60,
     nombre: "Montaje de TV",
-    tiempo: 40,
+    tiempo: 45,
     tipo: "calculada",
     requiereInput: true,
     opciones: {
