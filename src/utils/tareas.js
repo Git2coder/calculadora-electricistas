@@ -660,3 +660,257 @@ export const tareasPredefinidas = [
   } 
 
 ];
+export const catalogoTareas = {
+
+categorias: [
+
+{
+id: "electricidad_domestica",
+nombre: "Electricidad del hogar",
+icono: "⚡",
+
+subcategorias: [
+
+{
+id: "enchufes_interruptores",
+nombre: "Enchufes e interruptores",
+
+tareas: [
+"Tomacorriente",
+"Punto de luz"
+]
+},
+
+{
+id: "iluminacion",
+nombre: "Iluminación",
+
+tareas: [
+"Aplique simple",
+"Spot LED",
+"Tiras LED",
+"Reflector",
+"Artefacto colgante liviano",
+"Artefacto colgante pesado",
+"Equipo tubo led",
+"Ventilador techo c/ luminaria",
+"Reemplazo de lámpara"
+]
+},
+
+{
+id: "automatizacion_luces",
+nombre: "Automatización de luces",
+
+tareas: [
+"Sensor de movimiento",
+"Fotocelula"
+]
+}
+
+]
+},
+
+{
+id: "tableros_protecciones",
+nombre: "Tableros y protecciones",
+icono: "🧰",
+
+subcategorias: [
+
+{
+id: "protecciones",
+nombre: "Protecciones eléctricas",
+
+tareas: [
+"Termica / Diferencial (2P)",
+"Termica / Diferencial (>2P)",
+"Protector de tension (2P)",
+"Contactor",
+"Caja moldeada"
+]
+},
+
+{
+id: "tableros",
+nombre: "Tableros eléctricos",
+
+tareas: [
+"Montaje tablero superficie",
+"Montaje tablero embutido",
+"Reemplazo de tablero embutido",
+"Acomodamiento interno del tablero existente",
+"Tablero 12 polos"
+]
+}
+
+]
+},
+
+{
+id: "canalizaciones_cableado",
+nombre: "Canalizaciones y cableado",
+icono: "🧵",
+
+subcategorias: [
+
+{
+id: "canerias",
+nombre: "Cañerías",
+
+tareas: [
+"Caño corrugado",
+"Caño sintético - semirrigido",
+"Caño metálico"
+]
+},
+
+{
+id: "tendido_cables",
+nombre: "Tendido de cables",
+
+tareas: [
+"Tendido de conductores hasta la boca (5 m)",
+"Tendido cable por bandeja",
+"Cableado de sensores industriales"
+]
+}
+
+]
+},
+
+{
+id: "obra_electrica",
+nombre: "Instalación eléctrica completa",
+icono: "🏗️",
+
+subcategorias: [
+
+{
+id: "canaletas",
+nombre: "Canaletas y muros",
+
+tareas: [
+"Rastreos y canaletas nuevas",
+"Roturas puntuales de acceso"
+]
+},
+
+{
+id: "cajas_canos",
+nombre: "Cajas y cañería",
+
+tareas: [
+"Boca",
+"Instalación de caja embutida con conexión a cañería",
+"Instalación de cañería embutida (con punteo)"
+]
+},
+
+{
+id: "diagnostico",
+nombre: "Diagnóstico de instalación",
+
+tareas: [
+"Relevamiento y diagnóstico de instalación empotrada",
+"Replanteo eléctrico"
+]
+}
+
+]
+},
+
+{
+id: "automatizacion_industrial",
+nombre: "Automatización e industria",
+icono: "⚙️",
+
+subcategorias: [
+
+{
+id: "motores",
+nombre: "Motores eléctricos",
+
+tareas: [
+"Arranque directo motor trifásico",
+"Arranque estrella-triángulo",
+"Variador de frecuencia"
+]
+},
+
+{
+id: "control",
+nombre: "Control y automatización",
+
+tareas: [
+"PLC pequeño",
+"Tablero bombas elevadoras de agua"
+]
+}
+
+]
+},
+
+{
+id: "servicios_tecnicos",
+nombre: "Servicios técnicos",
+icono: "📟",
+
+subcategorias: [
+
+{
+id: "diagnostico",
+nombre: "Diagnóstico",
+
+tareas: [
+"Busqueda de falla"
+]
+},
+
+{
+id: "mediciones",
+nombre: "Mediciones",
+
+tareas: [
+"Medicion de Puesta a Tierra (T1-R)",
+"Puesta en servicio / pruebas / medicion",
+"Balanceo de cargas trifásicas"
+]
+}
+
+]
+},
+
+{
+id: "documentacion",
+nombre: "Certificaciones e informes",
+icono: "📋",
+
+subcategorias: [
+
+{
+id: "certificaciones",
+nombre: "Certificados",
+
+tareas: [
+"Certificado DCI"
+]
+},
+
+{
+id: "informes",
+nombre: "Informes técnicos",
+
+tareas: [
+"Memoria tecnica",
+"Informe termografico",
+"Relevamiento de la instalación eléctrica"
+]
+}
+
+]
+}
+
+]
+
+}

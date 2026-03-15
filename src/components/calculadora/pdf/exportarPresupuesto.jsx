@@ -449,20 +449,16 @@ if (incluirVisita) {
 
   // --- Calcular el total ---
   const { total: totalPDF } = calcularTotal({
-  tareasSeleccionadas,
-  tarifaHoraria,
-  ajustePorcentaje,
-  incluirVisita,
-  costoVisita: costoVisitaFinal,
-  extrasGlobales,
-  extrasSeleccionadosGlobal,
-  valorBocaReal,
-  jornalOficial: datosEmisor?.jornalOficial ?? 0
-});
-
-
-  
-
+    tareasSeleccionadas,
+    tarifaHoraria,
+    ajustePorcentaje,
+    incluirVisita,
+    costoVisita: costoVisitaFinal,
+    extrasGlobales,
+    extrasSeleccionadosGlobal,
+    valorBocaReal,
+    jornalOficial: datosEmisor?.jornalOficial ?? 0
+  });
 
   // --- Condiciones generales ---
   const condiciones = [

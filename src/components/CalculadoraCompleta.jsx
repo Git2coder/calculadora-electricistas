@@ -62,6 +62,9 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const [mostrarEncuesta, setMostrarEncuesta] = useState(false);
   const [versionEncuesta, setVersionEncuesta] = useState(null);
   const [activa, setActiva] = useState(false);
+  const [paso, setPaso] = useState(1);
+  const totalPasos = 4;
+
 
   // dentro del componente:
   const { usuario } = useAuth();
@@ -614,6 +617,57 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     return <BloqueoInteractivo />;
   }
 
+  const BarraProgreso = () => {
+    const pasos = [
+      "Tarifas",
+      "Seleccionar",
+      "Editar",
+      "Resultado"
+    ];
+
+    return (
+      <div className="w-full max-w-2xl mx-auto mb-6">
+
+        {/* PASOS */}
+        <div className="flex justify-between items-center mb-3">
+          {pasos.map((p, i) => {
+            const activo = i + 1 <= paso;
+
+            return (
+              <div key={i} className="flex flex-col items-center flex-1">
+
+                {/* CÍRCULO */}
+                <div
+                  className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold
+                  ${activo ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-600"}`}
+                >
+                  {i + 1}
+                </div>
+
+                {/* TEXTO */}
+                <span
+                  className={`mt-2 text-xs text-center
+                  ${activo ? "text-blue-600 font-semibold" : "text-gray-400"}`}
+                >
+                  {p}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* BARRA */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${(paso / totalPasos) * 100}%` }}
+          />
+        </div>
+
+      </div>
+    );
+  };
+  
   return (
     <>
       <div className="max-w-4xl mx-auto space-y-8 text-gray-800 dark:text-gray-100">
@@ -628,17 +682,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-100">
                 💡 Calculadora de Presupuestos
               </h1>
-
-              <ModalTutorial
-                videoUrl="https://www.youtube.com/embed/34On76uUivw"
-                triggerText={
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg 
-                                  bg-red-600 text-white text-sm font-medium shadow-md 
-                                  hover:bg-red-700 dark:hover:bg-red-500 transition">
-                    🎥 Ver tutorial
-                  </span>
-                }
-              />
+              <BarraProgreso />            
             </div>
 
             {mostrarModalTarifa && (
@@ -651,89 +695,114 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               />
             )}
 
-            <ConfiguracionTarifas
-              tarifaHoraria={tarifaHoraria}
-              setTarifaHoraria={setTarifaHoraria}
-              costoConsulta={costoConsulta}
-              setCostoConsulta={setCostoConsulta}
-              onOpen={() => setMostrarModalTarifa(true)}
-            />
+            {paso === 1 && (
+              <>
+                <ConfiguracionTarifas
+                  tarifaHoraria={tarifaHoraria}
+                  setTarifaHoraria={setTarifaHoraria}
+                  costoConsulta={costoConsulta}
+                  setCostoConsulta={setCostoConsulta}
+                  onOpen={() => setMostrarModalTarifa(true)}
+                />
+              </>
+            )}
 
             {mostrarModalSugerencia && (
               <ModalSugerencia onClose={() => setMostrarModalSugerencia(false)} />
             )}
 
-            <BuscadorTareas
-              busqueda={busqueda}
-              setBusqueda={setBusqueda}
-              indiceSeleccionado={indiceSeleccionado}
-              setIndiceSeleccionado={setIndiceSeleccionado}
-              tareasFiltradas={tareasFiltradas}
-              tareasPopulares={tareasPopulares}
-              todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}
-              agregarTarea={agregarTarea}
-              setMostrarModalSugerencia={setMostrarModalSugerencia}
-            />
+            {paso === 2 && (
+              <BuscadorTareas
+                busqueda={busqueda}
+                setBusqueda={setBusqueda}
+                indiceSeleccionado={indiceSeleccionado}
+                setIndiceSeleccionado={setIndiceSeleccionado}
+                tareasFiltradas={tareasFiltradas}
+                tareasPopulares={tareasPopulares}
+                todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}
+                agregarTarea={agregarTarea}
+                setMostrarModalSugerencia={setMostrarModalSugerencia}
+              />
+            )}
 
-            {/* Leyenda azul */}
-            <div className="
-              bg-blue-50 dark:bg-blue-900 
-              border-l-4 border-blue-400 dark:border-blue-300 
-              text-blue-800 dark:text-blue-100 
-              p-4 rounded-md shadow text-sm mb-6
-            ">
-              ℹ️ <strong>Los tiempos sobre las tarea son estimados</strong>.  
-              Aquellos con mayor experiencia podrán resolver las tareas más rápido o por el contrario a otros tomar mas tiempo.
+            
+            {paso === 3 && (
+              <>
+                <TareasSeleccionadas
+                  tareasSeleccionadas={tareasSeleccionadas}
+                  modificarTarea={modificarTarea}
+                  actualizarCantidad={actualizarCantidad}
+                  eliminarTarea={eliminarTarea}
+                  limpiarTareas={limpiarTareas}
+                  setTareasSeleccionadas={setTareasSeleccionadas}
+                  toggleExtra={toggleExtra}
+                />
+              </>
+            )}
+
+
+            {paso === 4 && (
+              <>
+                {/* Leyenda amarilla */}
+                <div className="
+                  bg-yellow-100 dark:bg-yellow-900 
+                  border-l-4 border-yellow-500 dark:border-yellow-300 
+                  text-yellow-800 dark:text-yellow-100 
+                  p-4 rounded-md shadow text-sm mb-6
+                ">
+                  ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong>
+                  Si querés sugerir una mejora, podés dejarnos tu mensaje en la{" "}
+                  <Link
+                    to="/comentarios"
+                    className="underline text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400"
+                  >
+                    sección de comentarios
+                  </Link>.
+                </div>
+
+                <ResumenPresupuesto
+                  tareasSeleccionadas={tareasSeleccionadas}
+                  tareasActualizadas={tareasDisponibles}
+                  tiempoTotal={tiempoTotal}
+                  horasMargen={horasMargen}
+                  minutosMargen={minutosMargen}
+                  ajustePorcentaje={ajustePorcentaje}
+                  setAjustePorcentaje={setAjustePorcentaje}
+                  incluirVisita={incluirVisita}
+                  setIncluirVisita={setIncluirVisita}
+                  sonidoMonedas={sonidoMonedas}
+                  costoFinal={costoFinal}
+                  tarifaHoraria={tarifaHoraria}
+                  visitaSegura={visitaSegura}
+                  tareasPredefinidas={tareasPredefinidas}
+                  extrasGlobales={extrasGlobales}
+                  extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}
+                  setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
+                  costoVisita={costoConsulta}
+                />
+              </>
+            )}
+
+            <div className="flex justify-between mt-8">
+
+              {paso > 1 && (
+                <button
+                  onClick={() => setPaso(paso - 1)}
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  ← Volver
+                </button>
+              )}
+
+              {paso < totalPasos && (
+                <button
+                  onClick={() => setPaso(paso + 1)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Continuar →
+                </button>
+              )}
             </div>
-
-            <TareasSeleccionadas
-              tareasSeleccionadas={tareasSeleccionadas}
-              modificarTarea={modificarTarea}
-              actualizarCantidad={actualizarCantidad}
-              eliminarTarea={eliminarTarea}
-              limpiarTareas={limpiarTareas}
-              setTareasSeleccionadas={setTareasSeleccionadas}
-              
-              toggleExtra={toggleExtra}
-            />
-
-            {/* Leyenda amarilla */}
-            <div className="
-              bg-yellow-100 dark:bg-yellow-900 
-              border-l-4 border-yellow-500 dark:border-yellow-300 
-              text-yellow-800 dark:text-yellow-100 
-              p-4 rounded-md shadow text-sm mb-6
-            ">
-              ⚠️ <strong>Esta herramienta está en desarrollo y los valores son a modo orientativo.</strong>
-              Si querés sugerir una mejora, podés dejarnos tu mensaje en la{" "}
-              <Link
-                to="/comentarios"
-                className="underline text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400"
-              >
-                sección de comentarios
-              </Link>.
-            </div>
-
-            <ResumenPresupuesto
-              tareasSeleccionadas={tareasSeleccionadas}
-              tareasActualizadas={tareasDisponibles}
-              tiempoTotal={tiempoTotal}
-              horasMargen={horasMargen}
-              minutosMargen={minutosMargen}
-              ajustePorcentaje={ajustePorcentaje}
-              setAjustePorcentaje={setAjustePorcentaje}
-              incluirVisita={incluirVisita}
-              setIncluirVisita={setIncluirVisita}
-              sonidoMonedas={sonidoMonedas}
-              costoFinal={costoFinal}
-              tarifaHoraria={tarifaHoraria}
-              visitaSegura={visitaSegura}
-              tareasPredefinidas={tareasPredefinidas}
-              extrasGlobales={extrasGlobales}
-              extrasSeleccionadosGlobal={extrasSeleccionadosGlobal}
-              setExtrasSeleccionadosGlobal={setExtrasSeleccionadosGlobal}
-              costoVisita={costoConsulta}
-            />
 
             <BotonRenovacion />
           </>

@@ -36,6 +36,7 @@ import Navbar from "./components/Navbar"
 import Perfil from "./pages/Perfil";
 import Ayuda from "./pages/Ayuda";
 
+import SketchBook from "./components/SketchBook/SketchBook";
 
 // 🧩 NUEVO: importar el Asistente unificado
 import Asistente from "./components/Asistente";
@@ -183,8 +184,11 @@ export default function App() {
               <Route path="votacion-resultados" element={<ResultadosVotacion />} />
               <Route path="/admin/mensajes" element={<MensajesPanel />} />
               <Route path="cargar-tareas" element={<CargarTareasManual />} />
+                          
+
             </Route>
 
+            <Route path="/sketch" element={<SketchBook />} />
             <Route path="/gracias" element={<Gracias />} />
             <Route path="/error" element={<ErrorPago />} />
             <Route path="/espera" element={<Espera />} />
