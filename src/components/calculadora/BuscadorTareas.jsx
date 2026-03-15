@@ -18,8 +18,8 @@ const BuscadorTareas = ({
   agregarTarea,
 }) => {
   const [mostrarTodas, setMostrarTodas] = useState(false);
-const [categoriaActiva, setCategoriaActiva] = useState(null);
-const [subcategoriaActiva, setSubcategoriaActiva] = useState(null);
+  const [categoriaActiva, setCategoriaActiva] = useState(null);
+  const [subcategoriaActiva, setSubcategoriaActiva] = useState(null);
 
   // 👇 manejo de tareas personalizadas
   const [customTasks, setCustomTasks] = useState([]);
@@ -102,89 +102,96 @@ const [subcategoriaActiva, setSubcategoriaActiva] = useState(null);
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
       <h2 className="text-xl font-semibold">📋 Buscar y Agregar Tarea</h2>
 
-{/* CATEGORÍAS */}
+        {/* CATEGORÍAS */}
 
-{!categoriaActiva && (
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-    {catalogoTareas.categorias.map((cat) => (
-      <button
-        key={cat.id}
-        onClick={() => setCategoriaActiva(cat)}
-        className="p-4 rounded-lg bg-blue-50 hover:bg-blue-100 border"
-      >
-        <div className="text-xl">{cat.icono}</div>
-        <div className="font-medium">{cat.nombre}</div>
-      </button>
-    ))}
-  </div>
-)}
+        {!categoriaActiva && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {catalogoTareas.categorias.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setCategoriaActiva(cat)}
+                className="p-4 rounded-lg border
+                bg-blue-50 hover:bg-blue-100 hover:scale-105
+                dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600
+                transition"
+                              >
+                <div className="text-xl">{cat.icono}</div>
+                <div className="font-medium">{cat.nombre}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
-{/* SUBCATEGORÍAS */}
+        {/* SUBCATEGORÍAS */}
 
-{categoriaActiva && !subcategoriaActiva && (
-  <div className="space-y-3">
+        {categoriaActiva && !subcategoriaActiva && (
+          <div className="space-y-3">
 
-    <button
-      onClick={() => setCategoriaActiva(null)}
-      className="text-sm text-blue-600"
-    >
-      ← Volver
-    </button>
+            <button
+              onClick={() => setCategoriaActiva(null)}
+              className="text-sm text-blue-600"
+            >
+              ← Volver categoria
+            </button>
 
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-      {categoriaActiva.subcategorias.map((sub) => (
-        <button
-          key={sub.id}
-          onClick={() => setSubcategoriaActiva(sub)}
-          className="p-3 bg-gray-100 hover:bg-gray-200 rounded"
-        >
-          {sub.nombre}
-        </button>
-      ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {categoriaActiva.subcategorias.map((sub) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setSubcategoriaActiva(sub)}
+                  className="p-3 rounded
+                  bg-gray-100 hover:bg-gray-200
+                  dark:bg-gray-700 dark:hover:bg-gray-600
+                  transition"
+                                  >
+                  {sub.nombre}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+
+        {subcategoriaActiva && (
+          <div className="space-y-3">
+
+            <button
+              onClick={() => setSubcategoriaActiva(null)}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              ← Volver categoria
+            </button>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {subcategoriaActiva.tareas.map((nombreTarea) => {
+
+                const tarea = tareasPredefinidas.find(
+                  (t) => t.nombre === nombreTarea
+                );
+
+                if (!tarea) return null;
+
+                const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
+
+                return (
+                  <button
+                    key={tarea.id}
+                    disabled={!puedeAcceder}
+                    onClick={() => handleAgregar(tarea)}
+                    className={`p-3 rounded border transition
+                    ${puedeAcceder
+                      ? "bg-white hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600"
+                      : "bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                    }`}
+                                      >
+                    {tarea.nombre}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
     </div>
-  </div>
 )}
 
-
-{subcategoriaActiva && (
-  <div className="space-y-3">
-
-    <button
-      onClick={() => setSubcategoriaActiva(null)}
-      className="text-sm text-blue-600"
-    >
-      ← Volver
-    </button>
-
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-      {subcategoriaActiva.tareas.map((nombreTarea) => {
-
-        const tarea = tareasPredefinidas.find(
-          (t) => t.nombre === nombreTarea
-        );
-
-        if (!tarea) return null;
-
-        const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
-
-        return (
-          <button
-            key={tarea.id}
-            disabled={!puedeAcceder}
-            onClick={() => handleAgregar(tarea)}
-            className={`p-3 rounded border
-              ${puedeAcceder
-                ? "bg-white hover:bg-blue-100"
-                : "bg-gray-200 text-gray-400"}
-            `}
-          >
-            {tarea.nombre}
-          </button>
-        );
-      })}
-    </div>
-  </div>
-)}
-                  </div>
-                )}
 export default BuscadorTareas;

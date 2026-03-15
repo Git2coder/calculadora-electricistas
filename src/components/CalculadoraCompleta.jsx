@@ -43,6 +43,60 @@ const extrasGlobales = [
   { id: "urgencia", label: "Urgente / fuera de horario", multiplicador: 1.5, icon: <FaClock /> },
 ];
 
+const BarraProgreso = ({ paso, totalPasos }) => {
+  const pasos = [
+    "Tarifas",
+    "Seleccionar",
+    "Editar",
+    "Resultado"
+  ];
+
+  const progreso = (paso / totalPasos) * 100;
+
+  return (
+    <div className="w-full max-w-2xl mx-auto mb-6">
+
+      {/* PASOS */}
+      <div className="flex justify-between items-center mb-3">
+        {pasos.map((p, i) => {
+          const activo = i + 1 <= paso;
+
+          return (
+            <div key={i} className="flex flex-col items-center flex-1">
+
+              <div
+                className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-300
+                ${activo ? "bg-green-600 text-white scale-110" : "bg-gray-300 text-gray-600"}`}
+              >
+                {i + 1}
+              </div>
+
+              <span
+                className={`mt-2 text-xs text-center
+                ${activo ? "text-white-600 font-semibold" : "text-gray-400"}`}
+              >
+                {p}
+              </span>
+
+            </div>
+          );
+        })}
+      </div>
+
+      {/* BARRA */}
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+
+        <div
+          className="bg-gradient-to-r from-blue-500 to-green-600 h-3 rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${progreso}%` }}
+        />
+
+      </div>
+
+    </div>
+  );
+};
+
 export default function CalculadoraCompleta({ modoPreview = false }) {
   
   const [busqueda, setBusqueda] = useState("");
@@ -617,57 +671,6 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
     return <BloqueoInteractivo />;
   }
 
-  const BarraProgreso = () => {
-    const pasos = [
-      "Tarifas",
-      "Seleccionar",
-      "Editar",
-      "Resultado"
-    ];
-
-    return (
-      <div className="w-full max-w-2xl mx-auto mb-6">
-
-        {/* PASOS */}
-        <div className="flex justify-between items-center mb-3">
-          {pasos.map((p, i) => {
-            const activo = i + 1 <= paso;
-
-            return (
-              <div key={i} className="flex flex-col items-center flex-1">
-
-                {/* CÍRCULO */}
-                <div
-                  className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold
-                  ${activo ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-600"}`}
-                >
-                  {i + 1}
-                </div>
-
-                {/* TEXTO */}
-                <span
-                  className={`mt-2 text-xs text-center
-                  ${activo ? "text-blue-600 font-semibold" : "text-gray-400"}`}
-                >
-                  {p}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* BARRA */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${(paso / totalPasos) * 100}%` }}
-          />
-        </div>
-
-      </div>
-    );
-  };
-  
   return (
     <>
       <div className="max-w-4xl mx-auto space-y-8 text-gray-800 dark:text-gray-100">
@@ -682,7 +685,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-100">
                 💡 Calculadora de Presupuestos
               </h1>
-              <BarraProgreso />            
+              <BarraProgreso paso={paso} totalPasos={totalPasos} />        
             </div>
 
             {mostrarModalTarifa && (
@@ -788,9 +791,9 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
               {paso > 1 && (
                 <button
                   onClick={() => setPaso(paso - 1)}
-                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  ← Volver
+                  ← Atras
                 </button>
               )}
 
@@ -799,7 +802,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
                   onClick={() => setPaso(paso + 1)}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  Continuar →
+                  Siguiente →
                 </button>
               )}
             </div>

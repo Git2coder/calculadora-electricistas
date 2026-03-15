@@ -615,10 +615,10 @@ export const tareasPredefinidas = [
   },
   { 
     id: 53, 
-    nombre: "Puesta en servicio / pruebas / medicion", 
+    nombre: "Impedancia de bucle / RCD", 
     tipo: "administrativa", 
     factorJornal: 1.2, 
-    nivel: 1
+    nivel: 2
   },
   { 
     id: 54, 
@@ -682,6 +682,15 @@ tareas: [
 },
 
 {
+id: "Fallas",
+nombre: "Fallas",
+
+tareas: [
+"Busqueda de falla",
+]
+},
+
+{
 id: "iluminacion",
 nombre: "Iluminación",
 
@@ -720,17 +729,23 @@ subcategorias: [
 
 {
 id: "protecciones",
-nombre: "Protecciones eléctricas",
+nombre: "Dispositivo de proteccion",
 
 tareas: [
 "Termica / Diferencial (2P)",
 "Termica / Diferencial (>2P)",
 "Protector de tension (2P)",
-"Contactor",
 "Caja moldeada"
 ]
 },
+{
+id: "maniobras",
+nombre: "Dispositivo de maniobra",
 
+tareas: [
+"Contactor"
+]
+},
 {
 id: "tableros",
 nombre: "Tableros eléctricos",
@@ -859,36 +874,6 @@ icono: "📟",
 subcategorias: [
 
 {
-id: "diagnostico",
-nombre: "Diagnóstico",
-
-tareas: [
-"Busqueda de falla"
-]
-},
-
-{
-id: "mediciones",
-nombre: "Mediciones",
-
-tareas: [
-"Medicion de Puesta a Tierra (T1-R)",
-"Puesta en servicio / pruebas / medicion",
-"Balanceo de cargas trifásicas"
-]
-}
-
-]
-},
-
-{
-id: "documentacion",
-nombre: "Certificaciones e informes",
-icono: "📋",
-
-subcategorias: [
-
-{
 id: "certificaciones",
 nombre: "Certificados",
 
@@ -906,10 +891,21 @@ tareas: [
 "Informe termografico",
 "Relevamiento de la instalación eléctrica"
 ]
+},
+
+{
+id: "mediciones",
+nombre: "Mediciones",
+
+tareas: [
+"Medicion de Puesta a Tierra (T1-R)",
+"Impedancia de bucle / RCD",
+"Balanceo de cargas trifásicas"
+]
 }
 
 ]
-}
+},
 
 ]
 
