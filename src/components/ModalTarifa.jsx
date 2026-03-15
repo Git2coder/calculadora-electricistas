@@ -23,30 +23,30 @@ export default function ModalTarifa({ setTarifaHoraria, onClose }) {
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.3 }}
-        className="bg-white p-6 rounded shadow-lg max-w-sm w-full relative"
+        className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg max-w-sm w-full relative"
       >
-        <h2 className="text-xl font-bold mb-4 text-center text-blue-700">📊 Calcular Tarifa Horaria</h2>
+        <h2 className="text-xl font-bold mb-4 text-center text-blue-700 dark:text-blue-400">📊 Calcular Tarifa Horaria</h2>
 
-        <label className="block mb-3">
+        <label className="block mb-3 text-gray-800 dark:text-gray-200">
           Gastos Fijos Mensuales ($):
           <input
             type="number"
-            className="w-full p-2 border rounded mt-1"
+            className="w-full p-2 border rounded mt-1 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={gastosFijos}
             onChange={(e) => setGastosFijos(e.target.value)}
           />
-          <p className="text-sm text-gray-500 mt-1">Ej: alquiler, vehículo, matriculas, celular, etc.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Ej: alquiler, vehículo, matriculas, celular, etc.</p>
         </label>
 
-        <label className="block mb-3">
+        <label className="block mb-3 text-gray-800 dark:text-gray-200">
           Gastos Variables Mensuales ($):
           <input
             type="number"
-            className="w-full p-2 border rounded mt-1"
+            className="w-full p-2 border rounded mt-1 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={gastosVariables}
             onChange={(e) => setGastosVariables(e.target.value)}
           />
-          <p className="text-sm text-gray-500 mt-1">Ej: combustible, viáticos, insumos, ayudantes, etc.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Ej: combustible, viáticos, insumos, ayudantes, etc.</p>
         </label>
 
         <div className="flex justify-between mt-6">
