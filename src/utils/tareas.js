@@ -231,7 +231,7 @@ export const tareasPredefinidas = [
   },
   {
     id: 34,
-    nombre: "Reemplazo de lámpara",
+    nombre: "Reemplazo de lampara",
     dependeDe: "Boca",
     factorBoca: 0.12, 
     tiempo: 6,
@@ -660,6 +660,8 @@ export const tareasPredefinidas = [
   } 
 
 ];
+
+
 export const catalogoTareas = {
 
 categorias: [
@@ -699,21 +701,32 @@ tareas: [
 "Spot LED",
 "Tiras LED",
 "Reflector",
+"Farola de parque",
 "Artefacto colgante liviano",
 "Artefacto colgante pesado",
 "Equipo tubo led",
+"Reemplazo de lampara"
+]
+},
+
+{
+id: "Electrodomestico",
+nombre: "Electrodomestico",
+
+tareas: [
 "Ventilador techo c/ luminaria",
-"Reemplazo de lámpara"
+"Montaje de TV"
 ]
 },
 
 {
 id: "automatizacion_luces",
-nombre: "Automatización de luces",
+nombre: "Sensores",
 
 tareas: [
 "Sensor de movimiento",
-"Fotocelula"
+"Fotocelula",
+"Reemplazo de flotante"
 ]
 }
 
@@ -735,7 +748,9 @@ tareas: [
 "Termica / Diferencial (2P)",
 "Termica / Diferencial (>2P)",
 "Protector de tension (2P)",
-"Caja moldeada"
+"Caja moldeada",
+"Jabalina de proteccion",
+"Reemplazo fusible NH"
 ]
 },
 {
@@ -771,12 +786,13 @@ subcategorias: [
 
 {
 id: "canerias",
-nombre: "Cañerías",
+nombre: "Caños y bandejas",
 
 tareas: [
 "Caño corrugado",
 "Caño sintético - semirrigido",
-"Caño metálico"
+"Caño metálico",
+"Bandeja portacables",
 ]
 },
 
@@ -787,7 +803,9 @@ nombre: "Tendido de cables",
 tareas: [
 "Tendido de conductores hasta la boca (5 m)",
 "Tendido cable por bandeja",
-"Cableado de sensores industriales"
+"Tendido de cable subterráneo",
+"Reemplazo de circuito terminal",
+"Reemplazo de línea seccional",
 ]
 }
 
@@ -802,23 +820,16 @@ icono: "🏗️",
 subcategorias: [
 
 {
-id: "canaletas",
-nombre: "Canaletas y muros",
-
-tareas: [
-"Rastreos y canaletas nuevas",
-"Roturas puntuales de acceso"
-]
-},
-
-{
-id: "cajas_canos",
-nombre: "Cajas y cañería",
+id: "muros_canos",
+nombre: "muros y cañerías",
 
 tareas: [
 "Boca",
 "Instalación de caja embutida con conexión a cañería",
-"Instalación de cañería embutida (con punteo)"
+"Instalación de cañería embutida (con punteo)",
+"Rastreos y canaletas nuevas",
+"Roturas puntuales de acceso",
+"Pilar completo",
 ]
 },
 
@@ -828,7 +839,7 @@ nombre: "Diagnóstico de instalación",
 
 tareas: [
 "Relevamiento y diagnóstico de instalación empotrada",
-"Replanteo eléctrico"
+"Replanteo eléctrico",
 ]
 }
 
@@ -902,8 +913,17 @@ tareas: [
 "Impedancia de bucle / RCD",
 "Balanceo de cargas trifásicas"
 ]
-}
+},
 
+{
+id: "Reparacion",
+nombre: "Reparacion",
+
+tareas: [
+"Reparacion en toma primaria",
+
+]
+}
 ]
 },
 

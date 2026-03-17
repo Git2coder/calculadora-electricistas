@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // ajustá la ruta según tu proyecto
 import { useAuth } from "../../context/AuthContext";
 import TareaItem from "../TareaItem"; // ruta según tu proyecto
-import { catalogoTareas, tareasPredefinidas } from "../../utils/tareas";
+import { catalogoTareas } from "../../utils/tareas";
 
 const BuscadorTareas = ({
   busqueda,
@@ -165,7 +165,7 @@ const BuscadorTareas = ({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {subcategoriaActiva.tareas.map((nombreTarea) => {
 
-                const tarea = tareasPredefinidas.find(
+                const tarea = todasLasTareas.find(
                   (t) => t.nombre === nombreTarea
                 );
 
