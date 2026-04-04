@@ -16,6 +16,7 @@ const BuscadorTareas = ({
   tareasPopulares,
   todasLasTareas, // 👈 lista completa de tareas activas
   agregarTarea,
+  setPaso
 }) => {
   const [mostrarTodas, setMostrarTodas] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
@@ -32,6 +33,16 @@ const BuscadorTareas = ({
   const [creditos, setCreditos] = useState(null);
   const [userId, setUserId] = useState(null);
   const { usuario } = useAuth();
+
+  const handleVolver = () => {
+  if (subcategoriaActiva) {
+    setSubcategoriaActiva(null);
+  } else if (categoriaActiva) {
+    setCategoriaActiva(null);
+  } else {
+    setPaso((prev) => prev - 1);
+  }
+};
 
   // 👇 cargar créditos desde Firestore al montar
   useEffect(() => {
@@ -57,6 +68,14 @@ const BuscadorTareas = ({
 
     fetchCreditos();
   }, []);
+
+  useEffect(() => {
+    window.volverBuscador = handleVolver;
+
+    return () => {
+      delete window.volverBuscador;
+    };
+  }, [categoriaActiva, subcategoriaActiva]);
 
   // 👇 consumir 1 crédito y crear tarea
   const handleAgregarCustom = async () => {
@@ -109,7 +128,10 @@ const BuscadorTareas = ({
             {catalogoTareas.categorias.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setCategoriaActiva(cat)}
+                onClick={() => {
+                  setCategoriaActiva(cat);
+                  setSubcategoriaActiva(null);
+                }}
                 className="p-4 rounded-lg border
                 bg-blue-50 hover:bg-blue-100 hover:scale-105
                 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600
@@ -126,13 +148,6 @@ const BuscadorTareas = ({
 
         {categoriaActiva && !subcategoriaActiva && (
           <div className="space-y-3">
-
-            <button
-              onClick={() => setCategoriaActiva(null)}
-              className="text-sm text-blue-600"
-            >
-              ← Volver categoria
-            </button>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {categoriaActiva.subcategorias.map((sub) => (
@@ -153,14 +168,7 @@ const BuscadorTareas = ({
 
 
         {subcategoriaActiva && (
-          <div className="space-y-3">
-
-            <button
-              onClick={() => setSubcategoriaActiva(null)}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              ← Volver categoria
-            </button>
+          <div className="space-y-3">            
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {subcategoriaActiva.tareas.map((nombreTarea) => {

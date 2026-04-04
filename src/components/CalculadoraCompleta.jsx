@@ -725,6 +725,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
                 todasLasTareas={tareasDisponibles.filter((t) => !t.pausada)}
                 agregarTarea={agregarTarea}
                 setMostrarModalSugerencia={setMostrarModalSugerencia}
+                setPaso={setPaso}
               />
             )}
 
@@ -790,7 +791,13 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
 
               {paso > 1 && (
                 <button
-                  onClick={() => setPaso(paso - 1)}
+                  onClick={() => {
+                    if (paso === 2 && window.volverBuscador) {
+                      window.volverBuscador(); // 👈 usa lógica interna
+                    } else {
+                      setPaso(paso - 1); // 👈 navega pasos
+                    }
+                  }}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   ← Atras
