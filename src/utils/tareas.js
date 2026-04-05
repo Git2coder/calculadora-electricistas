@@ -342,7 +342,7 @@ export const tareasPredefinidas = [
   },
   {
     id: 46,
-    nombre: "Caja moldeada ",
+    nombre: "Caja moldeada",
     tiempo: 90,              
     dependeDe: "Boca",
     factorBoca: 2.5,          
@@ -840,6 +840,7 @@ nombre: "Diagnóstico de instalación",
 tareas: [
 "Relevamiento y diagnóstico de instalación empotrada",
 "Replanteo eléctrico",
+"Imprevistos ocultos",
 ]
 }
 

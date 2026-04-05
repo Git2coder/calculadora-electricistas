@@ -42,17 +42,12 @@ export function TareasAdmin() {
   ];
 
   // Orden fijo de campos según el tipo de tarea
-  const FIELD_ORDER = [
-    "nombre",
-    "tiempo",
-    "multiplicador",
-    "factorBoca",
-    "valor",
-    "tipo",
-    "unidad",
-    "porcentaje",
-    "descripcion",
-  ];
+  const FIELD_ORDER = {
+    base: ["nombre", "tiempo", "multiplicador"],
+    dependiente: ["nombre", "tiempo", "factorBoca", "unidad"],
+    administrativa: ["nombre", "valor"],
+    calculada: ["nombre", "tiempo", "porcentaje"],
+  };
 
   // Nombres lindos para mostrar en el label
   const LABELS = {
@@ -265,9 +260,16 @@ export function TareasAdmin() {
       // Nueva tarea
       setFormData({
         nombre: "",
+        tipo: "dependiente",
         tiempo: 0,
         multiplicador: 1,
         factorBoca: 1,
+        unidad: "",
+        valor: 0,
+        porcentaje: 0,
+        dependeDe: "Boca",
+        categoria: "",
+        subcategoria: "",
         pausada: false,
       });
       setEditando(null);
@@ -292,24 +294,44 @@ export function TareasAdmin() {
 
   const guardarTarea = async () => {
     try {
-      const idString = String(editando); // 👈 convierte incluso 0 en "0"
-      console.log("💾 Guardar tarea:", { editando, idString, formData });
-
-      if (!idString || idString === "undefined" || idString === "null") {
-        alert("⚠️ No se pudo detectar un ID válido de la tarea.");
-        return;
-      }
-
       let dataToSave = { ...formData };
       delete dataToSave.id;
       delete dataToSave.idOriginal;
 
-      const ref = doc(db, "tareas", idString);
-      await updateDoc(ref, { ...dataToSave, updatedAt: new Date().toISOString() });
+      if (editando) {
+        // ✏️ EDITAR
+        const ref = doc(db, "tareas", String(editando));
+        await updateDoc(ref, {
+          ...dataToSave,
+          updatedAt: new Date().toISOString(),
+        });
+
+        console.log("✅ Editada:", editando);
+      } else {
+        // 🆕 CREAR NUEVA CON ID NUMÉRICO ORDENADO
+
+        const snap = await getDocs(collection(db, "tareas"));
+
+        const ids = snap.docs
+          .map((d) => Number(d.id))
+          .filter((n) => !isNaN(n));
+
+        const nuevoId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
+
+        const ref = doc(db, "tareas", String(nuevoId));
+
+        await setDoc(ref, {
+          ...dataToSave,
+          id: nuevoId, // 👈 importante mantenerlo también en el doc
+          pausada: false,
+          createdAt: new Date().toISOString(),
+        });
+
+        console.log("✅ Nueva tarea creada con ID:", nuevoId);
+      }
 
       cerrarModal();
       await fetchTareas();
-      console.log("✅ Guardado exitoso:", idString, dataToSave);
     } catch (error) {
       console.error("❌ Error guardando tarea:", error);
     }
@@ -478,10 +500,10 @@ export function TareasAdmin() {
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
       <h1 className="text-2xl font-bold">Administrador de Tareas</h1>
       <button
-        onClick={cargarTareas}
-        className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
+        onClick={() => abrirModal(null)}
+        className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
       >
-        Cargar tareas
+        ➕ Nueva tarea
       </button>
     </div>
 
@@ -790,6 +812,74 @@ export function TareasAdmin() {
             <button onClick={cerrarModal} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
             <h2 className="text-xl font-semibold mb-4">{editando ? "Editar tarea" : "Nueva tarea"}</h2>
 
+            <select
+              value={formData.tipo || ""}
+              onChange={(e) => {
+                const tipo = e.target.value;
+
+                let base = {
+                  nombre: formData.nombre || "",
+                  tipo,
+                  categoria: formData.categoria || "",
+                  subcategoria: formData.subcategoria || "",
+                };
+
+                if (tipo === "base") {
+                  base = { ...base, tiempo: 60, multiplicador: 2.5 };
+                }
+
+                if (tipo === "dependiente") {
+                  base = {
+                    ...base,
+                    tiempo: 30,
+                    factorBoca: 1,
+                    dependeDe: "Boca",
+                  };
+                }
+
+                if (tipo === "administrativa") {
+                  base = { ...base, valor: 0 };
+                }
+
+                if (tipo === "calculada") {
+                  base = {
+                    ...base,
+                    tiempo: 30,
+                    porcentaje: 20,
+                  };
+                }
+
+                setFormData(base);
+              }}
+              className="w-full border px-3 py-2 rounded mb-3"
+            >
+              <option value="">Seleccionar tipo</option>
+              <option value="base">Base</option>
+              <option value="dependiente">Dependiente</option>
+              <option value="administrativa">Administrativa</option>
+              <option value="calculada">Calculada</option>
+            </select>
+
+            <input
+              type="text"
+              placeholder="Categoría"
+              value={formData.categoria || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, categoria: e.target.value })
+              }
+              className="w-full border px-3 py-2 rounded mb-2"
+            />
+
+            <input
+              type="text"
+              placeholder="Subcategoría"
+              value={formData.subcategoria || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, subcategoria: e.target.value })
+              }
+              className="w-full border px-3 py-2 rounded mb-3"
+            />
+
             {/* Mostrar nombre global solo como referencia */}
             {formData.nombre && (
               <div className="mb-4">
@@ -809,7 +899,7 @@ export function TareasAdmin() {
 
             <div className="space-y-3">
               {(selectedVariante && formData.opciones ? formData.opciones[selectedVariante] : formData) &&
-                FIELD_ORDER.filter((key) =>
+                (FIELD_ORDER[formData.tipo] || []).filter((key) =>
                   (selectedVariante && formData.opciones
                     ? formData.opciones[selectedVariante][key] !== undefined
                     : formData[key] !== undefined) &&

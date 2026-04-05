@@ -171,31 +171,31 @@ const BuscadorTareas = ({
           <div className="space-y-3">            
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {subcategoriaActiva.tareas.map((nombreTarea) => {
+              {todasLasTareas
+                .filter(
+                  (t) =>
+                    t.categoria === categoriaActiva.id &&
+                    t.subcategoria === subcategoriaActiva.id
+                )
+                .map((tarea) => {
+                  const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
 
-                const tarea = todasLasTareas.find(
-                  (t) => t.nombre === nombreTarea
-                );
-
-                if (!tarea) return null;
-
-                const puedeAcceder = tarea.nivel <= (usuario?.nivelMaximo || 1);
-
-                return (
-                  <button
-                    key={tarea.id}
-                    disabled={!puedeAcceder}
-                    onClick={() => handleAgregar(tarea)}
-                    className={`p-3 rounded border transition
-                    ${puedeAcceder
-                      ? "bg-white hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600"
-                      : "bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
-                    }`}
-                                      >
-                    {tarea.nombre}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={tarea.id}
+                      disabled={!puedeAcceder}
+                      onClick={() => handleAgregar(tarea)}
+                      className={`p-3 rounded border transition
+                      ${puedeAcceder
+                        ? "bg-white hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600"
+                        : "bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                      }`}
+                    >
+                      {tarea.nombre}
+                    </button>
+                  );
+                })
+              }
             </div>
           </div>
         )}
