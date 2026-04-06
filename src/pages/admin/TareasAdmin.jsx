@@ -1,17 +1,8 @@
 import { useState, useEffect } from "react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  setDoc,
-  doc,
-  getDoc,
-} from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { FaEdit, FaTrash, FaPause, FaPlay } from "react-icons/fa";
-import { tareasPredefinidas } from "../../utils/tareas";
+
 import { getAuth } from "firebase/auth";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -156,32 +147,9 @@ export function TareasAdmin() {
   };
 
   // =======================
-  // Cargar tareas + votables
+  
   // =======================
-  const cargarTareas = async () => {
-    try {
-      const ref = collection(db, "tareas");
-      const snapshot = await getDocs(ref);
-      const existentes = snapshot.docs.map((d) => d.data());
-
-      for (const tarea of tareasPredefinidas) {
-        // buscamos por id o nombre
-        const yaExiste = existentes.some((t) => t.id === tarea.id);
-
-        if (!yaExiste) {
-          // usamos el id de tareas.js como ID en Firestore para evitar duplicados
-          await setDoc(doc(db, "tareas", String(tarea.id)), tarea);
-          console.log("✅ Tarea agregada:", tarea.nombre);
-        } else {
-          console.log("⏭ Ya existe, no se agrega:", tarea.nombre);
-        }
-      }
-
-      alert("Carga completada ✅");
-    } catch (error) {
-      console.error("❌ Error cargando tareas:", error);
-    }
-  };
+  
 
   // Cargar tareas desde Firestore
   const fetchTareas = async () => {
