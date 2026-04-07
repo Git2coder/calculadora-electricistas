@@ -204,7 +204,10 @@ const BuscadorTareas = ({
                   dark:bg-gray-700 dark:hover:bg-gray-600
                   transition"
                 >
-                  {sub.nombre}
+                  {sub.nombre
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())
+                  }
                 </button>
               ))}              
             </div>
