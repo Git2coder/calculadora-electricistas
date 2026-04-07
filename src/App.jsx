@@ -21,7 +21,7 @@ import Espera from "./pages/Espera";
 import Terminos from "./pages/Terminos";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { TareasAdmin } from "./pages/admin/TareasAdmin";
-import CargarTareasManual from "./CargarTareasManual";
+
 import { BotonRenovacion } from "./components/BotonRenovacion";
 import Configuracion from "./pages/admin/Configuracion";
 import { Jornales } from "./pages/admin/Jornales";
@@ -183,7 +183,7 @@ export default function App() {
               <Route path="Estadisticas" element={<Estadisticas />} />
               <Route path="votacion-resultados" element={<ResultadosVotacion />} />
               <Route path="/admin/mensajes" element={<MensajesPanel />} />
-              <Route path="cargar-tareas" element={<CargarTareasManual />} />
+              
                           
 
             </Route>

@@ -8,7 +8,7 @@ import { FaPlus, FaTrash, FaWrench, FaBroom, FaHardHat, FaBolt, FaClock } from "
 import { RiExpandHeightFill } from "react-icons/ri";
 import { useRef } from "react";
 import { TooltipInfo } from "./TooltipInfo";
-import { tareasPredefinidas } from "../utils/tareas";
+
 // 🚀 importamos Firebase
 import { collection, getDocs, doc, getDoc, query, orderBy, limit, updateDoc, increment, where, onSnapshot, getFirestore } from "firebase/firestore";
 import { db } from "../firebaseConfig";  // 👈 ajustá la ruta si hace falta
@@ -291,25 +291,11 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
         const querySnapshot = await getDocs(collection(db, "tareas"));
         const tareasFirestore = querySnapshot.docs.map((doc) => ({
           id: doc.id,
+          uid: doc.id, // 👈 clave
           ...doc.data(),
         }));
 
-        // 🔹 Combinar tareas locales con las de Firestore (Firestore tiene prioridad)
-        const tareasFusionadas = tareasPredefinidas.map((tLocal) => {
-          const tRemota = tareasFirestore.find(
-            (t) => t.nombre === tLocal.nombre || t.id === tLocal.id
-          );
-          return tRemota ? { ...tLocal, ...tRemota } : tLocal;
-        });
-
-        // 🔹 Añadir cualquier tarea nueva que esté solo en Firestore
-        tareasFirestore.forEach((tRemota) => {
-          if (!tareasFusionadas.some((t) => t.nombre === tRemota.nombre)) {
-            tareasFusionadas.push(tRemota);
-          }
-        });
-
-        setTareasDisponibles(tareasFusionadas);
+        setTareasDisponibles(tareasFirestore);
       } catch (err) {
         console.error("Error al cargar tareas:", err);
       }
@@ -389,7 +375,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
   const agregarTarea = async (tarea) => {
     if (tarea.tipo === "paquete") {
       const totalInterno = (tarea.incluye || []).reduce((subAcc, sub) => {
-        const base = tareasPredefinidas.find((t) => t.uid === sub.id);
+        const base = tareasDisponibles.find((t) => t.uid === sub.id);
         if (!base) return subAcc;
 
         const baseConfig =
@@ -410,7 +396,7 @@ export default function CalculadoraCompleta({ modoPreview = false }) {
         cantidad: 1,
         tiempo: tarea.incluye
           ? tarea.incluye.reduce((acc, sub) => {
-              const base = tareasPredefinidas.find((t) => t.uid === sub.id);
+              const base = tareasDisponibles.find((t) => t.uid === sub.id);
               const baseConfig = sub.variante
                 ? base?.opciones?.[sub.variante] || base
                 : base?.opciones?.[base.variante] || base;

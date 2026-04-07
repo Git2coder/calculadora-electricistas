@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Fuse from "fuse.js";
-import { tareasPredefinidas } from "../utils/tareas";
 import { normalizarTexto, reemplazarSinonimos } from "../utils/normalizarTexto";
 import { useAuth } from "../context/AuthContext";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 
 /**
  * Asistente.jsx (UNIFICADO)
@@ -19,8 +18,18 @@ export default function Asistente({ agregarTarea } = {}) {
   const { usuario } = useAuth();
   const db = getFirestore();
 
-  // ColaboraBot (mantener compatibilidad)
-  const fuse = new Fuse(tareasPredefinidas, {
+  const [tareas, setTareas] = useState([]);
+
+  useEffect(() => {
+    const fetchTareas = async () => {
+      const snap = await getDocs(collection(db, "tareas"));
+      const data = snap.docs.map((d) => d.data());
+      setTareas(data);
+    };
+    fetchTareas();
+  }, []);
+
+  const fuse = new Fuse(tareas, {
     keys: ["nombre"],
     threshold: 0.35,
   });

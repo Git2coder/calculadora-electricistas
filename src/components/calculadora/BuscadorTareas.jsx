@@ -5,7 +5,8 @@ import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // ajustá la ruta según tu proyecto
 import { useAuth } from "../../context/AuthContext";
 import TareaItem from "../TareaItem"; // ruta según tu proyecto
-import { catalogoTareas } from "../../utils/tareas";
+import { categoriasConfig } from "../../config/categoriasConfig";
+
 
 const BuscadorTareas = ({
   busqueda,
@@ -117,6 +118,28 @@ const BuscadorTareas = ({
     sonidoAgregar.current.play();
   };
 
+  const categorias = Array.from(
+    new Map(
+      todasLasTareas.map((t) => [t.categoria, t])
+    ).values()
+  ).map((t) => ({
+    id: t.categoria,
+    nombre: t.categoria
+  }));
+
+  const subcategorias = categoriaActiva
+    ? Array.from(
+        new Set(
+          todasLasTareas
+            .filter((t) => t.categoria === categoriaActiva.id)
+            .map((t) => t.subcategoria)
+        )
+      ).map((sub) => ({
+        id: sub,
+        nombre: sub
+      }))
+    : [];
+
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
       <h2 className="text-xl font-semibold">📋 Buscar y Agregar Tarea</h2>
@@ -125,22 +148,44 @@ const BuscadorTareas = ({
 
         {!categoriaActiva && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {catalogoTareas.categorias.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setCategoriaActiva(cat);
-                  setSubcategoriaActiva(null);
-                }}
-                className="p-4 rounded-lg border
-                bg-blue-50 hover:bg-blue-100 hover:scale-105
-                dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600
-                transition"
-                              >
-                <div className="text-xl">{cat.icono}</div>
-                <div className="font-medium">{cat.nombre}</div>
-              </button>
-            ))}
+            {categorias.map((cat) => {
+              const config = categoriasConfig[cat.id?.toLowerCase()] || {};
+              const Icono = config.icono;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setCategoriaActiva(cat);
+                    setSubcategoriaActiva(null);
+                  }}
+                  className="p-4 rounded-xl border flex flex-col items-center justify-center gap-2
+                  bg-white hover:scale-105 hover:-translate-y-1
+                  dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600
+                  transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  {/* ICONO */}
+                  <div className={`
+                    w-12 h-12 flex items-center justify-center rounded-full
+                    ${config.bg || "bg-gray-200"}
+                  `}>
+                    {Icono ? (
+                      <Icono className={`text-xl ${config.color}`} />
+                    ) : (
+                      <span className="text-lg">📁</span>
+                    )}
+                  </div>
+
+                  {/* TEXTO */}
+                  <div className="font-medium text-sm text-center">
+                    {cat.nombre
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (l) => l.toUpperCase())
+                    }
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -150,7 +195,7 @@ const BuscadorTareas = ({
           <div className="space-y-3">
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {categoriaActiva.subcategorias.map((sub) => (
+              {subcategorias.map((sub) => (
                 <button
                   key={sub.id}
                   onClick={() => setSubcategoriaActiva(sub)}
@@ -158,10 +203,10 @@ const BuscadorTareas = ({
                   bg-gray-100 hover:bg-gray-200
                   dark:bg-gray-700 dark:hover:bg-gray-600
                   transition"
-                                  >
+                >
                   {sub.nombre}
                 </button>
-              ))}
+              ))}              
             </div>
           </div>
         )}
