@@ -22,7 +22,6 @@ const ResumenPresupuesto = ({
   costoFinal,
   tarifaHoraria,
   visitaSegura,
-  tareasPredefinidas,
   extrasGlobales,
   extrasSeleccionadosGlobal,
   setExtrasSeleccionadosGlobal,
@@ -42,41 +41,45 @@ const ResumenPresupuesto = ({
   const puedeDescargarBasico = usuario?.suscripcion === "basica";
   const puedeDescargarGratuito = usuario?.suscripcion === "gratuita";
 
+  const baseBoca =
+    tareasActualizadas?.find((t) => t.nombre === "Boca") ||
+    { tiempo: 20, multiplicador: 1 };
+
   const handleDescargarPDF = () => {
-  if (!window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?")) return;
+    if (!window.confirm("¿Seguro que deseas descargar este presupuesto en PDF?")) return;
 
-  const tipoPDF =
-    usuario.suscripcion === "gratuita"
-      ? "gratuita"
-      : usuario.suscripcion === "basica"
-      ? "basico"
-      : "completo";
+    const tipoPDF =
+      usuario.suscripcion === "gratuita"
+        ? "gratuita"
+        : usuario.suscripcion === "basica"
+        ? "basico"
+        : "completo";
 
-  const tareasSincronizadas = tareasSeleccionadas;
+    const tareasSincronizadas = tareasSeleccionadas;
 
-  const valorBocaReal = (baseBoca.tiempo / 60) * tarifaHoraria * (baseBoca.multiplicador ?? 1);
+    const baseBoca =
+      tareasActualizadas?.find((t) => t.nombre === "Boca") ||
+      { tiempo: 20, multiplicador: 1 };
 
-  console.log("DEBUG costoVisita:", costoVisita);
-  console.log("DEBUG incluirVisita:", incluirVisita);
-  console.log("DEBUG tipo:", typeof costoVisita);
+    const valorBocaReal =
+      (baseBoca.tiempo / 60) *
+      tarifaHoraria *
+      (baseBoca.multiplicador ?? 1);
 
-
-  exportarPresupuestoPDF({
-    tipoPDF,
-    tareasSeleccionadas: tareasSincronizadas,
-    tarifaHoraria,
-    ajustePorcentaje,
-    incluirVisita,
-    costoVisita,    
-    titulo: "Presupuesto Eléctrico",
-    validezDias,
-    extrasGlobales,
-    extrasSeleccionadosGlobal,
-    valorBoca: valorBocaReal,
-  });
-};
-
-
+    exportarPresupuestoPDF({
+      tipoPDF,
+      tareasSeleccionadas: tareasSincronizadas,
+      tarifaHoraria,
+      ajustePorcentaje,
+      incluirVisita,
+      costoVisita,
+      titulo: "Presupuesto Eléctrico",
+      validezDias,
+      extrasGlobales,
+      extrasSeleccionadosGlobal,
+      valorBoca: valorBocaReal,
+    });
+  };
 
   const handleValidezChange = async (e) => {
     const nuevoValor = Number(e.target.value);
