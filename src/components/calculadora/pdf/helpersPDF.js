@@ -25,8 +25,9 @@ export function $fmt(valor) {
 /**
  * 🔹 Carga tareas actualizadas desde Firestore (respaldo)
  */
-export async function obtenerTareasActualizadas(tareasPredefinidas = []) {
-  let tareasActualizadas = [...tareasPredefinidas];
+export async function obtenerTareasActualizadas() {
+  let tareasActualizadas = [];
+
   try {
     const snap = await getDoc(doc(db, "config", "tareasCache"));
     if (snap.exists()) {
@@ -38,6 +39,7 @@ export async function obtenerTareasActualizadas(tareasPredefinidas = []) {
   } catch (error) {
     console.warn("⚠️ No se pudieron cargar tareas actualizadas:", error);
   }
+
   return tareasActualizadas;
 }
 

@@ -1,8 +1,9 @@
 // api/assistant.js
-import { tareasPredefinidas } from "../src/utils/tareas.js";
 import { normalizarTexto, reemplazarSinonimos } from "../src/utils/normalizarTexto.js";
+import { db } from "../src/firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
@@ -12,25 +13,49 @@ export default function handler(req, res) {
     return res.status(400).json({ error: "Falta la consulta del usuario" });
   }
 
-  // Normalizar texto de usuario
-  let texto = normalizarTexto(consulta);
-  texto = reemplazarSinonimos(texto);
+  try {
+    // 🔹 Normalizar texto de usuario
+    let texto = normalizarTexto(consulta);
+    texto = reemplazarSinonimos(texto);
 
-  // Buscar coincidencias en tareas
-  const coincidencias = tareasPredefinidas.filter(t => {
-    const nombreNormalizado = normalizarTexto(t.nombre);
-    // match básico: que al menos una palabra clave del nombre aparezca en el texto del usuario
-    return nombreNormalizado.split(" ").some(palabra => texto.includes(palabra));
-  });
+    // 🔹 Traer tareas desde Firestore
+    const snapshot = await getDocs(collection(db, "tareas"));
 
-  if (coincidencias.length > 0) {
+    const tareas = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // 🔹 Buscar coincidencias
+    const coincidencias = tareas.filter(t => {
+      if (!t.nombre) return false;
+
+      const nombreNormalizado = normalizarTexto(t.nombre);
+
+      return nombreNormalizado
+        .split(" ")
+        .some(palabra => texto.includes(palabra));
+    });
+
+    // 🔹 Respuesta
+    if (coincidencias.length > 0) {
+      return res.status(200).json({
+        mensaje: "Se encontraron tareas relacionadas",
+        tareas: coincidencias.map(t => ({
+          id: t.id,
+          nombre: t.nombre
+        }))
+      });
+    }
+
     return res.status(200).json({
-      mensaje: "Se encontraron tareas relacionadas",
-      tareas: coincidencias.map(t => ({ id: t.id, nombre: t.nombre }))
+      mensaje: "No se encontraron coincidencias exactas. Revisá la redacción."
+    });
+
+  } catch (error) {
+    console.error("Error en assistant:", error);
+    return res.status(500).json({
+      error: "Error interno del servidor"
     });
   }
-
-  return res.status(200).json({
-    mensaje: "No se encontraron coincidencias exactas. Revisá la redacción."
-  });
 }
