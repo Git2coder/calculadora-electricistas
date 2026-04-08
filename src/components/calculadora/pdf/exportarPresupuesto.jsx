@@ -13,8 +13,7 @@ export const exportarPresupuestoPDF = async ({
   tarifaHoraria = 0,
   ajustePorcentaje = 0,
   incluirVisita = false,
-  costoVisita = 0,
-  tareasPredefinidas = [],
+  costoVisita = 0,  
   titulo = "Presupuesto Eléctrico",
   validezDias = 15,
   extrasGlobales = [],
@@ -24,15 +23,7 @@ export const exportarPresupuestoPDF = async ({
 }) => {
   // ✅ Calcular costo de visita dentro de la función, según el switch actual
   // Siempre convertir a número real
-const costoVisitaFinal = incluirVisita ? Number(costoVisita) || 0 : 0;
-
-
-  // 🔹 Fallback: si no hay tareas base, usar las seleccionadas
-  if (!tareasPredefinidas || tareasPredefinidas.length === 0) {
-    tareasPredefinidas = tareasSeleccionadas;
-  }
-
-  
+  const costoVisitaFinal = incluirVisita ? Number(costoVisita) || 0 : 0;  
 
   //Redondeo a favor del cliente
     function roundFavorCliente(valor) {

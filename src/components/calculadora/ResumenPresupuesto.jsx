@@ -54,13 +54,6 @@ const ResumenPresupuesto = ({
 
   const tareasSincronizadas = tareasSeleccionadas;
 
-
-
-  // 🔹 Calcular valor base de “Boca” (aunque no esté seleccionada)
-  const baseBoca =
-    tareasActualizadas.find((t) => t.nombre === "Boca") ||
-    tareasPredefinidas.find((t) => t.nombre === "Boca") || { tiempo: 20, multiplicador: 1 };
-
   const valorBocaReal = (baseBoca.tiempo / 60) * tarifaHoraria * (baseBoca.multiplicador ?? 1);
 
   console.log("DEBUG costoVisita:", costoVisita);
@@ -74,8 +67,7 @@ const ResumenPresupuesto = ({
     tarifaHoraria,
     ajustePorcentaje,
     incluirVisita,
-    costoVisita,
-    tareasPredefinidas,
+    costoVisita,    
     titulo: "Presupuesto Eléctrico",
     validezDias,
     extrasGlobales,
