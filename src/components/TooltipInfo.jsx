@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
-export function TooltipInfo({ texto }) {
+export function TooltipInfo({ texto, text }) {
+  const contenido = texto || text; // 👈 acepta ambos
+
   const [visible, setVisible] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const iconRef = useRef();
@@ -26,10 +28,14 @@ export function TooltipInfo({ texto }) {
 
       {visible && (
         <div
-          className="fixed z-50 bg-white text-gray-700 text-xs shadow-lg border rounded p-2 w-64"
-          style={{ top: `${coords.y}px`, left: `${coords.x}px`, transform: "translateY(-50%)" }}
+          className="fixed z-50 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs shadow-lg border dark:border-gray-600 rounded p-2 w-64"
+          style={{
+            top: `${coords.y}px`,
+            left: `${coords.x}px`,
+            transform: "translateY(-50%)"
+          }}
         >
-          {texto}
+          {contenido}
         </div>
       )}
     </>

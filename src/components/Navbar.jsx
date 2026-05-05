@@ -5,7 +5,8 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import NavbarRecursos from "./NavbarRecursos";
-
+import { useCart } from "../context/CartContext";
+import { FaShoppingCart } from "react-icons/fa";
 
 export default function Navbar({ setModalAbierto }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -14,6 +15,7 @@ export default function Navbar({ setModalAbierto }) {
   const menuRef = useRef(null);
   const { usuario } = useAuth();
   const esAdmin = usuario?.rol === "admin";
+  const { cart, setOpen } = useCart();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -70,6 +72,15 @@ export default function Navbar({ setModalAbierto }) {
               className="py-2 px-3 rounded hover:bg-blue-700 transition"
             >
               Novedades
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              to="/tienda"
+              className="py-2 px-3 rounded hover:bg-blue-700 transition"
+            >
+              Tienda
             </Link>
           </li>
         </ul>

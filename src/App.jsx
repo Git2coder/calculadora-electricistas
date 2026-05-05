@@ -21,7 +21,6 @@ import Espera from "./pages/Espera";
 import Terminos from "./pages/Terminos";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { TareasAdmin } from "./pages/admin/TareasAdmin";
-
 import { BotonRenovacion } from "./components/BotonRenovacion";
 import Configuracion from "./pages/admin/Configuracion";
 import { Jornales } from "./pages/admin/Jornales";
@@ -35,8 +34,10 @@ import MensajesPanel from "./pages/admin/MensajesPanel";
 import Navbar from "./components/Navbar"
 import Perfil from "./pages/Perfil";
 import Ayuda from "./pages/Ayuda";
-
 import SketchBook from "./components/SketchBook/SketchBook";
+import Tienda from "./pages/Tienda";
+import { CartProvider } from "./context/CartContext";
+import CartDrawer from "./components/CartDrawer";
 
 // 🧩 NUEVO: importar el Asistente unificado
 import Asistente from "./components/Asistente";
@@ -126,162 +127,126 @@ export default function App() {
   }, [menuUsuario]);
 
   return (
-    <Router>
-      {/* 🌓 Contenedor global con soporte dark */}
-      <div className={`${darkMode ? "dark" : ""} min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950 transition-colors`}>
-        
-        {/* NAVBAR — también necesita recibir darkMode si lo querés adaptar */}
-        <Navbar setModalAbierto={setModalAbierto} />
+    <CartProvider>
+      <Router>
+        <div className={`${darkMode ? "dark" : ""} min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950 transition-colors`}>
+          
+          <Navbar setModalAbierto={setModalAbierto} />
 
-        <ModalAcceso
-          isOpen={modalAbierto}
-          onClose={() => setModalAbierto(false)}
-        />
+          <ModalAcceso
+            isOpen={modalAbierto}
+            onClose={() => setModalAbierto(false)}
+          />
 
-        {/* --- MAIN --- */}
-        {/* Quité bg-gray-50 porque forzaba siempre fondo claro */}
-        <main className="flex-grow pb-10 bg-gray-100 dark:bg-gray-800 transition-colors">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route
-              path="/calculadora"
-              element={
-                <ProtectedRoute>
-                  <Calculadora />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/acerca" element={<Acerca />} />
-            <Route path="/novedades/noticias" element={<Noticias />} />
-            <Route path="/reglamentacion" element={<Reglamentacion />} />
-            <Route path="/cables-certificados" element={<CablesCertificados />} />
-            <Route path="/comentarios" element={<ComentariosPage />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/ayuda" element={<Ayuda />} />
+          <main className="flex-grow pb-10 bg-gray-100 dark:bg-gray-800 transition-colors">
+            <Routes>
+              <Route path="/" element={<Home />} />
 
-            <Route
-              path="/votacion"
-              element={
-                <ProtectedRoute>
-                  <VotacionTareas />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <DashboardLayout />
-                </AdminRoute>
-              }
-            >
-              <Route path="usuarios" element={<UsuariosAdmin />} />
-              <Route path="tareas" element={<TareasAdmin />} />
-              <Route path="Configuracion" element={<Configuracion />} />
-              <Route path="Jornales" element={<Jornales />} />
-              <Route path="Estadisticas" element={<Estadisticas />} />
-              <Route path="votacion-resultados" element={<ResultadosVotacion />} />
-              <Route path="/admin/mensajes" element={<MensajesPanel />} />
-              
-                          
-
-            </Route>
-
-            <Route path="/sketch" element={<SketchBook />} />
-            <Route path="/gracias" element={<Gracias />} />
-            <Route path="/error" element={<ErrorPago />} />
-            <Route path="/espera" element={<Espera />} />
-            <Route path="/terminos" element={<Terminos />} />
-          </Routes>
-        </main>
-
-        {/* --- FOOTER --- */}
-        <footer className="bg-blue-800 dark:bg-blue-900 text-white py-4 transition-colors">
-          <div className="max-w-6xl mx-auto flex flex-col items-center gap-2">
-
-            <div className="flex items-center gap-2">
-              <img
-                src="/icons/Presupuesto1.png"
-                alt="Presupuesto+"
-                className="h-7 w-auto"
+              <Route
+                path="/calculadora"
+                element={
+                  <ProtectedRoute>
+                    <Calculadora />
+                  </ProtectedRoute>
+                }
               />
-              <span className="font-semibold text-lg">Presupuesto+</span>
-            </div>
 
-            <p className="text-sm opacity-90">
-              &copy; {new Date().getFullYear()} Todos los derechos reservados.
-            </p>
+              <Route path="/acerca" element={<Acerca />} />
+              <Route path="/novedades/noticias" element={<Noticias />} />
+              <Route path="/reglamentacion" element={<Reglamentacion />} />
+              <Route path="/cables-certificados" element={<CablesCertificados />} />
+              <Route path="/comentarios" element={<ComentariosPage />} />
+              <Route path="/perfil" element={<Perfil />} />
+              <Route path="/ayuda" element={<Ayuda />} />
+              <Route path="/tienda" element={<Tienda />} />
 
-            {/* ⭐ Nuevo switch elegante en footer */}
-            <div className="mt-3 flex items-center gap-3 text-sm opacity-90">
+              <Route
+                path="/votacion"
+                element={
+                  <ProtectedRoute>
+                    <VotacionTareas />
+                  </ProtectedRoute>
+                }
+              />
 
-              <span className="text-white">Modo oscuro</span>
-
-              <button onClick={toggleDarkMode}
-
-                className="
-                  relative inline-flex items-center
-                  h-6 w-12 rounded-full
-                  bg-gray-300 dark:bg-gray-600
-                  transition-colors duration-300 shadow-inner
-                "
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <DashboardLayout />
+                  </AdminRoute>
+                }
               >
-                <span
-                  className={`absolute left-1 text-gray-700 dark:text-gray-300 text-[10px] transition-opacity ${
-                    darkMode ? "opacity-0" : "opacity-100"
-                  }`}
-                >
-                  🌙
-                </span>
+                <Route path="usuarios" element={<UsuariosAdmin />} />
+                <Route path="tareas" element={<TareasAdmin />} />
+                <Route path="Configuracion" element={<Configuracion />} />
+                <Route path="Jornales" element={<Jornales />} />
+                <Route path="Estadisticas" element={<Estadisticas />} />
+                <Route path="votacion-resultados" element={<ResultadosVotacion />} />
+                <Route path="/admin/mensajes" element={<MensajesPanel />} />
+              </Route>
 
-                <span
-                  className={`absolute right-1 text-yellow-300 text-[10px] transition-opacity ${
-                    darkMode ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  ☀️
-                </span>
+              <Route path="/sketch" element={<SketchBook />} />
+              <Route path="/gracias" element={<Gracias />} />
+              <Route path="/error" element={<ErrorPago />} />
+              <Route path="/espera" element={<Espera />} />
+              <Route path="/terminos" element={<Terminos />} />
+            </Routes>
+          </main>
 
-                <span
-                  className={`
-                    inline-block h-4 w-4 bg-white dark:bg-gray-200 rounded-full shadow 
-                    transform transition-transform duration-300
-                    ${darkMode ? "translate-x-6" : "translate-x-1"}
-                  `}
-                ></span>
-              </button>
+          <footer className="bg-blue-800 dark:bg-blue-900 text-white py-4 transition-colors">
+            <div className="max-w-6xl mx-auto flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2">
+                <img src="/icons/Presupuesto1.png" className="h-7 w-auto" />
+                <span className="font-semibold text-lg">Presupuesto+</span>
+              </div>
+
+              <p className="text-sm opacity-90">
+                &copy; {new Date().getFullYear()} Todos los derechos reservados.
+              </p>
+
+              <div className="mt-3 flex items-center gap-3 text-sm opacity-90">
+                <span>Modo oscuro</span>
+
+                <button
+                  onClick={toggleDarkMode}
+                  className="relative inline-flex items-center h-6 w-12 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 bg-white rounded-full transform transition-transform ${
+                      darkMode ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  ></span>
+                </button>
+              </div>
             </div>
-          </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
 
-      {/* Modal acceso */}
-      {setModalAbierto && (
-        <ModalAcceso isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
-      )}
+        {/* 👇 ESTO ES CLAVE */}
+        <CartDrawer />
 
-      {/* Modal T&C */}
-      {mostrarModalTerminos && (
-        <ModalTerminos
-          usuario={usuario}
-          onAceptar={async () => {
-            if (usuario) {
-              const db = getFirestore();
-              const userRef = doc(db, "usuarios", usuario.uid);
-              await updateDoc(userRef, {
-                terminos: {
-                  version: TERMINOS_VERSION,
-                  aceptadoEn: new Date().toISOString(),
-                  aceptado: true,
-                },
-              });
-            }
-            setMostrarModalTerminos(false);
-          }}
-          onVerTerminos={() => window.open("/terminos", "_blank")}
-        />
-      )}
-    </Router>
+        {mostrarModalTerminos && (
+          <ModalTerminos
+            usuario={usuario}
+            onAceptar={async () => {
+              if (usuario) {
+                const db = getFirestore();
+                const userRef = doc(db, "usuarios", usuario.uid);
+                await updateDoc(userRef, {
+                  terminos: {
+                    version: TERMINOS_VERSION,
+                    aceptadoEn: new Date().toISOString(),
+                    aceptado: true,
+                  },
+                });
+              }
+              setMostrarModalTerminos(false);
+            }}
+            onVerTerminos={() => window.open("/terminos", "_blank")}
+          />
+        )}
+      </Router>
+    </CartProvider>
   );
 }
